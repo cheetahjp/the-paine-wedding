@@ -1,65 +1,71 @@
+import React from "react";
 import Image from "next/image";
+import Section from "@/components/ui/Section";
+import Button from "@/components/ui/Button";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      {/* Hero Section */}
+      <section className="relative w-full h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Abstract Placeholder for Hero Image */}
+        <div className="absolute inset-0 bg-primary/20 bg-[url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80')] bg-cover bg-center z-[-1]" />
+        <div className="absolute inset-0 bg-text-primary/30 z-0"></div>
+
+        <div className="relative z-10 text-center text-white space-y-8 animate-fade-in-up px-6 pt-20">
+          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight drop-shadow-lg">
+            Jeff & Ashlyn
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+          <div className="space-y-2 uppercase tracking-[0.3em] text-sm md:text-base font-light text-white/90 drop-shadow-md">
+            <p>September 2026</p>
+            <p>Dallas, Texas</p>
+          </div>
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button href="/rsvp" variant="primary">
+              RSVP
+            </Button>
+            <Button
+              href="/wedding-details"
+              variant="outline"
+              className="border-white text-white hover:bg-white hover:text-primary"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Wedding Details
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Intro Section */}
+      <Section background="surface" className="text-center">
+        <h2 className="font-heading text-4xl mb-6">Join Us in Celebration</h2>
+        <p className="max-w-2xl mx-auto text-text-secondary leading-relaxed">
+          We are so excited to celebrate this special moment in our lives with our closest family and friends.
+          Your love and support mean the world to us, and we can’t wait to share this unforgettable day with you.
+        </p>
+        <div className="mt-12">
+          <Button href="/our-story" variant="secondary">
+            Read Our Story
+          </Button>
         </div>
-      </main>
-    </div>
+      </Section>
+
+      {/* Quick Details Grid */}
+      <Section background="base">
+        <div className="grid md:grid-cols-3 gap-12 text-center">
+          <div className="space-y-4">
+            <h3 className="uppercase tracking-widest text-sm text-text-secondary">When</h3>
+            <p className="font-heading text-2xl">Sept 2026</p>
+          </div>
+          <div className="space-y-4 md:border-l md:border-r border-surface px-4">
+            <h3 className="uppercase tracking-widest text-sm text-text-secondary">Where</h3>
+            <p className="font-heading text-2xl">Dallas, TX</p>
+          </div>
+          <div className="space-y-4">
+            <h3 className="uppercase tracking-widest text-sm text-text-secondary">Dress Code</h3>
+            <p className="font-heading text-2xl">Formal</p>
+          </div>
+        </div>
+      </Section>
+    </>
   );
 }
