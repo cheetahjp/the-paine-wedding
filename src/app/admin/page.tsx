@@ -279,38 +279,58 @@ export default function AdminDashboard() {
 
                         {/* Data Table */}
                         <div className="bg-white border border-gray-100 shadow-sm overflow-hidden mb-12">
+                            <div className="p-6 border-b border-gray-100 bg-surface/50">
+                                <h2 className="font-heading text-xl text-primary">Guest List by Household</h2>
+                                <p className="text-sm text-text-secondary mt-1">This shows exactly how guests are grouped into RSVP families.</p>
+                            </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
-                                    <thead className="bg-surface/50 text-text-secondary uppercase tracking-widest text-xs border-b border-gray-100">
+                                    <thead className="bg-surface/80 text-text-secondary uppercase tracking-widest text-xs border-b border-gray-200">
                                         <tr>
-                                            <th className="px-6 py-4 font-normal">Guest Name</th>
-                                            <th className="px-6 py-4 font-normal">Household</th>
+                                            <th className="px-6 py-4 font-normal">Household / Guest Name</th>
                                             <th className="px-6 py-4 font-normal">Status</th>
                                             <th className="px-6 py-4 font-normal">Meal Choice</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {guests.map((g) => (
-                                            <tr key={g.id} className="hover:bg-surface/30 transition-colors">
-                                                <td className="px-6 py-4 font-medium text-primary">
-                                                    {g.first_name} {g.last_name} {g.suffix && <span className="text-text-secondary ml-1">{g.suffix}</span>}
-                                                </td>
-                                                <td className="px-6 py-4 text-text-secondary">
-                                                    {g.households?.name}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {g.attending === true && <span className="text-green-700 bg-green-50 px-2 py-1 rounded text-xs">Attending</span>}
-                                                    {g.attending === false && <span className="text-red-700 bg-red-50 px-2 py-1 rounded text-xs">Declined</span>}
-                                                    {g.attending === null && <span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded text-xs">Pending</span>}
-                                                </td>
-                                                <td className="px-6 py-4 text-text-secondary capitalize">
-                                                    {g.meal_choice || "—"}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {Object.entries(
+                                            guests.reduce((acc, guest) => {
+                                                const householdName = guest.households?.name || "Unknown Household";
+                                                if (!acc[householdName]) acc[householdName] = [];
+                                                acc[householdName].push(guest);
+                                                return acc;
+                                            }, {} as Record<string, Guest[]>)
+                                        )
+                                            .sort(([a], [b]) => a.localeCompare(b))
+                                            .map(([householdName, householdGuests]) => (
+                                                <React.Fragment key={householdName}>
+                                                    {/* Household Divider Row */}
+                                                    <tr className="bg-surface/30 border-t-2 border-gray-100">
+                                                        <td colSpan={3} className="px-6 py-3 font-heading text-primary font-bold">
+                                                            {householdName}
+                                                        </td>
+                                                    </tr>
+                                                    {/* Guest Rows for Household */}
+                                                    {householdGuests.map((g) => (
+                                                        <tr key={g.id} className="hover:bg-surface/10 transition-colors">
+                                                            <td className="px-6 py-3 pl-10 font-medium text-text-secondary">
+                                                                {g.first_name} {g.last_name} {g.suffix && <span className="text-gray-400 ml-1">{g.suffix}</span>}
+                                                            </td>
+                                                            <td className="px-6 py-3">
+                                                                {g.attending === true && <span className="text-green-700 bg-green-50 px-2 py-1 rounded text-xs">Attending</span>}
+                                                                {g.attending === false && <span className="text-red-700 bg-red-50 px-2 py-1 rounded text-xs">Declined</span>}
+                                                                {g.attending === null && <span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded text-xs">Pending</span>}
+                                                            </td>
+                                                            <td className="px-6 py-3 capitalize text-text-secondary">
+                                                                {g.meal_choice || "—"}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </React.Fragment>
+                                            ))}
                                         {guests.length === 0 && (
                                             <tr>
-                                                <td colSpan={4} className="px-6 py-8 text-center text-text-secondary">
+                                                <td colSpan={3} className="px-6 py-8 text-center text-text-secondary">
                                                     No guests found. Have you imported the data?
                                                 </td>
                                             </tr>
