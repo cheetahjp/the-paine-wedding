@@ -122,7 +122,7 @@ export default function RSVP() {
 
         // Initialize the response state based on current guest data
         // We set default to false so that "unchecked" means Declined
-        const initialResponses: any = {};
+        const initialResponses: Record<string, { attending: boolean; meal_choice: string }> = {};
         allHouseholdGuests.forEach((g: Guest) => {
             initialResponses[g.id] = {
                 attending: g.attending ?? false,
@@ -136,7 +136,7 @@ export default function RSVP() {
         setLoading(false);
     };
 
-    const handleResponseChange = (guestId: string, field: string, value: any) => {
+    const handleResponseChange = (guestId: string, field: string, value: string | boolean) => {
         setResponses((prev) => ({
             ...prev,
             [guestId]: {

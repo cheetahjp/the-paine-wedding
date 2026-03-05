@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Bodoni_Moda, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const playfair = Playfair_Display({
+const bodoni = Bodoni_Moda({
   variable: "--font-playfair",
   subsets: ["latin"],
 });
 
-const inter = Inter({
+const montserrat = Montserrat({
   variable: "--font-inter",
   subsets: ["latin"],
 });
@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${playfair.variable} ${inter.variable} antialiased min-h-screen flex flex-col bg-base text-text-primary`}>
+      <body className={`${bodoni.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col bg-base text-text-primary`}>
         <Navbar />
         <main className="flex-grow">{children}</main>
         <Footer />

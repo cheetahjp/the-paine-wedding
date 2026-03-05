@@ -17,7 +17,7 @@ export default function Schedule() {
             <Section className="text-center pb-12">
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">Schedule of Events</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide">
-                    A timeline of our wedding day. We can't wait to share these moments with you.
+                    A timeline of our wedding day. We can&apos;t wait to share these moments with you.
                 </p>
             </Section>
 
