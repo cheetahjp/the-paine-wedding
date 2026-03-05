@@ -10,6 +10,7 @@ CREATE TABLE guests (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   first_name text NOT NULL,
   last_name text NOT NULL,
+  suffix text DEFAULT null,
   nicknames text DEFAULT null,
   household_id uuid REFERENCES households(id) ON DELETE CASCADE,
   plus_one_allowed boolean DEFAULT false,

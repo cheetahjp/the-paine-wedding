@@ -8,6 +8,8 @@ type Guest = {
     id: string;
     first_name: string;
     last_name: string;
+    suffix: string | null;
+    nicknames: string | null;
     attending: boolean | null;
     meal_choice: string | null;
     households: {
@@ -22,6 +24,7 @@ export default function AdminDashboard() {
     const [importText, setImportText] = useState("");
     const [importing, setImporting] = useState(false);
     const [importMessage, setImportMessage] = useState("");
+    const [envError, setEnvError] = useState(false);
 
     // Auth & Tracking State
     const [passwordInput, setPasswordInput] = useState("");
@@ -64,6 +67,14 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
         setLoading(true);
+
+        const isMissingEnv = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder") || !process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (isMissingEnv) {
+            setEnvError(true);
+            setLoading(false);
+            return;
+        }
+
         const { data, error } = await supabase
             .from("guests")
             .select("*, households(name)")
@@ -104,7 +115,8 @@ export default function AdminDashboard() {
             const householdName = finalCols[0];
             const firstName = finalCols[1];
             const lastName = finalCols[2];
-            const nicknames = finalCols[3] || null;
+            const suffix = finalCols[3] || null;
+            const nicknames = finalCols[4] || null;
 
             try {
                 // Find or create household
@@ -122,6 +134,7 @@ export default function AdminDashboard() {
                 const { error: gErr } = await supabase.from("guests").insert({
                     first_name: firstName,
                     last_name: lastName,
+                    suffix: suffix,
                     nicknames: nicknames,
                     household_id: hh.id
                 });
@@ -207,7 +220,15 @@ export default function AdminDashboard() {
                     </button>
                 </div>
 
-                {error && (
+                {envError && (
+                    <div className="mb-8 p-6 bg-red-50 text-red-900 border border-red-200 shadow-sm rounded-sm">
+                        <h3 className="font-heading text-xl mb-2 text-red-800">Database Connection Error</h3>
+                        <p className="mb-4">It looks like this code is running locally but is missing the connection to your Supabase database. Add your keys to an <code>.env.local</code> file in this folder to test the site locally! Or, test it on your live Vercel `.com` domain instead.</p>
+                        <p className="text-sm"><code>NEXT_PUBLIC_SUPABASE_URL=your_url</code><br /><code>NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key</code></p>
+                    </div>
+                )}
+
+                {error && !envError && (
                     <div className="mb-8 p-4 bg-red-50 text-red-800 text-sm border border-red-200">
                         {error}
                     </div>
@@ -272,7 +293,7 @@ export default function AdminDashboard() {
                                         {guests.map((g) => (
                                             <tr key={g.id} className="hover:bg-surface/30 transition-colors">
                                                 <td className="px-6 py-4 font-medium text-primary">
-                                                    {g.first_name} {g.last_name}
+                                                    {g.first_name} {g.last_name} {g.suffix && <span className="text-text-secondary ml-1">{g.suffix}</span>}
                                                 </td>
                                                 <td className="px-6 py-4 text-text-secondary">
                                                     {g.households?.name}
@@ -303,7 +324,7 @@ export default function AdminDashboard() {
                         <div className="bg-white p-8 border border-gray-100 shadow-sm">
                             <h2 className="font-heading text-2xl text-primary mb-2">Import Guests</h2>
                             <p className="text-sm text-text-secondary mb-6">
-                                Paste data directly from Excel or Google Sheets. The data must have 4 columns in this exact order: <strong>Household Name, First Name, Last Name, Nicknames (Optional)</strong>.
+                                Paste data directly from Excel or Google Sheets. The data must have 5 columns in this exact order: <br /><strong>Household Name, First Name, Last Name, Suffix (Optional), Nicknames (Optional)</strong>.
                             </p>
 
                             {importMessage && (
@@ -315,7 +336,7 @@ export default function AdminDashboard() {
                             <div className="space-y-4">
                                 <textarea
                                     className="w-full border border-gray-200 p-4 min-h-[150px] text-sm focus:outline-none focus:border-primary font-mono bg-surface"
-                                    placeholder={`The Paine Family\tJeffrey\tPaine\tJeff\nThe Paine Family\tAshlyn\tBimmerle`}
+                                    placeholder={`The Paine Family\tJeffrey\tPaine\t\tJeff\nThe Paine Family\tAshlyn\tBimmerle\t\tAsh\nThe Paine Family\tJohn\tPaine\tIII\t`}
                                     value={importText}
                                     onChange={(e) => setImportText(e.target.value)}
                                 ></textarea>

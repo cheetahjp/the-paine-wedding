@@ -9,6 +9,7 @@ type Guest = {
     id: string;
     first_name: string;
     last_name: string;
+    suffix: string | null;
     nicknames: string | null;
     attending: boolean | null;
     meal_choice: string | null;
@@ -26,6 +27,7 @@ export default function RSVP() {
     const [lastName, setLastName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [envError, setEnvError] = useState(false);
     const [step, setStep] = useState<"search" | "respond" | "success">("search");
     const [household, setHousehold] = useState<Household | null>(null);
     const [responses, setResponses] = useState<{
@@ -36,6 +38,13 @@ export default function RSVP() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+        const isMissingEnv = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder") || !process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (isMissingEnv) {
+            setEnvError(true);
+            setLoading(false);
+            return;
+        }
 
         const cleanFirstName = firstName.trim();
         const cleanLastName = lastName.trim();
@@ -112,10 +121,11 @@ export default function RSVP() {
         }
 
         // Initialize the response state based on current guest data
+        // We set default to false so that "unchecked" means Declined
         const initialResponses: any = {};
         allHouseholdGuests.forEach((g: Guest) => {
             initialResponses[g.id] = {
-                attending: g.attending ?? null,
+                attending: g.attending ?? false,
                 meal_choice: g.meal_choice || "",
             };
         });
@@ -173,13 +183,20 @@ export default function RSVP() {
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">RSVP</h1>
 
                 <div className="max-w-md mx-auto w-full mt-12 bg-white p-10 shadow-[0_20px_50px_rgba(20,42,68,0.05)] border border-surface rounded-sm">
-                    {error && (
+                    {envError && (
+                        <div className="mb-8 p-6 bg-red-50 text-red-900 border border-red-200 shadow-sm rounded-sm text-left">
+                            <h3 className="font-heading text-xl mb-2 text-red-800">Database Connection Error</h3>
+                            <p className="mb-4 text-sm">It looks like this code is running locally but is missing the connection to your Supabase database. Add your keys to an <code>.env.local</code> file in this folder to test the site locally! Or, test it on your live Vercel `.com` domain instead.</p>
+                        </div>
+                    )}
+
+                    {error && !envError && (
                         <div className="mb-6 p-4 bg-red-50 text-red-800 text-sm border border-red-200">
                             {error}
                         </div>
                     )}
 
-                    {step === "search" && (
+                    {step === "search" && !envError && (
                         <form onSubmit={handleSearch} className="space-y-6 text-left">
                             <p className="text-text-secondary text-center mb-8">
                                 Please enter your first and last name to find your invitation.
@@ -233,32 +250,19 @@ export default function RSVP() {
                                 const isAttending = responses[guest.id]?.attending;
                                 return (
                                     <div key={guest.id} className="space-y-4 pb-6 border-b border-surface last:border-0">
-                                        <h3 className="font-medium text-lg border-l-2 border-primary pl-3">
-                                            {guest.first_name} {guest.last_name}
-                                        </h3>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-medium text-lg border-l-2 border-primary pl-3">
+                                                {guest.first_name} {guest.last_name} {guest.suffix && <span className="text-text-secondary">{guest.suffix}</span>}
+                                            </h3>
 
-                                        <div className="flex gap-4">
-                                            <label className="flex items-center gap-2 cursor-pointer">
+                                            <label className="flex items-center gap-3 cursor-pointer bg-surface/30 px-3 py-2 rounded border border-gray-100 hover:bg-surface/50 transition-colors">
                                                 <input
-                                                    type="radio"
-                                                    name={`attending-${guest.id}`}
-                                                    checked={isAttending === true}
-                                                    onChange={() => handleResponseChange(guest.id, "attending", true)}
-                                                    required
-                                                    className="accent-primary"
+                                                    type="checkbox"
+                                                    checked={isAttending || false}
+                                                    onChange={(e) => handleResponseChange(guest.id, "attending", e.target.checked)}
+                                                    className="w-5 h-5 accent-primary border-gray-300 rounded cursor-pointer"
                                                 />
-                                                <span className="text-sm">Joyfully Accepts</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name={`attending-${guest.id}`}
-                                                    checked={isAttending === false}
-                                                    onChange={() => handleResponseChange(guest.id, "attending", false)}
-                                                    required
-                                                    className="accent-primary"
-                                                />
-                                                <span className="text-sm">Regretfully Declines</span>
+                                                <span className="text-sm font-medium whitespace-nowrap">{isAttending ? "Attending" : "Declined"}</span>
                                             </label>
                                         </div>
 
