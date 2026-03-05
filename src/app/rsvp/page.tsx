@@ -9,6 +9,7 @@ type Guest = {
     id: string;
     first_name: string;
     last_name: string;
+    nicknames: string | null;
     attending: boolean | null;
     meal_choice: string | null;
     household_id: string;
@@ -36,20 +37,54 @@ export default function RSVP() {
         setLoading(true);
         setError(null);
 
-        // Fetch the guest by first and last name
-        const { data: searchGuests, error: searchError } = await supabase
-            .from("guests")
-            .select("household_id")
-            .ilike("first_name", `%${firstName}%`)
-            .ilike("last_name", `%${lastName}%`);
+        const cleanFirstName = firstName.trim();
+        const cleanLastName = lastName.trim();
 
-        if (searchError || !searchGuests || searchGuests.length === 0) {
-            setError("We couldn't find an invitation under that name. Please check your spelling and try again.");
+        if (!cleanFirstName || !cleanLastName) {
+            setError("Please enter both your first and last name.");
             setLoading(false);
             return;
         }
 
-        const householdId = searchGuests[0].household_id;
+        // Fetch all guests with a matching last name
+        const { data: searchGuests, error: searchError } = await supabase
+            .from("guests")
+            .select("household_id, first_name, last_name, nicknames")
+            .ilike("last_name", `%${cleanLastName}%`);
+
+        if (searchError) {
+            setError("There was an error communicating with the database. Please try again.");
+            setLoading(false);
+            return;
+        }
+
+        if (!searchGuests || searchGuests.length === 0) {
+            setError("We couldn't find an invitation under that last name. Please check your spelling.");
+            setLoading(false);
+            return;
+        }
+
+        // In-memory fuzzy match for first name or nickname
+        const exactMatch = searchGuests.find((g) => {
+            const first = g.first_name.toLowerCase();
+            const nicks = (g.nicknames || "").toLowerCase();
+            const input = cleanFirstName.toLowerCase();
+
+            // Check if input is part of their first name, their first name is part of the input, or it matches a nickname
+            return first.includes(input) || input.includes(first) || nicks.includes(input);
+        });
+
+        if (!exactMatch) {
+            // Extract unique suggestions
+            const uniqueSuggestions = Array.from(new Set(searchGuests.map(g => `${g.first_name} ${g.last_name}`)));
+            const suggestions = uniqueSuggestions.slice(0, 3).join(", or ");
+
+            setError(`We couldn't find "${cleanFirstName} ${cleanLastName}". Did you mean ${suggestions}?`);
+            setLoading(false);
+            return;
+        }
+
+        const householdId = exactMatch.household_id;
 
         // Fetch the household details
         const { data: householdData, error: hhError } = await supabase

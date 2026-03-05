@@ -19,6 +19,9 @@ export default function AdminDashboard() {
     const [guests, setGuests] = useState<Guest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [importText, setImportText] = useState("");
+    const [importing, setImporting] = useState(false);
+    const [importMessage, setImportMessage] = useState("");
 
     useEffect(() => {
         fetchData();
@@ -37,6 +40,69 @@ export default function AdminDashboard() {
             setGuests(data as unknown as Guest[]);
         }
         setLoading(false);
+    };
+
+    const handleImport = async () => {
+        setImporting(true);
+        setImportMessage("");
+
+        const rows = importText.split('\n').filter(r => r.trim());
+        if (rows.length === 0) {
+            setImportMessage("No data found to import.");
+            setImporting(false);
+            return;
+        }
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const row of rows) {
+            // First try tab separated (copy/paste from Excel/Sheets), fallback to comma
+            const cols = row.split('\t').map(c => c.trim());
+            const finalCols = cols.length >= 3 ? cols : row.split(',').map(c => c.trim());
+
+            if (finalCols.length < 3) {
+                errorCount++;
+                continue;
+            }
+
+            const householdName = finalCols[0];
+            const firstName = finalCols[1];
+            const lastName = finalCols[2];
+            const nicknames = finalCols[3] || null;
+
+            try {
+                // Find or create household
+                let { data: hh } = await supabase.from("households").select("id").eq("name", householdName).single();
+
+                if (!hh) {
+                    const { data: newHh, error: hhErr } = await supabase.from("households").insert({ name: householdName }).select().single();
+                    if (hhErr) throw hhErr;
+                    hh = newHh;
+                }
+
+                if (!hh) throw new Error("Failed to resolve household");
+
+                // Insert Guest
+                const { error: gErr } = await supabase.from("guests").insert({
+                    first_name: firstName,
+                    last_name: lastName,
+                    nicknames: nicknames,
+                    household_id: hh.id
+                });
+
+                if (gErr) throw gErr;
+                successCount++;
+            } catch (err) {
+                console.error(err);
+                errorCount++;
+            }
+        }
+
+        setImportMessage(`Import complete! Successfully added ${successCount} guests. ${errorCount > 0 ? `Failed parsing ${errorCount} rows.` : ""}`);
+        setImportText("");
+        setImporting(false);
+        fetchData();
     };
 
     // Analytics Calculations
@@ -117,7 +183,7 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Data Table */}
-                        <div className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="bg-white border border-gray-100 shadow-sm overflow-hidden mb-12">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
                                     <thead className="bg-surface/50 text-text-secondary uppercase tracking-widest text-xs border-b border-gray-100">
@@ -156,6 +222,37 @@ export default function AdminDashboard() {
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+
+                        {/* Bulk Importer */}
+                        <div className="bg-white p-8 border border-gray-100 shadow-sm">
+                            <h2 className="font-heading text-2xl text-primary mb-2">Import Guests</h2>
+                            <p className="text-sm text-text-secondary mb-6">
+                                Paste data directly from Excel or Google Sheets. The data must have 4 columns in this exact order: <strong>Household Name, First Name, Last Name, Nicknames (Optional)</strong>.
+                            </p>
+
+                            {importMessage && (
+                                <div className={`mb-6 p-4 text-sm border ${importMessage.includes("Failed") ? "bg-yellow-50 text-yellow-800 border-yellow-200" : "bg-green-50 text-green-800 border-green-200"}`}>
+                                    {importMessage}
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                <textarea
+                                    className="w-full border border-gray-200 p-4 min-h-[150px] text-sm focus:outline-none focus:border-primary font-mono bg-surface"
+                                    placeholder={`The Paine Family\tJeffrey\tPaine\tJeff\nThe Paine Family\tAshlyn\tBimmerle`}
+                                    value={importText}
+                                    onChange={(e) => setImportText(e.target.value)}
+                                ></textarea>
+
+                                <button
+                                    onClick={handleImport}
+                                    disabled={importing || !importText.trim()}
+                                    className="bg-primary text-white px-6 py-3 hover:bg-primary-light transition-colors disabled:opacity-50"
+                                >
+                                    {importing ? "Importing Data..." : "Run Import"}
+                                </button>
                             </div>
                         </div>
                     </div>
