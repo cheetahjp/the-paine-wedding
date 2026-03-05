@@ -17,13 +17,12 @@ type Guest = {
 type Household = {
     id: string;
     name: string;
-    rsvp_code: string;
     guests: Guest[];
 };
 
 export default function RSVP() {
+    const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
-    const [rsvpCode, setRsvpCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<"search" | "respond" | "success">("search");
@@ -37,37 +36,39 @@ export default function RSVP() {
         setLoading(true);
         setError(null);
 
-        // Using Supabase to fetch the household by RSVP code
+        // Fetch the guest by first and last name
+        const { data: searchGuests, error: searchError } = await supabase
+            .from("guests")
+            .select("household_id")
+            .ilike("first_name", `%${firstName}%`)
+            .ilike("last_name", `%${lastName}%`);
+
+        if (searchError || !searchGuests || searchGuests.length === 0) {
+            setError("We couldn't find an invitation under that name. Please check your spelling and try again.");
+            setLoading(false);
+            return;
+        }
+
+        const householdId = searchGuests[0].household_id;
+
+        // Fetch the household details
         const { data: householdData, error: hhError } = await supabase
             .from("households")
             .select("*")
-            .eq("rsvp_code", rsvpCode.toUpperCase())
+            .eq("id", householdId)
             .single();
 
         if (hhError || !householdData) {
-            setError("We couldn't find an invitation matching that RSVP code.");
+            setError("We found your name, but couldn't load your household details.");
             setLoading(false);
             return;
         }
 
-        // Now fetch guests belonging to that household
-        const { data: guestData, error: guestError } = await supabase
-            .from("guests")
-            .select("*")
-            .eq("household_id", householdData.id)
-            .ilike("last_name", `%${lastName}%`);
-
-        if (guestError || !guestData || guestData.length === 0) {
-            setError("We couldn't find your last name in this household.");
-            setLoading(false);
-            return;
-        }
-
-        // Since we just verified the last name exists, fetch ALL guests for the household so they can RSVP together
+        // Fetch all guests belonging to that household
         const { data: allHouseholdGuests, error: allGuestError } = await supabase
             .from("guests")
             .select("*")
-            .eq("household_id", householdData.id);
+            .eq("household_id", householdId);
 
         if (allGuestError || !allHouseholdGuests) {
             setError("An error occurred loading the guests.");
@@ -146,35 +147,37 @@ export default function RSVP() {
                     {step === "search" && (
                         <form onSubmit={handleSearch} className="space-y-6 text-left">
                             <p className="text-text-secondary text-center mb-8">
-                                Please enter your last name and the RSVP code found on your invitation.
+                                Please enter your first and last name to find your invitation.
                             </p>
 
-                            <div className="space-y-2">
-                                <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                    Last Name
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                    className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent"
-                                    placeholder="Enter your last name"
-                                />
-                            </div>
+                            <div className="flex flex-col md:flex-row gap-6">
+                                <div className="space-y-2 flex-1">
+                                    <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                        First Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent"
+                                        placeholder="Enter your first name"
+                                    />
+                                </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                    RSVP Code
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={rsvpCode}
-                                    onChange={(e) => setRsvpCode(e.target.value.toUpperCase())}
-                                    className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent text-center tracking-[0.5em] uppercase"
-                                    placeholder="XXXX"
-                                />
+                                <div className="space-y-2 flex-1">
+                                    <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                        Last Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent"
+                                        placeholder="Enter your last name"
+                                    />
+                                </div>
                             </div>
 
                             <div className="pt-6">

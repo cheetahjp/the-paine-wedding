@@ -2,7 +2,6 @@
 CREATE TABLE households (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL,
-  rsvp_code text NOT NULL UNIQUE,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
