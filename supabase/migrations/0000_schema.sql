@@ -18,4 +18,11 @@ CREATE TABLE guests (
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Create admin_logs table for tracking logins
+CREATE TABLE admin_logs (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  password_used text NOT NULL,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Note: Enable RLS and setup policies from Supabase Dashboard when connecting.

@@ -23,9 +23,44 @@ export default function AdminDashboard() {
     const [importing, setImporting] = useState(false);
     const [importMessage, setImportMessage] = useState("");
 
-    useEffect(() => {
+    // Auth & Tracking State
+    const [passwordInput, setPasswordInput] = useState("");
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userRole, setUserRole] = useState("");
+    const [adminLogs, setAdminLogs] = useState<{ id: string, password_used: string, created_at: string }[]>([]);
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        const pw = passwordInput.trim();
+        let role = "";
+
+        if (pw === "JeffreyAndAshlyn!") role = "Master";
+        else if (pw === "JeffreyAndAshlyn1!") role = "User 1";
+        else if (pw === "JeffreyAndAshlyn2!") role = "User 2";
+        else if (pw === "JeffreyAndAshlyn3!") role = "User 3";
+        else if (pw === "JeffreyAndAshlyn4!") role = "User 4";
+        else if (pw === "JeffreyAndAshlyn5!") role = "User 5";
+        else {
+            setError("Invalid password.");
+            return;
+        }
+
+        setUserRole(role);
+        setIsAuthenticated(true);
         fetchData();
-    }, []);
+
+        // Log the login attempt asynchronously
+        supabase.from("admin_logs").insert({ password_used: role }).then(({ error }) => {
+            if (error) console.error("Could not log login attempt. Ensure admin_logs table is created.");
+        });
+
+        if (role === "Master") {
+            const { data } = await supabase.from("admin_logs").select("*").order("created_at", { ascending: false });
+            if (data) setAdminLogs(data);
+        }
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -117,13 +152,52 @@ export default function AdminDashboard() {
         veg: guests.filter((g) => g.meal_choice === "veg").length,
     };
 
+    if (!isAuthenticated) {
+        return (
+            <div className="pt-32 min-h-screen flex flex-col bg-surface">
+                <Section className="text-center pb-12 flex-grow flex flex-col justify-start">
+                    <div className="max-w-md mx-auto w-full bg-white p-10 shadow-sm border border-gray-100 mt-10">
+                        <h1 className="font-heading text-3xl mb-6 text-primary">Admin Access</h1>
+
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-50 text-red-800 text-sm border border-red-200 text-left">
+                                {error}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div className="space-y-2 text-left">
+                                <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                    Password
+                                </label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={passwordInput}
+                                    onChange={(e) => setPasswordInput(e.target.value)}
+                                    className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-primary text-white px-6 py-3 hover:bg-primary-light transition-colors"
+                            >
+                                Login
+                            </button>
+                        </form>
+                    </div>
+                </Section>
+            </div>
+        );
+    }
+
     return (
         <div className="pt-24 min-h-screen bg-surface">
             <Section className="pb-12">
                 <div className="flex justify-between items-end mb-10 border-b border-gray-200 pb-6">
                     <div>
                         <h1 className="font-heading text-4xl mb-2 text-primary">RSVP Dashboard</h1>
-                        <p className="text-text-secondary">Real-time attendance and meal analytics.</p>
+                        <p className="text-text-secondary">Logged in as: <strong className="text-primary">{userRole}</strong></p>
                     </div>
                     <button
                         onClick={fetchData}
@@ -255,6 +329,45 @@ export default function AdminDashboard() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Master Admin Tracking Logs */}
+                        {userRole === "Master" && (
+                            <div className="bg-white border border-gray-100 shadow-sm overflow-hidden mb-12 animate-fade-in-up">
+                                <div className="p-6 border-b border-gray-100 bg-primary/5 flex justify-between items-center">
+                                    <h2 className="font-heading text-2xl text-primary">Security & Login Tracking</h2>
+                                    <span className="text-xs uppercase tracking-widest text-primary font-bold">Master View</span>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-surface/50 text-text-secondary uppercase tracking-widest text-xs border-b border-gray-100">
+                                            <tr>
+                                                <th className="px-6 py-4 font-normal">Account Used</th>
+                                                <th className="px-6 py-4 font-normal">Time (UTC)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {adminLogs.map((log) => (
+                                                <tr key={log.id} className="hover:bg-surface/30 transition-colors">
+                                                    <td className="px-6 py-4 font-medium text-primary">
+                                                        {log.password_used}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-text-secondary">
+                                                        {new Date(log.created_at).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {adminLogs.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={2} className="px-6 py-8 text-center text-text-secondary">
+                                                        No login history available.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </Section>
