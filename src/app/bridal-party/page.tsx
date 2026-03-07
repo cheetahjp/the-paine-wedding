@@ -1,22 +1,45 @@
 import React from "react";
 import Section from "@/components/ui/Section";
 import Image from "next/image";
+import { WEDDING } from "@/lib/wedding-data";
 
-const bridesmaids = [
-    { name: "Sarah Jenkins", role: "Maid of Honor", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
-    { name: "Emily Chen", role: "Bridesmaid", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" },
-    { name: "Jessica Smith", role: "Bridesmaid", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
-    { name: "Anna Davis", role: "Bridesmaid", image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=400&q=80" },
-];
+type PartyMember = {
+    name: string;
+    role: string;
+    relationship: string;
+    image: string;
+};
 
-const groomsmen = [
-    { name: "Michael Paine", role: "Best Man", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-    { name: "David Roberts", role: "Groomsman", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-    { name: "Christopher Lee", role: "Groomsman", image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80" },
-    { name: "James Wilson", role: "Groomsman", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" }, // Reusing one for placeholder
-];
+function PersonCard({ person }: { person: PartyMember }) {
+    const fallback =
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
+
+    return (
+        <div className="group text-center">
+            <div className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm">
+                <Image
+                    src={person.image || fallback}
+                    alt={person.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = fallback;
+                    }}
+                />
+            </div>
+            <h3 className="font-heading text-xl text-primary">{person.name}</h3>
+            <p className="uppercase tracking-[0.2em] text-xs text-text-secondary mt-2">{person.role}</p>
+            {person.relationship && (
+                <p className="text-xs text-text-secondary/60 mt-1 italic">{person.relationship}</p>
+            )}
+        </div>
+    );
+}
 
 export default function BridalParty() {
+    const { bridesmaids, groomsmen } = WEDDING.bridalParty;
+    const hasParty = bridesmaids.length > 0 || groomsmen.length > 0;
+
     return (
         <div className="pt-20">
             <Section className="text-center pb-12">
@@ -27,47 +50,53 @@ export default function BridalParty() {
             </Section>
 
             <Section background="surface" className="py-24">
-                {/* Ladies */}
-                <div className="max-w-6xl mx-auto mb-32">
-                    <h2 className="font-heading text-4xl text-center mb-16 text-primary">The Ladies</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                        {bridesmaids.map((person, idx) => (
-                            <div key={idx} className="group text-center">
-                                <div className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm">
-                                    <Image
-                                        src={person.image}
-                                        alt={person.name}
-                                        fill
-                                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                    />
-                                </div>
-                                <h3 className="font-heading text-xl text-primary">{person.name}</h3>
-                                <p className="uppercase tracking-[0.2em] text-xs text-text-secondary mt-2">{person.role}</p>
-                            </div>
-                        ))}
+                {!hasParty ? (
+                    <div className="max-w-xl mx-auto text-center py-20 space-y-5">
+                        <div className="w-16 h-px bg-primary/30 mx-auto" />
+                        <h2 className="font-heading text-3xl text-primary">Coming Soon</h2>
+                        <p className="text-text-secondary leading-relaxed">
+                            We can&apos;t wait to introduce you to the incredible people standing by our
+                            side. Check back as we get closer to the date!
+                        </p>
+                        <div className="w-16 h-px bg-primary/30 mx-auto" />
                     </div>
-                </div>
+                ) : (
+                    <div className="max-w-6xl mx-auto space-y-32">
+                        {bridesmaids.length > 0 && (
+                            <div>
+                                <h2 className="font-heading text-4xl text-center mb-16 text-primary">
+                                    The Ladies
+                                </h2>
+                                <div
+                                    className={`grid grid-cols-2 gap-8 ${
+                                        bridesmaids.length > 3 ? "md:grid-cols-4" : "md:grid-cols-3"
+                                    }`}
+                                >
+                                    {bridesmaids.map((person, idx) => (
+                                        <PersonCard key={idx} person={person} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-                {/* Gentlemen */}
-                <div className="max-w-6xl mx-auto">
-                    <h2 className="font-heading text-4xl text-center mb-16 text-primary">The Gentlemen</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                        {groomsmen.map((person, idx) => (
-                            <div key={idx} className="group text-center">
-                                <div className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm">
-                                    <Image
-                                        src={person.image}
-                                        alt={person.name}
-                                        fill
-                                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                    />
+                        {groomsmen.length > 0 && (
+                            <div>
+                                <h2 className="font-heading text-4xl text-center mb-16 text-primary">
+                                    The Gentlemen
+                                </h2>
+                                <div
+                                    className={`grid grid-cols-2 gap-8 ${
+                                        groomsmen.length > 3 ? "md:grid-cols-4" : "md:grid-cols-3"
+                                    }`}
+                                >
+                                    {groomsmen.map((person, idx) => (
+                                        <PersonCard key={idx} person={person} />
+                                    ))}
                                 </div>
-                                <h3 className="font-heading text-xl text-primary">{person.name}</h3>
-                                <p className="uppercase tracking-[0.2em] text-xs text-text-secondary mt-2">{person.role}</p>
                             </div>
-                        ))}
+                        )}
                     </div>
-                </div>
+                )}
             </Section>
         </div>
     );

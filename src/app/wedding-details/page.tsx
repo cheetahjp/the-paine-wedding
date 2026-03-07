@@ -1,55 +1,96 @@
 import React from "react";
 import Section from "@/components/ui/Section";
-import { MapPin, Clock, CalendarHeart, GlassWater } from "lucide-react";
-
-const details = [
-    {
-        title: "Ceremony",
-        icon: CalendarHeart,
-        content: (
-            <>
-                <p className="font-medium text-lg mb-2">3:30 PM</p>
-                <p>The Grand Cathedral</p>
-                <p>123 Wedding Way, Dallas, TX</p>
-            </>
-        ),
-    },
-    {
-        title: "Reception",
-        icon: GlassWater,
-        content: (
-            <>
-                <p className="font-medium text-lg mb-2">5:00 PM</p>
-                <p>The Modern Estate</p>
-                <p>456 Celebration Cir, Dallas, TX</p>
-            </>
-        ),
-    },
-    {
-        title: "Attire",
-        icon: Clock, // We'll use a generic icon or change it later
-        content: (
-            <>
-                <p className="font-medium text-lg mb-2">Formal Black-Tie Optional</p>
-                <p>Floor-length gowns for ladies.</p>
-                <p>Tuxedos or dark suits for gentlemen.</p>
-            </>
-        ),
-    },
-    {
-        title: "Location Details",
-        icon: MapPin,
-        content: (
-            <>
-                <p className="font-medium text-lg mb-2">Parking & Transport</p>
-                <p>Valet parking is compliments of the couple.</p>
-                <p>Shuttles provided from main hotels.</p>
-            </>
-        ),
-    },
-];
+import { MapPin, Shirt, CalendarHeart, Info } from "lucide-react";
+import { WEDDING } from "@/lib/wedding-data";
+import Link from "next/link";
 
 export default function WeddingDetails() {
+    const details = [
+        {
+            title: "The Venue",
+            icon: CalendarHeart,
+            content: (
+                <>
+                    <p className="font-medium text-lg mb-2">{WEDDING.venue.name}</p>
+                    <p>{WEDDING.venue.address}</p>
+                    <p>{WEDDING.venue.city}</p>
+                    {WEDDING.venue.ceremonyTime !== "TBD" && (
+                        <p className="mt-2 text-sm font-medium tracking-widest uppercase text-accent">
+                            Ceremony at {WEDDING.venue.ceremonyTime}
+                        </p>
+                    )}
+                    <Link
+                        href={WEDDING.venue.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-block text-sm underline underline-offset-4 text-primary/70 hover:text-primary transition-colors"
+                    >
+                        View on Google Maps &rarr;
+                    </Link>
+                </>
+            ),
+        },
+        {
+            title: "Attire",
+            icon: Shirt,
+            content: (
+                <>
+                    <p className="font-medium text-lg mb-2">
+                        {WEDDING.dresscode.short === "TBD" ? "Details Coming Soon" : WEDDING.dresscode.short}
+                    </p>
+                    {WEDDING.dresscode.short !== "TBD" ? (
+                        <>
+                            <p className="text-sm">{WEDDING.dresscode.summary}</p>
+                            <Link
+                                href="/attire"
+                                className="mt-4 inline-block text-sm underline underline-offset-4 text-primary/70 hover:text-primary transition-colors"
+                            >
+                                View Attire Details &rarr;
+                            </Link>
+                        </>
+                    ) : (
+                        <p className="text-sm">Full attire details will be posted soon.</p>
+                    )}
+                </>
+            ),
+        },
+        {
+            title: "Getting There",
+            icon: MapPin,
+            content: (
+                <>
+                    <p className="font-medium text-lg mb-2">Parking &amp; Transport</p>
+                    <p>
+                        {WEDDING.venue.parking === "TBD"
+                            ? "Parking details coming soon."
+                            : WEDDING.venue.parking}
+                    </p>
+                    {WEDDING.venue.shuttle !== "TBD" && WEDDING.venue.shuttle !== "none" && (
+                        <p className="mt-2">{WEDDING.venue.shuttle}</p>
+                    )}
+                    {WEDDING.venue.shuttle === "none" && (
+                        <p className="mt-2 text-sm">
+                            No shuttle service is provided. Please arrange your own transportation.
+                        </p>
+                    )}
+                </>
+            ),
+        },
+        {
+            title: "Day Of",
+            icon: Info,
+            content: (
+                <>
+                    <p className="font-medium text-lg mb-2">{WEDDING.date.dayOfWeek}</p>
+                    <p>{WEDDING.date.display}</p>
+                    <p className="mt-2 text-sm">
+                        RSVP by <span className="font-medium">{WEDDING.date.rsvpDeadline}</span>
+                    </p>
+                </>
+            ),
+        },
+    ];
+
     return (
         <div className="pt-20">
             <Section background="surface" className="text-center pb-24 top-0 mt-[-80px] pt-40">

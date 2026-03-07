@@ -3,6 +3,7 @@ import { Bodoni_Moda, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { WEDDING } from "@/lib/wedding-data";
 
 const bodoni = Bodoni_Moda({
   variable: "--font-playfair",
@@ -15,8 +16,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Jeff & Ashlyn | The Paine Wedding",
-  description: "Join us in celebrating our marriage, September 2026 in Dallas, Texas.",
+  title: WEDDING.meta.title,
+  description: WEDDING.meta.description,
 };
 
 export default function RootLayout({
