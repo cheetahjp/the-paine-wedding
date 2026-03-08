@@ -519,3 +519,21 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Revalidated with:
 - `npm run lint` -> only the 2 known warnings remain
 - `npm run build` -> passes
+
+### Session 12 (Mar 8, 2026)
+- Fixed repeat-word scheduling in Painedle
+- Root cause: `src/lib/games/painedle.ts` was choosing answers with a date-hash modulo the word list, which allowed nearby dates to collide on the same answer before the bank was exhausted
+- Replaced the hash logic with a true sequential daily rotation:
+- anchor date: `2026-03-08`
+- anchor word preserved as `sparkle` for that date
+- each following day advances exactly one slot through the bank
+- repeats now only happen after the entire bank has been used once
+- Expanded `src/lib/games/word-list.ts` from a small list to a 310-word answer bank
+- Added guardrails in `src/lib/games/word-list.ts`:
+- throws if duplicate entries exist
+- throws if the bank ever drops below 200 answers
+- Updated admin wording in `src/components/admin/GamesAdminPanel.tsx` so the schedule preview correctly describes a sequential rotation instead of the old hash behavior
+- Revalidated with:
+- `npm run lint` -> only the 2 known warnings remain
+- `npm run build` -> passes
+- This is the main handoff note for Claude if work resumes from here: Painedle answer scheduling is now sequential and the bank is 310 unique words, so short-cycle repeats should be resolved

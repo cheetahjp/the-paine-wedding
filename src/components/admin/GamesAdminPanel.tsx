@@ -367,7 +367,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         <OverviewMetric
                             label="Cycle"
                             value={`${PAINEDLE_WORDS.length} words`}
-                            note="When the list ends, the hash keeps reusing the bank."
+                            note="The rotation advances one word per day and only loops after the full bank is exhausted."
                         />
                     </div>
 
