@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Section from "@/components/ui/Section";
 import Image from "next/image";
@@ -67,13 +69,17 @@ export default function BridalParty() {
                                 <h2 className="font-heading text-4xl text-center mb-16 text-primary">
                                     The Ladies
                                 </h2>
-                                <div
-                                    className={`grid grid-cols-2 gap-8 ${
-                                        bridesmaids.length > 3 ? "md:grid-cols-4" : "md:grid-cols-3"
-                                    }`}
-                                >
+                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
                                     {bridesmaids.map((person, idx) => (
-                                        <PersonCard key={idx} person={person} />
+                                        <div
+                                            key={idx}
+                                            className={`${bridesmaids.length > 3
+                                                ? "w-[calc(50%-0.5rem)] md:w-[calc(25%-1.5rem)]"
+                                                : "w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1.333rem)]"
+                                                }`}
+                                        >
+                                            <PersonCard person={person} />
+                                        </div>
                                     ))}
                                 </div>
                             </div>
@@ -84,13 +90,17 @@ export default function BridalParty() {
                                 <h2 className="font-heading text-4xl text-center mb-16 text-primary">
                                     The Gentlemen
                                 </h2>
-                                <div
-                                    className={`grid grid-cols-2 gap-8 ${
-                                        groomsmen.length > 3 ? "md:grid-cols-4" : "md:grid-cols-3"
-                                    }`}
-                                >
+                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12">
                                     {groomsmen.map((person, idx) => (
-                                        <PersonCard key={idx} person={person} />
+                                        <div
+                                            key={idx}
+                                            className={`${groomsmen.length > 3
+                                                ? "w-[calc(50%-0.5rem)] md:w-[calc(25%-1.5rem)]"
+                                                : "w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1.333rem)]"
+                                                }`}
+                                        >
+                                            <PersonCard person={person} />
+                                        </div>
                                     ))}
                                 </div>
                             </div>

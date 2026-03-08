@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
 import Section from "@/components/ui/Section";
-import Image from "next/image";
+import StoryImage from "@/components/ui/StoryImage";
 import { WEDDING } from "@/lib/wedding-data";
 
 export default function OurStory() {
@@ -18,21 +20,15 @@ export default function OurStory() {
                 {WEDDING.story.map((item, index) => (
                     <div
                         key={item.title}
-                        className={`flex flex-col md:flex-row items-center gap-16 ${
-                            index % 2 !== 0 ? "md:flex-row-reverse" : ""
-                        }`}
+                        className={`flex flex-col md:flex-row items-center gap-16 ${index % 2 !== 0 ? "md:flex-row-reverse" : ""
+                            }`}
                     >
                         <div className="w-full md:w-1/2">
                             <div className="relative aspect-[4/5] w-full overflow-hidden shadow-[0_20px_50px_rgba(20,42,68,0.1)]">
-                                <Image
+                                <StoryImage
                                     src={item.image}
                                     alt={item.title}
-                                    fill
-                                    className="object-cover transition-transform duration-700 hover:scale-105"
-                                    onError={(e) => {
-                                        // Fall back to Unsplash placeholder if local image not found
-                                        (e.target as HTMLImageElement).src = item.imageFallback;
-                                    }}
+                                    fallback={item.imageFallback}
                                 />
                             </div>
                         </div>
