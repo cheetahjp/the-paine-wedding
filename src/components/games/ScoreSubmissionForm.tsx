@@ -1,0 +1,112 @@
+"use client";
+
+import { useState } from "react";
+import {
+    GAME_LEADERBOARD_REFRESH_EVENT,
+    getStoredGamePlayer,
+    saveStoredGamePlayer,
+    submitGameScore,
+    type GameType,
+} from "@/lib/games/leaderboard";
+
+type ScoreSubmissionFormProps = {
+    game: GameType;
+    score: number;
+    maxScore?: number | null;
+    attempts?: number | null;
+    solved?: boolean | null;
+    puzzleKey?: string;
+    metadata?: Record<string, string | number | boolean | null>;
+    buttonLabel?: string;
+    successMessage?: string;
+    onSubmitted?: () => void;
+};
+
+export default function ScoreSubmissionForm({
+    game,
+    score,
+    maxScore = null,
+    attempts = null,
+    solved = null,
+    puzzleKey,
+    metadata,
+    buttonLabel = "Submit Score",
+    successMessage = "Score submitted.",
+    onSubmitted,
+}: ScoreSubmissionFormProps) {
+    const storedPlayer = getStoredGamePlayer();
+    const [username, setUsername] = useState(() => storedPlayer?.username ?? "");
+    const [email, setEmail] = useState(() => storedPlayer?.email ?? "");
+    const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+    const [message, setMessage] = useState("");
+
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setStatus("submitting");
+        setMessage("");
+
+        try {
+            await submitGameScore({
+                game,
+                username,
+                email,
+                score,
+                maxScore,
+                attempts,
+                solved,
+                puzzleKey,
+                metadata,
+            });
+
+            saveStoredGamePlayer({ username, email });
+            setStatus("success");
+            setMessage(successMessage);
+            window.dispatchEvent(new Event(GAME_LEADERBOARD_REFRESH_EVENT));
+            onSubmitted?.();
+        } catch {
+            setStatus("error");
+            setMessage("Could not submit score right now.");
+        }
+    }
+
+    return (
+        <div className="rounded-[1.75rem] border border-primary/15 bg-surface/70 p-6">
+            <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Claim Your Score</p>
+            <p className="mt-3 text-text-secondary">
+                Add a username and email to show up on the leaderboard.
+            </p>
+
+            <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="Username"
+                    required
+                    className="rounded-[1rem] border border-primary/15 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-primary"
+                />
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Email address"
+                    required
+                    className="rounded-[1rem] border border-primary/15 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-primary"
+                />
+                <button
+                    type="submit"
+                    disabled={status === "submitting"}
+                    className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-medium uppercase tracking-[0.2em] text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40 disabled:hover:translate-y-0"
+                >
+                    {status === "submitting" ? "Submitting..." : buttonLabel}
+                </button>
+            </form>
+
+            {message ? (
+                <p className={`mt-4 text-sm ${status === "error" ? "text-secondary" : "text-text-secondary"}`}>
+                    {message}
+                </p>
+            ) : null}
+        </div>
+    );
+}

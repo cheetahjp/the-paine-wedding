@@ -46,6 +46,9 @@ src/
 │   ├── wedding-details/page.tsx    # Ceremony/reception details, map, schedule
 │   ├── schedule/page.tsx           # Day-of schedule
 │   ├── bridal-party/page.tsx       # Wedding party (placeholder names — needs real data)
+│   ├── games/page.tsx              # QR-style games hub
+│   ├── games/trivia/page.tsx       # Couple trivia game route
+│   ├── games/painedle/page.tsx     # Daily Painedle word game route
 │   ├── travel/page.tsx             # Hotels, travel tips
 │   ├── registry/page.tsx           # Registry links (Amazon + honeymoon fund — TODOs)
 │   ├── faq/page.tsx                # FAQ cards (fully expanded, no accordion yet)
@@ -59,13 +62,21 @@ src/
 │   │   ├── Section.tsx             # Standard page section wrapper
 │   │   ├── StoryImage.tsx          # "use client" wrapper for Image with onError fallback
 │   │   └── MobileNav.tsx           # Hamburger drawer navigation
+│   ├── games/
+│   │   ├── CoupleTriviaGame.tsx    # Client-side 3-screen trivia experience
+│   │   └── PainedleGame.tsx        # Client-side daily Wordle-style game
 │   └── Nav.tsx                     # Desktop + mobile nav shell
 └── lib/
     └── wedding-data.ts             # ⭐ SINGLE SOURCE OF TRUTH for all wedding content
                                     #    Edit this file to update content across all pages
+    └── games/
+        ├── trivia-questions.ts     # 10 trivia questions with answer indexes and fun facts
+        ├── word-list.ts            # 20–50 five-letter words for Painedle
+        └── painedle.ts             # Daily seed + scoring helpers
 supabase/
 ├── migrations/
 │   └── 20260307000000_add_rsvp_fields.sql   # Adds food_allergies, song_request, advice
+│   └── 20260308010000_add_game_leaderboards.sql # Adds game_players + game_scores tables
 └── seed_guest_list.sql             # 178 guests / 85 households (idempotent with unique constraints)
 public/
 └── images/                         # Drop real photos here — subfolders match wedding-data.ts paths
@@ -112,6 +123,30 @@ public/
 | `password_used` | TEXT | which password was used to log in |
 | `created_at` | TIMESTAMP | |
 
+### `game_players`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | auto-generated |
+| `email` | TEXT UNIQUE | normalized lowercase email |
+| `username` | TEXT | display name for leaderboards |
+| `created_at` | TIMESTAMP | |
+| `updated_at` | TIMESTAMP | |
+
+### `game_scores`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | auto-generated |
+| `player_id` | UUID FK | → `game_players(id)` |
+| `game` | TEXT | `trivia` or `painedle` |
+| `puzzle_key` | TEXT | `wedding-day-trivia` for trivia, daily date key for Painedle |
+| `score` | INTEGER | higher is better |
+| `max_score` | INTEGER/NULL | question count or max points |
+| `attempts` | INTEGER/NULL | number of guesses / prompts used |
+| `solved` | BOOLEAN/NULL | useful for Painedle |
+| `metadata` | JSONB | extra per-game context |
+| `created_at` | TIMESTAMP | |
+| `updated_at` | TIMESTAMP | |
+
 > **⚠️ RLS is currently DISABLED.** Guest data is publicly readable with the anon key.
 > To fix: Supabase dashboard → Table Editor → guests → Enable RLS → add policy.
 
@@ -145,6 +180,10 @@ Key top-level keys:
 - `WEDDING.schedule[]` — Day-of schedule (times are `TODO`)
 - `WEDDING.map.embedSrc` — Google Maps iframe embed URL (`TODO`)
 - `WEDDING.rsvpDeadline` — August 1, 2026
+- `src/lib/games/trivia-questions.ts` — edit trivia content without touching UI code
+- `src/lib/games/word-list.ts` — edit the rotating five-letter Painedle answer list
+- `src/lib/games/schedule.ts` — trivia unlock date/countdown helpers
+- `src/lib/games/leaderboard.ts` — score submission + leaderboard fetch helpers
 
 ---
 
@@ -188,6 +227,11 @@ Key top-level keys:
 - [x] Registry — layout ready, links are `TODO`
 - [x] FAQ — fully built, cards layout (no accordion yet)
 - [x] Attire — dress code page
+- [x] Games hub — QR-friendly landing page for the two games
+- [x] Couple Trivia — separate route with welcome → play → results flow
+- [x] Painedle — separate daily word game with keyboard support + localStorage
+- [x] Game leaderboards — username/email submission + top-score boards
+- [x] Trivia lock gate — countdown on `/games`, trivia opens on wedding day
 - [x] RSVP — full 3-step flow (search → household → submit)
 - [x] Admin Dashboard — metrics, guest data table grouped by household, bulk importer
 
@@ -213,6 +257,7 @@ Key top-level keys:
 - [x] Desktop nav with all page links
 - [x] Mobile hamburger drawer (smooth CSS transition, closes on link/outside click)
 - [x] Bridal Party added to nav
+- [x] Games intentionally NOT in main nav — meant for QR codes / direct links
 
 ### Bug Fixes
 - [x] `StoryImage` client component — fixes "Event handlers cannot be passed to Client Component props" on `/our-story`
@@ -258,7 +303,6 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - [ ] **Accessibility audit** — ARIA labels, keyboard nav, focus states
 
 ### Fun / later
-- [ ] **Couple trivia game** — playable quiz at tables, questions TBD
 - [ ] **Animated Our Story** — scroll-driven timeline animation (subtle, not crazy)
 - [ ] **Day-of schedule view** — simplified large-text phone view
 - [ ] **Guest digital guestbook** — admin-only view of messages
@@ -302,3 +346,18 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Pushed and deployed — site is live and error-free
 - Updated Notion Improvement Ideas doc with full status
 - Created this `AI_COLLAB.md` file
+
+### Session 6 (Mar 8, 2026)
+- Added `/games` hub plus separate `/games/trivia` and `/games/painedle` routes
+- Implemented Couple Trivia with 10 questions, answer reveal states, progress bar, and results screen
+- Implemented Painedle as a date-seeded daily word game with physical keyboard support, on-screen keyboard, tile flip animation, row shake on invalid guess, and localStorage persistence
+- Moved editable game content into `src/lib/games/trivia-questions.ts` and `src/lib/games/word-list.ts`
+- Verified the games routes with `npm run build`
+
+### Session 7 (Mar 8, 2026)
+- Added Supabase-backed `game_players` and `game_scores` tables via migration `20260308010000_add_game_leaderboards.sql`
+- Added leaderboard submission flow with username + email capture and local browser prefill for repeat play
+- Added live leaderboard panels for trivia and Painedle
+- Locked trivia until wedding day with a countdown on `/games` and a gate on `/games/trivia`
+- Kept Painedle available immediately with a daily leaderboard keyed by the current puzzle date
+- Added a Games tab to `/admin` so scores can be reviewed inside the existing dashboard
