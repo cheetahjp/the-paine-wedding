@@ -25,11 +25,30 @@ type SavedGameState = {
 };
 
 function tileClasses(status?: LetterStatus, hasLetter?: boolean) {
-    if (status === "correct") return "border-emerald-600 bg-emerald-600 text-white";
-    if (status === "present") return "border-accent bg-accent text-white";
-    if (status === "absent") return "border-primary/75 bg-primary/75 text-white";
-    if (hasLetter) return "border-primary/30 bg-white text-primary";
-    return "border-surface bg-base text-primary";
+    if (status === "correct") {
+        return "border-emerald-400 bg-emerald-500 text-white shadow-[0_10px_24px_rgba(16,185,129,0.28)]";
+    }
+
+    if (status === "present") {
+        return "border-[#d6b073] bg-[#c69a72] text-slate-950 shadow-[0_10px_24px_rgba(198,154,114,0.22)]";
+    }
+
+    if (status === "absent") {
+        return "border-[#4e6782] bg-[#28415d] text-white";
+    }
+
+    if (hasLetter) {
+        return "border-[#d8b686] bg-[#f8efe1] text-primary";
+    }
+
+    return "border-white/12 bg-[#10263d]/82 text-white/55";
+}
+
+function keyboardKeyClasses(status?: LetterStatus) {
+    if (status === "correct") return "border-emerald-400 bg-emerald-500 text-white";
+    if (status === "present") return "border-[#d6b073] bg-[#c69a72] text-slate-950";
+    if (status === "absent") return "border-[#4e6782] bg-[#28415d] text-white";
+    return "border-[#6a8097] bg-[#eef2f6] text-primary hover:bg-white";
 }
 
 function createInitialState(dateKey: string): SavedGameState {
@@ -195,34 +214,37 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     }
 
     return (
-        <div className="rounded-[2rem] border border-primary/15 bg-white p-6 shadow-[0_20px_60px_rgba(20,42,68,0.08)] md:p-10">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="relative overflow-hidden rounded-[2.3rem] border border-primary/10 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_28px_90px_rgba(20,42,68,0.20)] md:p-10">
+            <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-accent/16 blur-3xl" />
+            <div className="pointer-events-none absolute -left-10 bottom-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
+
+            <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Daily Puzzle</p>
-                    <h2 className="mt-4 font-heading text-4xl text-primary">Painedle</h2>
-                    <p className="mt-4 max-w-2xl text-text-secondary leading-relaxed">
+                    <p className="text-sm uppercase tracking-[0.3em] text-white/60">Daily Puzzle</p>
+                    <h2 className="mt-4 font-heading text-4xl text-white">Painedle</h2>
+                    <p className="mt-4 max-w-2xl leading-relaxed text-white/78">
                         Guess the daily five-letter wedding word in six tries. Progress saves in your browser.
                     </p>
                 </div>
-                <div className="text-sm uppercase tracking-[0.24em] text-text-secondary">
+                <div className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm uppercase tracking-[0.24em] text-white/72 backdrop-blur-sm">
                     Today: {dateKey}
                 </div>
             </div>
 
-            <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="rounded-full bg-surface px-5 py-3 text-sm text-text-secondary">
+            <div className="relative mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm text-white/80 backdrop-blur-sm">
                     {message}
                 </div>
                 <button
                     type="button"
                     onClick={resetForToday}
-                    className="inline-flex items-center justify-center rounded-full border border-primary px-5 py-3 text-xs font-medium uppercase tracking-[0.2em] text-primary transition-colors duration-200 hover:bg-primary hover:text-white"
+                    className="inline-flex items-center justify-center rounded-full border border-[#d6b073] px-5 py-3 text-xs font-medium uppercase tracking-[0.2em] text-[#f7dec0] transition-colors duration-200 hover:bg-[#d6b073] hover:text-primary"
                 >
                     Reset Today
                 </button>
             </div>
 
-            <div className="mt-10 flex flex-col items-center gap-3">
+            <div className="relative mt-10 flex flex-col items-center gap-3">
                 {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => {
                     const submittedGuess = guesses[rowIndex];
                     const activeGuess = rowIndex === guesses.length ? currentGuess : "";
@@ -237,7 +259,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                             {letters.map((letter, columnIndex) => (
                                 <div
                                     key={`tile-${rowIndex + 1}-${columnIndex + 1}`}
-                                    className={`flex h-14 w-14 items-center justify-center rounded-[1rem] border text-xl font-semibold uppercase tracking-[0.12em] transition-colors duration-300 md:h-16 md:w-16 md:text-2xl ${tileClasses(statuses[columnIndex], Boolean(letter.trim()))} ${flippingRow === rowIndex && submittedGuess ? "animate-painedle-flip" : ""}`}
+                                    className={`flex h-14 w-14 items-center justify-center rounded-[1rem] border text-xl font-semibold uppercase tracking-[0.12em] transition-all duration-300 md:h-16 md:w-16 md:text-2xl ${tileClasses(statuses[columnIndex], Boolean(letter.trim()))} ${flippingRow === rowIndex && submittedGuess ? "animate-painedle-flip" : ""}`}
                                     style={{
                                         animationDelay: flippingRow === rowIndex && submittedGuess ? `${columnIndex * 120}ms` : undefined,
                                     }}
@@ -250,14 +272,14 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                 })}
             </div>
 
-            <div className="mt-10 space-y-3">
+            <div className="relative mt-10 space-y-3">
                 {KEYBOARD_ROWS.map((row) => (
                     <div key={row.join("")} className="flex justify-center gap-2">
                         {row.map((key) => {
                             const keyStatus = key.length === 1 ? keyboardStatuses[key.toLowerCase()] : undefined;
                             const statusClass = key.length === 1
-                                ? tileClasses(keyStatus, true)
-                                : "border-primary bg-primary text-white";
+                                ? keyboardKeyClasses(keyStatus)
+                                : "border-primary bg-primary text-white hover:bg-[#1e4566]";
                             const sizeClass = key === "ENTER" ? "min-w-20 px-4" : key === "BACK" ? "min-w-20 px-4" : "w-10 md:w-12";
 
                             return (
@@ -276,7 +298,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
             </div>
 
             {status !== "playing" ? (
-                <div className="mt-10">
+                <div className="relative mt-10">
                     {status === "won" ? (
                         <ScoreSubmissionForm
                             game="painedle"
@@ -290,10 +312,11 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                             successMessage="Painedle score submitted."
                         />
                     ) : (
-                        <div className="rounded-[1.75rem] border border-primary/15 bg-surface/70 p-6">
-                            <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Round Complete</p>
-                            <p className="mt-3 text-text-secondary">
-                                Only solved games go on the leaderboard. Come back tomorrow for the next word, or reset today and practice locally.
+                        <div className="rounded-[1.75rem] border border-white/12 bg-white/8 p-6">
+                            <p className="text-sm uppercase tracking-[0.3em] text-white/60">Round Complete</p>
+                            <p className="mt-3 text-white/78">
+                                Only solved games go on the leaderboard. Come back tomorrow for the next word, or
+                                reset today and practice locally.
                             </p>
                         </div>
                     )}

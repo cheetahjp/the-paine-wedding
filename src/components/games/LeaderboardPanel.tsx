@@ -68,45 +68,51 @@ export default function LeaderboardPanel({
     }, []);
 
     return (
-        <div className="rounded-[2rem] border border-primary/15 bg-white p-6 shadow-[0_20px_60px_rgba(20,42,68,0.06)] md:p-8">
-            <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Leaderboard</p>
-            <h3 className="mt-4 font-heading text-3xl text-primary">{title}</h3>
-            <p className="mt-3 text-text-secondary">{subtitle}</p>
+        <div className="relative overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffaf4_0%,#f3ede4_100%)] p-6 shadow-[0_24px_80px_rgba(20,42,68,0.10)] md:p-8">
+            <div className="pointer-events-none absolute -right-12 top-0 h-44 w-44 rounded-full bg-accent/18 blur-3xl" />
 
-            {loading ? (
-                <p className="mt-8 text-text-secondary">Loading scores...</p>
-            ) : error ? (
-                <p className="mt-8 text-secondary">{error}</p>
-            ) : entries.length === 0 ? (
-                <p className="mt-8 text-text-secondary">No scores yet. First one on the board wins the room.</p>
-            ) : (
-                <div className="mt-8 space-y-3">
-                    {entries.map((entry, index) => (
-                        <div
-                            key={entry.id}
-                            className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[1.25rem] bg-surface/70 px-4 py-4"
-                        >
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
-                                {index + 1}
+            <div className="relative">
+                <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Leaderboard</p>
+                <h3 className="mt-4 font-heading text-3xl text-primary">{title}</h3>
+                <p className="mt-3 text-text-secondary">{subtitle}</p>
+
+                {loading ? (
+                    <p className="mt-8 text-text-secondary">Loading scores...</p>
+                ) : error ? (
+                    <p className="mt-8 text-secondary">{error}</p>
+                ) : entries.length === 0 ? (
+                    <div className="mt-8 rounded-[1.5rem] border border-primary/8 bg-white/85 px-5 py-5">
+                        <p className="text-text-secondary">No scores yet. First one on the board wins the room.</p>
+                    </div>
+                ) : (
+                    <div className="mt-8 space-y-3">
+                        {entries.map((entry, index) => (
+                            <div
+                                key={entry.id}
+                                className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[1.25rem] border border-primary/8 bg-white/85 px-4 py-4 shadow-[0_8px_24px_rgba(20,42,68,0.05)]"
+                            >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
+                                    {index + 1}
+                                </div>
+                                <div>
+                                    <p className="font-medium text-primary">{entry.username}</p>
+                                    <p className="text-sm text-text-secondary">
+                                        {game === "trivia"
+                                            ? `${entry.score}${entry.maxScore ? ` / ${entry.maxScore}` : ""}`
+                                            : entry.solved
+                                                ? `Solved in ${entry.attempts} ${entry.attempts === 1 ? "guess" : "guesses"}`
+                                                : "Unsolved"}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-heading text-2xl text-primary">{entry.score}</p>
+                                    <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Points</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="font-medium text-primary">{entry.username}</p>
-                                <p className="text-sm text-text-secondary">
-                                    {game === "trivia"
-                                        ? `${entry.score}${entry.maxScore ? ` / ${entry.maxScore}` : ""}`
-                                        : entry.solved
-                                            ? `Solved in ${entry.attempts} ${entry.attempts === 1 ? "guess" : "guesses"}`
-                                            : "Unsolved"}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-heading text-2xl text-primary">{entry.score}</p>
-                                <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Points</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

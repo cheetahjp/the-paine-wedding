@@ -65,6 +65,8 @@ src/
 │   ├── games/
 │   │   ├── CoupleTriviaGame.tsx    # Client-side 3-screen trivia experience
 │   │   └── PainedleGame.tsx        # Client-side daily Wordle-style game
+│   ├── admin/
+│   │   └── GamesAdminPanel.tsx     # Games control panel with modal drill-down views
 │   └── Nav.tsx                     # Desktop + mobile nav shell
 └── lib/
     └── wedding-data.ts             # ⭐ SINGLE SOURCE OF TRUTH for all wedding content
@@ -363,3 +365,19 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Added a Games tab to `/admin` so scores can be reviewed inside the existing dashboard
 - Fixed production admin login by setting `ADMIN_PASSWORD_MASTER` and `ADMIN_PASSWORD_1`–`5` in Vercel and redeploying
 - Code is deployed live, but leaderboard writes are still blocked until the Supabase migration is actually applied to the hosted database
+
+### Session 8 (Mar 8, 2026)
+- Added `Games` to the main site nav so guests can actually find `/games`
+- Redesigned `/games`, `/games/painedle`, and `/games/trivia` with stronger hero treatments, gradients, richer cards, and less empty white space
+- Increased Painedle contrast substantially: dark board shell, clearer empty tiles, stronger keyboard states, and more readable leaderboard/form surfaces
+- Upgraded the admin Games tab into a real control panel via `src/components/admin/GamesAdminPanel.tsx`
+- Admin Games now includes modal drill-down views for:
+  - today's Painedle word reveal
+  - 21-day Painedle schedule preview
+  - full Painedle word bank with search
+  - full trivia question bank with correct answers + fun facts
+  - leaderboard views for trivia and today's Painedle
+  - recent submission log with game filter
+  - player directory / unique player summaries
+- Verified changes with `npm run build`
+- `npm run lint` still only shows the two pre-existing warnings: custom font warning in `src/app/layout.tsx` and unrelated `.claire` worktree warning

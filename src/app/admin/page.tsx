@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import Section from "@/components/ui/Section";
+import GamesAdminPanel from "@/components/admin/GamesAdminPanel";
 import { supabase } from "@/lib/supabase";
-import { getTodayKey } from "@/lib/games/painedle";
+import type { AdminGameScore } from "@/lib/games/admin-types";
 
 type Guest = {
     id: string;
@@ -21,24 +22,6 @@ type Guest = {
     };
 };
 
-type GameScore = {
-    id: string;
-    game: "trivia" | "painedle";
-    puzzle_key: string;
-    score: number;
-    max_score: number | null;
-    attempts: number | null;
-    solved: boolean | null;
-    created_at: string;
-    game_players: {
-        username: string;
-        email: string;
-    } | {
-        username: string;
-        email: string;
-    }[];
-};
-
 export default function AdminDashboard() {
     const [guests, setGuests] = useState<Guest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,7 +30,7 @@ export default function AdminDashboard() {
     const [importing, setImporting] = useState(false);
     const [importMessage, setImportMessage] = useState("");
     const [envError, setEnvError] = useState(false);
-    const [gameScores, setGameScores] = useState<GameScore[]>([]);
+    const [gameScores, setGameScores] = useState<AdminGameScore[]>([]);
     const [gameScoresError, setGameScoresError] = useState<string | null>(null);
 
     // Auth state
@@ -135,7 +118,7 @@ export default function AdminDashboard() {
 
         const { data: scoreData, error: scoreError } = await supabase
             .from("game_scores")
-            .select("id, game, puzzle_key, score, max_score, attempts, solved, created_at, game_players(username, email)")
+            .select("id, game, puzzle_key, score, max_score, attempts, solved, metadata, created_at, game_players(id, username, email, created_at)")
             .order("created_at", { ascending: false })
             .limit(200);
 
@@ -147,7 +130,7 @@ export default function AdminDashboard() {
                     : scoreError.message
             );
         } else {
-            setGameScores(scoreData as unknown as GameScore[]);
+            setGameScores(scoreData as unknown as AdminGameScore[]);
             setGameScoresError(null);
         }
 
@@ -247,15 +230,6 @@ export default function AdminDashboard() {
     const guestsWithExtras = guests.filter(
         (g) => g.food_allergies || g.song_request || g.advice
     );
-    const todayPuzzleKey = getTodayKey();
-    const triviaScores = gameScores.filter((score) => score.game === "trivia");
-    const painedleScores = gameScores.filter((score) => score.game === "painedle");
-    const todaysPainedleScores = painedleScores.filter((score) => score.puzzle_key === todayPuzzleKey);
-
-    function getPlayerDetails(score: GameScore) {
-        return Array.isArray(score.game_players) ? score.game_players[0] : score.game_players;
-    }
-
     if (!isAuthenticated) {
         return (
             <div className="pt-32 min-h-screen flex flex-col bg-surface">
@@ -569,94 +543,8 @@ export default function AdminDashboard() {
                             )}
 
                             {activeTab === "games" && (
-                                <div className="p-6 space-y-8">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {[
-                                            { label: "Total Game Scores", value: gameScores.length },
-                                            { label: "Trivia Submissions", value: triviaScores.length },
-                                            { label: "Painedle Submissions", value: painedleScores.length },
-                                            { label: "Today's Painedle", value: todaysPainedleScores.length },
-                                        ].map(({ label, value }) => (
-                                            <div key={label} className="bg-surface/60 p-5 text-center rounded-sm">
-                                                <h3 className="text-xs uppercase tracking-widest text-text-secondary mb-2">
-                                                    {label}
-                                                </h3>
-                                                <p className="text-3xl font-heading text-primary">{value}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {gameScoresError ? (
-                                        <div className="p-4 bg-yellow-50 text-yellow-900 border border-yellow-200">
-                                            {gameScoresError}
-                                        </div>
-                                    ) : (
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left text-sm">
-                                                <thead className="bg-surface/80 text-text-secondary uppercase tracking-widest text-xs border-b border-gray-200">
-                                                    <tr>
-                                                        <th className="px-6 py-4 font-normal">Player</th>
-                                                        <th className="px-6 py-4 font-normal">Game</th>
-                                                        <th className="px-6 py-4 font-normal">Puzzle</th>
-                                                        <th className="px-6 py-4 font-normal">Score</th>
-                                                        <th className="px-6 py-4 font-normal">Attempts</th>
-                                                        <th className="px-6 py-4 font-normal">Solved</th>
-                                                        <th className="px-6 py-4 font-normal">Submitted</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-100">
-                                                    {gameScores.map((score) => {
-                                                        const player = getPlayerDetails(score);
-                                                        return (
-                                                            <tr key={score.id} className="hover:bg-surface/10 transition-colors">
-                                                                <td className="px-6 py-4">
-                                                                    <div className="font-medium text-primary">{player?.username ?? "Guest"}</div>
-                                                                    <div className="text-xs text-text-secondary">{player?.email ?? "—"}</div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-text-secondary uppercase tracking-wide">
-                                                                    {score.game}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-text-secondary">
-                                                                    {score.puzzle_key || "—"}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-text-secondary">
-                                                                    {score.score}
-                                                                    {score.max_score ? ` / ${score.max_score}` : ""}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-text-secondary">
-                                                                    {score.attempts ?? "—"}
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    {score.solved === null ? "—" : score.solved ? (
-                                                                        <span className="text-green-700 bg-green-50 px-2 py-1 rounded text-xs">
-                                                                            Solved
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="text-red-700 bg-red-50 px-2 py-1 rounded text-xs">
-                                                                            Missed
-                                                                        </span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-text-secondary">
-                                                                    {new Date(score.created_at).toLocaleString()}
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                    {gameScores.length === 0 && (
-                                                        <tr>
-                                                            <td
-                                                                colSpan={7}
-                                                                className="px-6 py-8 text-center text-text-secondary"
-                                                            >
-                                                                No game submissions yet.
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
+                                <div className="p-6">
+                                    <GamesAdminPanel gameScores={gameScores} gameScoresError={gameScoresError} />
                                 </div>
                             )}
                         </div>

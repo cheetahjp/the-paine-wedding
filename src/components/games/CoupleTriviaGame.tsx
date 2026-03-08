@@ -65,7 +65,7 @@ export default function CoupleTriviaGame() {
 
     if (screen === "welcome") {
         return (
-            <div className="rounded-[2rem] border border-primary/15 bg-white p-8 md:p-10 shadow-[0_20px_60px_rgba(20,42,68,0.08)]">
+            <div className="rounded-[2rem] border border-primary/10 bg-[linear-gradient(160deg,#fffaf4_0%,#f3ebe0_100%)] p-8 shadow-[0_20px_60px_rgba(20,42,68,0.10)] md:p-10">
                 <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Welcome</p>
                 <h2 className="mt-4 font-heading text-4xl text-primary">How Well Do You Know the Couple?</h2>
                 <p className="mt-4 max-w-2xl text-text-secondary leading-relaxed">
@@ -73,15 +73,15 @@ export default function CoupleTriviaGame() {
                 </p>
 
                 <div className="mt-10 grid gap-4 md:grid-cols-3">
-                    <div className="rounded-[1.5rem] bg-surface p-5">
+                    <div className="rounded-[1.5rem] border border-primary/8 bg-white/80 p-5">
                         <p className="text-sm uppercase tracking-[0.24em] text-text-secondary">Format</p>
                         <p className="mt-3 text-text-primary">Welcome, play, results.</p>
                     </div>
-                    <div className="rounded-[1.5rem] bg-surface p-5">
+                    <div className="rounded-[1.5rem] border border-primary/8 bg-white/80 p-5">
                         <p className="text-sm uppercase tracking-[0.24em] text-text-secondary">Questions</p>
                         <p className="mt-3 text-text-primary">{TRIVIA_QUESTIONS.length} multiple-choice prompts.</p>
                     </div>
-                    <div className="rounded-[1.5rem] bg-surface p-5">
+                    <div className="rounded-[1.5rem] border border-primary/8 bg-white/80 p-5">
                         <p className="text-sm uppercase tracking-[0.24em] text-text-secondary">Scoring</p>
                         <p className="mt-3 text-text-primary">Immediate feedback and a four-tier finish.</p>
                     </div>
@@ -100,7 +100,7 @@ export default function CoupleTriviaGame() {
 
     if (screen === "results") {
         return (
-            <div className="rounded-[2rem] border border-primary/15 bg-white p-8 md:p-10 shadow-[0_20px_60px_rgba(20,42,68,0.08)]">
+            <div className="rounded-[2rem] border border-primary/10 bg-[linear-gradient(160deg,#fffaf4_0%,#f3ebe0_100%)] p-8 shadow-[0_20px_60px_rgba(20,42,68,0.10)] md:p-10">
                 <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Results</p>
                 <h2 className="mt-4 font-heading text-4xl text-primary">{score} / {TRIVIA_QUESTIONS.length}</h2>
                 <p className="mt-4 max-w-2xl text-text-secondary leading-relaxed">{getScoreMessage(score)}</p>
@@ -112,7 +112,7 @@ export default function CoupleTriviaGame() {
                         const answerLabel = answerIndex !== undefined ? question.answers[answerIndex] : "No answer";
 
                         return (
-                            <div key={question.prompt} className="rounded-[1.5rem] border border-surface bg-surface/60 p-5">
+                            <div key={question.prompt} className="rounded-[1.5rem] border border-primary/8 bg-white/80 p-5">
                                 <p className="text-sm uppercase tracking-[0.24em] text-text-secondary">Question {index + 1}</p>
                                 <h3 className="mt-2 font-heading text-2xl text-primary">{question.prompt}</h3>
                                 <p className="mt-3 text-sm text-text-secondary">
@@ -153,7 +153,7 @@ export default function CoupleTriviaGame() {
     }
 
     return (
-        <div className="rounded-[2rem] border border-primary/15 bg-white p-8 md:p-10 shadow-[0_20px_60px_rgba(20,42,68,0.08)]">
+        <div className="rounded-[2rem] border border-primary/10 bg-[linear-gradient(160deg,#fffaf4_0%,#f3ebe0_100%)] p-8 shadow-[0_20px_60px_rgba(20,42,68,0.10)] md:p-10">
             <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Playing</p>
@@ -183,7 +183,7 @@ export default function CoupleTriviaGame() {
                                 : isSelected
                                     ? "border-secondary bg-secondary text-white"
                                     : "border-surface bg-surface text-text-primary"
-                            : "border-surface bg-white text-text-primary hover:border-primary hover:bg-primary/5";
+                            : "border-primary/10 bg-white/88 text-text-primary hover:border-primary hover:bg-primary/5";
 
                         return (
                             <button

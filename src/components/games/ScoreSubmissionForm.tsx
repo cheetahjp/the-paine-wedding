@@ -70,7 +70,7 @@ export default function ScoreSubmissionForm({
     }
 
     return (
-        <div className="rounded-[1.75rem] border border-primary/15 bg-surface/70 p-6">
+        <div className="rounded-[1.85rem] border border-primary/10 bg-[linear-gradient(160deg,#fffaf4_0%,#f3ebe0_100%)] p-6 shadow-[0_12px_34px_rgba(20,42,68,0.08)]">
             <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Claim Your Score</p>
             <p className="mt-3 text-text-secondary">
                 Add a username and email to show up on the leaderboard.
@@ -83,7 +83,7 @@ export default function ScoreSubmissionForm({
                     onChange={(event) => setUsername(event.target.value)}
                     placeholder="Username"
                     required
-                    className="rounded-[1rem] border border-primary/15 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-primary"
+                    className="rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
                 />
                 <input
                     type="email"
@@ -91,7 +91,7 @@ export default function ScoreSubmissionForm({
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="Email address"
                     required
-                    className="rounded-[1rem] border border-primary/15 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-primary"
+                    className="rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
                 />
                 <button
                     type="submit"
