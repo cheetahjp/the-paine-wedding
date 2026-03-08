@@ -188,7 +188,7 @@ export default function RSVP() {
         : false;
 
     return (
-        <div className="pt-20 min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col">
             <Section className="text-center pb-12 flex-grow flex flex-col justify-center">
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">RSVP</h1>
 

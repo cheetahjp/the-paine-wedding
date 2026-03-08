@@ -6,7 +6,7 @@ export default function Schedule() {
     const hasSchedule = WEDDING.schedule.length > 0;
 
     return (
-        <div className="pt-20">
+        <div>
             <Section className="text-center pb-12">
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">Schedule of Events</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide">

@@ -5,13 +5,11 @@ import ScoreSubmissionForm from "@/components/games/ScoreSubmissionForm";
 import {
     KEYBOARD_ROWS,
     MAX_GUESSES,
-    WORD_LENGTH,
     evaluateGuess,
     getDailyWord,
     getStorageKey,
     getTodayKey,
     getWordStatusMap,
-    isValidGuess,
     type LetterStatus,
 } from "@/lib/games/painedle";
 
@@ -51,13 +49,40 @@ function keyboardKeyClasses(status?: LetterStatus) {
     return "border-[#6a8097] bg-[#eef2f6] text-primary hover:bg-white";
 }
 
+function getTileSizeClasses(wordLength: number) {
+    if (wordLength >= 7) {
+        return "h-11 w-11 text-lg md:h-13 md:w-13 md:text-xl";
+    }
+
+    if (wordLength === 6) {
+        return "h-12 w-12 text-xl md:h-14 md:w-14 md:text-2xl";
+    }
+
+    return "h-14 w-14 text-xl md:h-16 md:w-16 md:text-2xl";
+}
+
+async function validateGuessWord(guess: string) {
+    const response = await fetch("/api/games/validate-word", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: guess }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Could not validate word.");
+    }
+
+    const data = await response.json() as { valid?: boolean };
+    return Boolean(data.valid);
+}
+
 function createInitialState(dateKey: string): SavedGameState {
     if (typeof window === "undefined") {
         return {
             guesses: [],
             currentGuess: "",
             status: "playing",
-            message: "A new five-letter answer every day.",
+            message: "A new wedding word every day.",
         };
     }
 
@@ -67,7 +92,7 @@ function createInitialState(dateKey: string): SavedGameState {
             guesses: [],
             currentGuess: "",
             status: "playing",
-            message: "A new five-letter answer every day.",
+            message: "A new wedding word every day.",
         };
     }
 
@@ -84,7 +109,7 @@ function createInitialState(dateKey: string): SavedGameState {
             guesses: [],
             currentGuess: "",
             status: "playing",
-            message: "A new five-letter answer every day.",
+            message: "A new wedding word every day.",
         };
     }
 }
@@ -96,11 +121,14 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     const [message, setMessage] = useState(() => createInitialState(dateKey).message);
     const [flippingRow, setFlippingRow] = useState<number | null>(null);
     const [shakingRow, setShakingRow] = useState<number | null>(null);
+    const [isCheckingGuess, setIsCheckingGuess] = useState(false);
 
     const solution = getDailyWord(dateKey);
+    const wordLength = solution.length;
     const storageKey = getStorageKey(dateKey);
     const keyboardStatuses = getWordStatusMap(guesses, solution);
     const score = status === "won" ? MAX_GUESSES - guesses.length + 1 : 0;
+    const tileSizeClasses = getTileSizeClasses(wordLength);
 
     useEffect(() => {
         const stateToSave: SavedGameState = {
@@ -119,22 +147,37 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
         window.setTimeout(() => setShakingRow(null), 450);
     }
 
-    function handleSubmit() {
-        if (status !== "playing") return;
+    async function handleSubmit() {
+        if (status !== "playing" || isCheckingGuess) return;
 
-        if (currentGuess.length !== WORD_LENGTH) {
-            setMessage("Enter a full five-letter word.");
-            triggerShake();
-            return;
-        }
-
-        if (!isValidGuess(currentGuess)) {
-            setMessage("That guess is not in the Painedle word list.");
+        if (currentGuess.length !== wordLength) {
+            setMessage(`Enter a full ${wordLength}-letter word.`);
             triggerShake();
             return;
         }
 
         const guess = currentGuess.toLowerCase();
+
+        setIsCheckingGuess(true);
+
+        let isValid = false;
+
+        try {
+            isValid = await validateGuessWord(guess);
+        } catch {
+            setMessage("Could not validate that word right now.");
+            triggerShake();
+            setIsCheckingGuess(false);
+            return;
+        }
+
+        if (!isValid) {
+            setMessage("That guess is not a recognized word.");
+            triggerShake();
+            setIsCheckingGuess(false);
+            return;
+        }
+
         const nextGuesses = [...guesses, guess];
         const nextRowIndex = nextGuesses.length - 1;
         const hasWon = guess === solution;
@@ -152,6 +195,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                     : "Guess locked in."
         );
         window.setTimeout(() => setFlippingRow(null), 900);
+        setIsCheckingGuess(false);
     }
 
     function handleKeyInput(key: string) {
@@ -167,7 +211,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
             return;
         }
 
-        if (/^[A-Z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
+        if (/^[A-Z]$/.test(key) && currentGuess.length < wordLength) {
             setCurrentGuess((guess) => `${guess}${key.toLowerCase()}`);
         }
     }
@@ -190,12 +234,12 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
             const key = event.key;
             if (key === "Enter" || key === "Backspace") {
                 event.preventDefault();
-                handlePhysicalKeyInput(key);
+                void handlePhysicalKeyInput(key);
                 return;
             }
 
             if (/^[a-zA-Z]$/.test(key)) {
-                handlePhysicalKeyInput(key.toUpperCase());
+                void handlePhysicalKeyInput(key.toUpperCase());
             }
         }
 
@@ -214,7 +258,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     }
 
     return (
-        <div className="relative overflow-hidden rounded-[2.3rem] border border-primary/10 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_28px_90px_rgba(20,42,68,0.20)] md:p-10">
+        <div className="relative overflow-hidden rounded-[2.3rem] border border-white/18 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_12px_0_rgba(12,24,39,0.22),0_28px_90px_rgba(20,42,68,0.20)] md:p-10">
             <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-accent/16 blur-3xl" />
             <div className="pointer-events-none absolute -left-10 bottom-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
 
@@ -223,7 +267,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                     <p className="text-sm uppercase tracking-[0.3em] text-white/60">Daily Puzzle</p>
                     <h2 className="mt-4 font-heading text-4xl text-white">Painedle</h2>
                     <p className="mt-4 max-w-2xl leading-relaxed text-white/78">
-                        Guess the daily five-letter wedding word in six tries. Progress saves in your browser.
+                        Guess the daily wedding word in six tries. Progress saves in your browser.
                     </p>
                 </div>
                 <div className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm uppercase tracking-[0.24em] text-white/72 backdrop-blur-sm">
@@ -244,11 +288,11 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                 </button>
             </div>
 
-            <div className="relative mt-10 flex flex-col items-center gap-3">
+            <div className="relative mt-8 flex flex-col items-center gap-3">
                 {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => {
                     const submittedGuess = guesses[rowIndex];
                     const activeGuess = rowIndex === guesses.length ? currentGuess : "";
-                    const letters = (submittedGuess ?? activeGuess).padEnd(WORD_LENGTH).split("");
+                    const letters = (submittedGuess ?? activeGuess).padEnd(wordLength).split("");
                     const statuses = submittedGuess ? evaluateGuess(submittedGuess, solution) : [];
 
                     return (
@@ -259,7 +303,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                             {letters.map((letter, columnIndex) => (
                                 <div
                                     key={`tile-${rowIndex + 1}-${columnIndex + 1}`}
-                                    className={`flex h-14 w-14 items-center justify-center rounded-[1rem] border text-xl font-semibold uppercase tracking-[0.12em] transition-all duration-300 md:h-16 md:w-16 md:text-2xl ${tileClasses(statuses[columnIndex], Boolean(letter.trim()))} ${flippingRow === rowIndex && submittedGuess ? "animate-painedle-flip" : ""}`}
+                                    className={`flex items-center justify-center rounded-[1rem] border font-semibold uppercase tracking-[0.12em] transition-all duration-300 ${tileSizeClasses} ${tileClasses(statuses[columnIndex], Boolean(letter.trim()))} ${flippingRow === rowIndex && submittedGuess ? "animate-painedle-flip" : ""}`}
                                     style={{
                                         animationDelay: flippingRow === rowIndex && submittedGuess ? `${columnIndex * 120}ms` : undefined,
                                     }}
@@ -272,7 +316,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                 })}
             </div>
 
-            <div className="relative mt-10 space-y-3">
+            <div className="relative mt-8 space-y-3">
                 {KEYBOARD_ROWS.map((row) => (
                     <div key={row.join("")} className="flex justify-center gap-2">
                         {row.map((key) => {
@@ -286,7 +330,9 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                                 <button
                                     key={key}
                                     type="button"
-                                    onClick={() => handleKeyInput(key === "BACK" ? "Backspace" : key)}
+                                    onClick={() => {
+                                        void handleKeyInput(key === "BACK" ? "Backspace" : key);
+                                    }}
                                     className={`flex h-12 items-center justify-center rounded-[0.9rem] border text-sm font-medium uppercase tracking-[0.12em] transition-colors duration-200 ${sizeClass} ${statusClass}`}
                                 >
                                     {key === "BACK" ? "Back" : key}
@@ -307,7 +353,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                             attempts={guesses.length}
                             solved
                             puzzleKey={dateKey}
-                            metadata={{ solution }}
+                            metadata={{ solution, word_length: wordLength }}
                             buttonLabel="Submit Painedle Score"
                             successMessage="Painedle score submitted."
                         />

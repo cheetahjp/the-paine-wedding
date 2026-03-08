@@ -25,10 +25,20 @@ export type SubmitGameScoreInput = {
     metadata?: Record<string, string | number | boolean | null>;
 };
 
-type GamePlayer = {
-    id: string;
+export type BrowserProfile = {
+    language: string;
+    languages: string;
+    platform: string;
+    timezone: string;
+    userAgent: string;
+    screen: string;
+};
+
+export type StoredGamePlayer = {
     email: string;
     username: string;
+    browserProfile?: BrowserProfile;
+    updatedAt?: string;
 };
 
 export const GAME_PLAYER_STORAGE_KEY = "wedding-games-player";
@@ -38,15 +48,31 @@ export function normalizeEmail(email: string) {
     return email.trim().toLowerCase();
 }
 
-export function saveStoredGamePlayer(player: { email: string; username: string }) {
+export function captureBrowserProfile(): BrowserProfile | null {
+    if (typeof window === "undefined") return null;
+
+    return {
+        language: navigator.language,
+        languages: navigator.languages.join(", "),
+        platform: navigator.platform,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        userAgent: navigator.userAgent,
+        screen: `${window.screen.width}x${window.screen.height}`,
+    };
+}
+
+export function saveStoredGamePlayer(player: { email: string; username: string; browserProfile?: BrowserProfile | null }) {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(
         GAME_PLAYER_STORAGE_KEY,
         JSON.stringify({
             email: normalizeEmail(player.email),
             username: player.username.trim(),
+            browserProfile: player.browserProfile ?? captureBrowserProfile() ?? undefined,
+            updatedAt: new Date().toISOString(),
         })
     );
+    document.cookie = "wedding-games-profile=1; path=/; max-age=31536000; samesite=lax";
 }
 
 export function getStoredGamePlayer() {
@@ -56,109 +82,39 @@ export function getStoredGamePlayer() {
     if (!rawValue) return null;
 
     try {
-        const parsed = JSON.parse(rawValue) as { email?: string; username?: string };
+        const parsed = JSON.parse(rawValue) as StoredGamePlayer;
         if (!parsed.email || !parsed.username) return null;
         return {
             email: parsed.email,
             username: parsed.username,
+            browserProfile: parsed.browserProfile,
+            updatedAt: parsed.updatedAt,
         };
     } catch {
         return null;
     }
 }
 
-async function upsertGamePlayer(email: string, username: string) {
-    const normalizedEmail = normalizeEmail(email);
-    const trimmedUsername = username.trim();
-
-    const { data, error } = await supabase
-        .from("game_players")
-        .upsert(
-            {
-                email: normalizedEmail,
-                username: trimmedUsername,
-                updated_at: new Date().toISOString(),
-            },
-            { onConflict: "email" }
-        )
-        .select("id, email, username")
-        .single();
-
-    if (error) throw error;
-    return data as GamePlayer;
-}
-
-function isBetterScore(existing: {
-    score: number;
-    attempts: number | null;
-    solved: boolean | null;
-}, incoming: {
-    score: number;
-    attempts: number | null;
-    solved: boolean | null;
-}) {
-    if (incoming.score !== existing.score) {
-        return incoming.score > existing.score;
-    }
-
-    if (incoming.solved !== existing.solved) {
-        return Boolean(incoming.solved) && !existing.solved;
-    }
-
-    const existingAttempts = existing.attempts ?? Number.MAX_SAFE_INTEGER;
-    const incomingAttempts = incoming.attempts ?? Number.MAX_SAFE_INTEGER;
-    return incomingAttempts < existingAttempts;
+export function clearStoredGamePlayer() {
+    if (typeof window === "undefined") return;
+    window.localStorage.removeItem(GAME_PLAYER_STORAGE_KEY);
+    document.cookie = "wedding-games-profile=; path=/; max-age=0; samesite=lax";
 }
 
 export async function submitGameScore(input: SubmitGameScoreInput) {
-    const player = await upsertGamePlayer(input.email, input.username);
-    const puzzleKey = input.puzzleKey ?? "";
+    const response = await fetch("/api/games/submit-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+    });
 
-    const { data: existingScore, error: existingError } = await supabase
-        .from("game_scores")
-        .select("id, score, attempts, solved")
-        .eq("player_id", player.id)
-        .eq("game", input.game)
-        .eq("puzzle_key", puzzleKey)
-        .maybeSingle();
+    const data = await response.json() as { improved?: boolean; error?: string };
 
-    if (existingError) throw existingError;
-
-    const scorePayload = {
-        player_id: player.id,
-        game: input.game,
-        puzzle_key: puzzleKey,
-        score: input.score,
-        max_score: input.maxScore ?? null,
-        attempts: input.attempts ?? null,
-        solved: input.solved ?? null,
-        metadata: input.metadata ?? {},
-        updated_at: new Date().toISOString(),
-    };
-
-    if (existingScore) {
-        const shouldUpdate = isBetterScore(existingScore, {
-            score: input.score,
-            attempts: input.attempts ?? null,
-            solved: input.solved ?? null,
-        });
-
-        if (!shouldUpdate) {
-            return { improved: false };
-        }
-
-        const { error } = await supabase
-            .from("game_scores")
-            .update(scorePayload)
-            .eq("id", existingScore.id);
-
-        if (error) throw error;
-        return { improved: true };
+    if (!response.ok) {
+        throw new Error(data.error || "Could not submit score.");
     }
 
-    const { error } = await supabase.from("game_scores").insert(scorePayload);
-    if (error) throw error;
-    return { improved: true };
+    return { improved: Boolean(data.improved) };
 }
 
 export async function fetchLeaderboard(game: GameType, options?: { limit?: number; puzzleKey?: string }) {

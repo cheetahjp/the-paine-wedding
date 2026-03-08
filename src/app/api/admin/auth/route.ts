@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import {
+    ADMIN_SESSION_COOKIE,
+    ADMIN_SESSION_MAX_AGE,
+    createAdminSessionToken,
+} from "@/lib/admin/session";
 
 // Passwords are stored server-side in environment variables.
 // Set these in .env.local (local dev) and in Vercel project settings (production).
@@ -29,7 +35,26 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Invalid password." }, { status: 401 });
         }
 
-        return NextResponse.json({ role }, { status: 200 });
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (supabaseUrl && supabaseKey) {
+            const supabase = createClient(supabaseUrl, supabaseKey);
+            await supabase.from("admin_logs").insert({ password_used: role });
+        }
+
+        const response = NextResponse.json({ role }, { status: 200 });
+        response.cookies.set({
+            name: ADMIN_SESSION_COOKIE,
+            value: createAdminSessionToken(role),
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+            maxAge: ADMIN_SESSION_MAX_AGE,
+        });
+
+        return response;
     } catch {
         return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }

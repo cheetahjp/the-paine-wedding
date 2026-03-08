@@ -1,7 +1,8 @@
 import { PAINEDLE_WORDS } from "@/lib/games/word-list";
 
-export const WORD_LENGTH = 5;
 export const MAX_GUESSES = 6;
+export const MIN_WORD_LENGTH = 4;
+export const MAX_WORD_LENGTH = 7;
 export const KEYBOARD_ROWS = [
     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
     ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -9,8 +10,6 @@ export const KEYBOARD_ROWS = [
 ] as const;
 
 export type LetterStatus = "correct" | "present" | "absent";
-
-const VALID_GUESSES = new Set(PAINEDLE_WORDS);
 
 export function getTodayKey(date = new Date()) {
     const year = date.getFullYear();
@@ -31,12 +30,16 @@ export function getDailyWord(dateKey: string) {
     return PAINEDLE_WORDS[hashDateKey(dateKey) % PAINEDLE_WORDS.length];
 }
 
-export function isValidGuess(guess: string) {
-    return VALID_GUESSES.has(guess.toLowerCase() as (typeof PAINEDLE_WORDS)[number]);
+export function getWordLengthForPuzzle(dateKey: string) {
+    return getDailyWord(dateKey).length;
+}
+
+export function isSupportedGuessLength(length: number) {
+    return length >= MIN_WORD_LENGTH && length <= MAX_WORD_LENGTH;
 }
 
 export function evaluateGuess(guess: string, solution: string) {
-    const statuses: LetterStatus[] = Array.from({ length: WORD_LENGTH }, () => "absent");
+    const statuses: LetterStatus[] = Array.from({ length: solution.length }, () => "absent");
     const solutionLetters = solution.split("");
     const guessLetters = guess.split("");
 

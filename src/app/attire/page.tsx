@@ -15,7 +15,7 @@ export default function Attire() {
     ];
 
     return (
-        <div className="pt-20">
+        <div>
             <Section className="text-center pb-12">
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">Attire</h1>
                 <p className="max-w-2xl mx-auto text-text-secondary tracking-wide leading-relaxed">

@@ -206,6 +206,96 @@ Key top-level keys:
 - `font-heading` → Bodoni Moda (serif, high contrast Didone — similar to Lust Didone)
 - `font-body` → Montserrat (sans-serif)
 
+### Active Redesign / Games System Plan (Mar 8, 2026)
+
+This plan was requested explicitly by Jeff before implementation. Update this section during work, even if unfinished, so another AI can pick up mid-stream.
+
+#### Goals
+- Replace the current heading font with a serif that keeps the editorial/fine-art feel but is easier to read than Bodoni Moda.
+- Remove the redundant hero/announcement content from the public games hub so the page is mostly just the actual game cards.
+- Fix the recurring horizontal band/bar below the sticky header across games/admin and any affected pages.
+- Reorder the games on `/games` so `Painedle` is first and `Couple Trivia` is second.
+- Make locked trivia visually subdued except for the countdown/timer so availability is obvious.
+- Remove redundant badges/tags and stale “update” copy from the public games pages.
+- Tighten the vertical lockup on `/games/painedle` so the header card, game card, and leaderboard panel feel intentionally grouped.
+- Broaden Painedle from fixed 5-letter words to variable lengths (target: 4, 5, 6, and 7 letters).
+- Accept normal real-word guesses, not just answers from the wedding word bank, so players can probe for hints.
+- Build a more complete persistent game-user system:
+- username + email capture
+- browser-persisted signed-in state
+- settings/account editing and explicit logout
+- collect non-invasive browser profile data when available (user agent, locale, timezone, platform, screen, language)
+- separate game administration from RSVP administration instead of nesting games inside the RSVP dashboard
+- separate security/login tracking from RSVP/game management
+- record future trivia-bank CRUD work in the collaboration docs, but do not implement the trivia editor in this pass
+
+#### Implementation Order
+1. Typography + layout cleanup
+- choose a more legible editorial serif and update the Google Fonts `<link>` plus `globals.css`
+- fix header/background banding globally by tightening top padding / section backgrounds where the sticky header meets page content
+
+2. Public games hub cleanup
+- remove the current top hero and secondary explainer cards from `/games`
+- show only the actual game cards
+- put `Painedle` first
+- make `Couple Trivia` visually muted when locked
+- remove the extra tag pills on the trivia card
+- ensure both cards have matching thin strokes / slight depth treatment
+
+3. Painedle public UX cleanup
+- simplify the `/games/painedle` header copy so it reads like real product copy, not release notes
+- remove redundant metadata (duplicate date/format callouts)
+- reduce the vertical gap between the top header card and the lower card pair
+- keep mobile layout consistent
+
+4. Painedle engine overhaul
+- replace fixed `WORD_LENGTH = 5` assumptions with variable-length puzzle settings per daily word
+- update board rendering, validation, evaluation logic, keyboard handling, storage keys, and score calculation to work across 4/5/6/7-letter answers
+- expand the answer bank with stronger wedding-relevant words
+- add a broader valid-guess dictionary source and length-aware validation
+
+5. Game account/profile system
+- persist player identity in browser storage so guests stay signed in unless they explicitly log out
+- add profile/settings UI for username/email edits and logout
+- store additional non-invasive client metadata with player/session/profile records
+- assess what can and cannot be captured reliably client-side; note that raw IP requires server capture, not browser JS
+
+6. Admin information architecture split
+- keep `/admin` focused on RSVP/guest operations
+- move games management to its own admin route/tab/page
+- move security/login tracking to its own admin route/tab/page
+- remove guest importer from the games context once games are separated
+- carry over the existing games insight panels into the dedicated games admin area
+
+7. Future-not-now trivia bank work
+- document follow-up requirements for add/edit/delete/archive question management
+- include support for multiple-choice and true/false question types
+
+#### Risks / Constraints
+- Live leaderboard persistence is still blocked until Supabase migration `20260308010000_add_game_leaderboards.sql` is actually applied to hosted Supabase.
+- Capturing IP address for player profiles cannot be done directly from front-end browser code; it requires a server/API layer or edge middleware to record request metadata.
+- A broad real-word guess list may require a sizable dictionary asset or curated subset. Keep bundle size under control.
+- Variable word length affects nearly every assumption in the current Painedle implementation and localStorage keys.
+
+#### Current Progress Snapshot
+- [x] Replaced `Bodoni Moda` with `Cormorant Garamond` in `src/app/layout.tsx` / `src/app/globals.css`
+- [x] Removed the redundant hero/explainer stack from `/games`; the page is now just the two game cards
+- [x] Reordered `/games` so `Painedle` is first and locked trivia is second
+- [x] Muted the locked trivia card and removed the redundant trivia tag pills
+- [x] Strengthened border/shadow treatment so navy cards now carry the same thin-stroke / slight-depth feel as the tan cards
+- [x] Removed the redundant extra hero blocks from `/games/painedle` and `/games/trivia`; the account panel now leads directly into the playable content
+- [x] Removed the extra top-padding band on the games/admin pages by tightening the wrappers instead of stacking `pt-20` / `pt-24` under the sticky header
+- [x] Expanded Painedle answers to 4/5/6/7-letter words via `src/lib/games/word-list.ts` and dynamic logic in `src/lib/games/painedle.ts`
+- [x] Added real-word guess validation via server route `/api/games/validate-word` and packaged dictionary source `word-list`
+- [x] Added persistent browser game profiles with edit/logout controls in `src/components/games/GameAccountPanel.tsx`
+- [x] Moved score submission to server route `/api/games/submit-score` so request metadata can be captured (IP/header/location when available)
+- [x] Split admin into three top-level sections:
+- `/admin` = RSVP
+- `/admin/games` = games control room
+- `/admin/security` = admin login tracking
+- [x] Expanded Games Admin to show player/profile signals alongside submissions and player summaries
+- [ ] Future trivia bank CRUD is documented only, not implemented yet
+
 ---
 
 ## ✅ WHAT HAS BEEN BUILT (Completed)
@@ -229,9 +319,9 @@ Key top-level keys:
 - [x] Registry — layout ready, links are `TODO`
 - [x] FAQ — fully built, cards layout (no accordion yet)
 - [x] Attire — dress code page
-- [x] Games hub — QR-friendly landing page for the two games
+- [x] Games hub — public landing page linked in main nav
 - [x] Couple Trivia — separate route with welcome → play → results flow
-- [x] Painedle — separate daily word game with keyboard support + localStorage
+- [x] Painedle — separate daily word game with keyboard support + persistent browser save
 - [x] Game leaderboards — username/email submission + top-score boards
 - [x] Trivia lock gate — countdown on `/games`, trivia opens on wedding day
 - [x] RSVP — full 3-step flow (search → household → submit)
@@ -259,7 +349,7 @@ Key top-level keys:
 - [x] Desktop nav with all page links
 - [x] Mobile hamburger drawer (smooth CSS transition, closes on link/outside click)
 - [x] Bridal Party added to nav
-- [x] Games intentionally NOT in main nav — meant for QR codes / direct links
+- [x] Games added to main nav so guests can reach it normally
 
 ### Bug Fixes
 - [x] `StoryImage` client component — fixes "Event handlers cannot be passed to Client Component props" on `/our-story`
@@ -381,3 +471,24 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
   - player directory / unique player summaries
 - Verified changes with `npm run build`
 - `npm run lint` still only shows the two pre-existing warnings: custom font warning in `src/app/layout.tsx` and unrelated `.claire` worktree warning
+
+### Session 9 (Mar 8, 2026)
+- Wrote and maintained the explicit redesign/game-system implementation plan in this doc before continuing code work
+- Swapped the heading font to `Cormorant Garamond` to keep the editorial serif feel with better legibility
+- Simplified `/games` to only the two actual game cards; removed the big hero/explainer stack
+- Kept `Painedle` first and `Couple Trivia` second, with the locked trivia card visually subdued except for the countdown
+- Removed redundant release-note style copy and extra metadata/hero clutter from the Painedle and Trivia routes
+- Fixed the extra horizontal band under the sticky header on the games/admin pages by removing redundant top-padding wrappers
+- Expanded Painedle from fixed five-letter answers to mixed 4/5/6/7-letter answers
+- Added real-word guess validation using a packaged dictionary source (`word-list`) plus a validation API route
+- Added persistent browser game profiles with account edit/logout controls so players stay signed in on that browser until they explicitly clear it
+- Moved score submission to `/api/games/submit-score` so request metadata can be captured server-side (IP/header/location when available) and stored in score metadata
+- Separated admin IA cleanly:
+- `/admin` = RSVP dashboard only
+- `/admin/games` = games control room
+- `/admin/security` = admin login tracking
+- Expanded Games Admin so submission/player views now show device/location/profile signals instead of just bare scores
+- Documented future trivia-bank CRUD requirements only (add/edit/delete/archive, plus true/false support) — not implemented in this pass
+- Verified with:
+- `npm run lint` -> only the 2 known warnings remain (`src/app/layout.tsx` custom-font warning and unrelated `.claire` worktree warning)
+- `npm run build` -> passes

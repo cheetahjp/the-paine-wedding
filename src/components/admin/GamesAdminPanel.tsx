@@ -33,6 +33,11 @@ type PlayerSummary = {
     painedleSubmissions: number;
     bestTriviaScore: number | null;
     bestPainedleScore: number | null;
+    latestSeenAt: string | null;
+    latestTimezone: string | null;
+    latestLocation: string | null;
+    latestDevice: string | null;
+    latestIp: string | null;
 };
 
 function getPlayerDetails(score: AdminGameScore): GamePlayerRecord | undefined {
@@ -53,6 +58,33 @@ function sortPainedleScores(a: AdminGameScore, b: AdminGameScore) {
 
 function formatSubmissionTime(value: string) {
     return new Date(value).toLocaleString();
+}
+
+function getMetadataValue(score: AdminGameScore, key: string) {
+    const value = score.metadata?.[key];
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getProfileSummary(score: AdminGameScore) {
+    const timezone = getMetadataValue(score, "browser_timezone");
+    const city = getMetadataValue(score, "request_city");
+    const region = getMetadataValue(score, "request_region");
+    const country = getMetadataValue(score, "request_country");
+    const userAgent = getMetadataValue(score, "browser_user_agent") || getMetadataValue(score, "request_user_agent");
+
+    const location = [city, region, country].filter(Boolean).join(", ") || timezone || "Unknown location";
+    const device = userAgent
+        ? /mobile|iphone|android/i.test(userAgent)
+            ? "Mobile browser"
+            : "Desktop browser"
+        : "Unknown device";
+
+    return {
+        location,
+        device,
+        timezone,
+        ip: getMetadataValue(score, "request_ip"),
+    };
 }
 
 function buildUpcomingSchedule(days: number) {
@@ -224,6 +256,11 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                     painedleSubmissions: score.game === "painedle" ? 1 : 0,
                     bestTriviaScore: score.game === "trivia" ? score.score : null,
                     bestPainedleScore: score.game === "painedle" ? score.score : null,
+                    latestSeenAt: score.created_at,
+                    latestTimezone: getMetadataValue(score, "browser_timezone"),
+                    latestLocation: getProfileSummary(score).location,
+                    latestDevice: getProfileSummary(score).device,
+                    latestIp: getProfileSummary(score).ip,
                 });
                 return;
             }
@@ -238,6 +275,14 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
             }
             if (!existing.createdAt && player.created_at) {
                 existing.createdAt = player.created_at;
+            }
+
+            if (!existing.latestSeenAt || new Date(score.created_at).getTime() > new Date(existing.latestSeenAt).getTime()) {
+                existing.latestSeenAt = score.created_at;
+                existing.latestTimezone = getMetadataValue(score, "browser_timezone");
+                existing.latestLocation = getProfileSummary(score).location;
+                existing.latestDevice = getProfileSummary(score).device;
+                existing.latestIp = getProfileSummary(score).ip;
             }
         });
 
@@ -365,7 +410,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                 type="text"
                                 value={wordSearch}
                                 onChange={(event) => setWordSearch(event.target.value.toLowerCase())}
-                                placeholder="Search five-letter words"
+                                placeholder="Search the word bank"
                                 className="w-full rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-primary"
                             />
                         </div>
@@ -552,7 +597,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                             <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Activity Feed</p>
                             <h3 className="mt-3 font-heading text-4xl text-primary">Recent submissions</h3>
                             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text-secondary">
-                                Full score log with usernames, puzzle keys, timestamps, attempts, and per-game filtering.
+                                Full score log with usernames, puzzle keys, timestamps, attempts, and profile signals pulled from the browser and request headers.
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -568,18 +613,20 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         </div>
                     ) : (
                         <div className="overflow-hidden rounded-[1.8rem] border border-primary/10 bg-white shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                            <div className="grid grid-cols-[1.2fr_0.8fr_0.7fr_0.7fr_1fr] gap-4 border-b border-primary/8 bg-[#fbf8f3] px-6 py-4 text-xs uppercase tracking-[0.26em] text-text-secondary">
+                            <div className="grid grid-cols-[1.1fr_0.8fr_0.6fr_0.6fr_0.9fr_1fr] gap-4 border-b border-primary/8 bg-[#fbf8f3] px-6 py-4 text-xs uppercase tracking-[0.26em] text-text-secondary">
                                 <div>Player</div>
                                 <div>Game / Puzzle</div>
                                 <div>Score</div>
                                 <div>Attempts</div>
+                                <div>Profile</div>
                                 <div>Submitted</div>
                             </div>
                             <div className="max-h-[32rem] overflow-auto divide-y divide-primary/6">
                                 {filteredScores.map((score) => {
                                     const player = getPlayerDetails(score);
+                                    const profile = getProfileSummary(score);
                                     return (
-                                        <div key={score.id} className="grid grid-cols-[1.2fr_0.8fr_0.7fr_0.7fr_1fr] gap-4 px-6 py-4 text-sm text-text-secondary">
+                                        <div key={score.id} className="grid grid-cols-[1.1fr_0.8fr_0.6fr_0.6fr_0.9fr_1fr] gap-4 px-6 py-4 text-sm text-text-secondary">
                                             <div>
                                                 <p className="font-medium text-primary">{player?.username ?? "Guest"}</p>
                                                 <p className="text-xs text-text-secondary">{player?.email ?? "No email"}</p>
@@ -590,6 +637,11 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                             </div>
                                             <div className="text-primary">{getScoreLabel(score)}</div>
                                             <div>{score.attempts ?? "-"}</div>
+                                            <div>
+                                                <p className="text-primary">{profile.device}</p>
+                                                <p className="text-xs text-text-secondary">{profile.location}</p>
+                                                {profile.ip ? <p className="text-xs text-text-secondary">IP {profile.ip}</p> : null}
+                                            </div>
                                             <div>{formatSubmissionTime(score.created_at)}</div>
                                         </div>
                                     );
@@ -631,15 +683,16 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         </div>
                     ) : (
                         <div className="overflow-hidden rounded-[1.8rem] border border-primary/10 bg-white shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                            <div className="grid grid-cols-[1fr_0.7fr_0.7fr_0.7fr] gap-4 border-b border-primary/8 bg-[#fbf8f3] px-6 py-4 text-xs uppercase tracking-[0.26em] text-text-secondary">
+                            <div className="grid grid-cols-[1fr_0.55fr_0.7fr_0.7fr_1fr] gap-4 border-b border-primary/8 bg-[#fbf8f3] px-6 py-4 text-xs uppercase tracking-[0.26em] text-text-secondary">
                                 <div>Player</div>
                                 <div>Total</div>
                                 <div>Best Trivia</div>
                                 <div>Best Painedle</div>
+                                <div>Latest Profile</div>
                             </div>
                             <div className="max-h-[32rem] overflow-auto divide-y divide-primary/6">
                                 {uniquePlayers.map((player) => (
-                                    <div key={player.email || player.username} className="grid grid-cols-[1fr_0.7fr_0.7fr_0.7fr] gap-4 px-6 py-4 text-sm text-text-secondary">
+                                    <div key={player.email || player.username} className="grid grid-cols-[1fr_0.55fr_0.7fr_0.7fr_1fr] gap-4 px-6 py-4 text-sm text-text-secondary">
                                         <div>
                                             <p className="font-medium text-primary">{player.username}</p>
                                             <p className="text-xs text-text-secondary">{player.email || "No email"}</p>
@@ -647,6 +700,13 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                         <div>{player.totalSubmissions}</div>
                                         <div>{player.bestTriviaScore ?? "-"}</div>
                                         <div>{player.bestPainedleScore ?? "-"}</div>
+                                        <div>
+                                            <p className="text-primary">{player.latestDevice ?? "Unknown device"}</p>
+                                            <p className="text-xs text-text-secondary">{player.latestLocation ?? "Unknown location"}</p>
+                                            <p className="text-xs text-text-secondary">
+                                                {player.latestSeenAt ? `Seen ${formatSubmissionTime(player.latestSeenAt)}` : "No recent activity"}
+                                            </p>
+                                        </div>
                                     </div>
                                 ))}
                                 {uniquePlayers.length === 0 ? (
