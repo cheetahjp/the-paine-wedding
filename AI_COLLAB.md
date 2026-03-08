@@ -495,4 +495,10 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Committed to `main` as `c565864` (`Redesign games and split admin controls`)
 - Pushed to GitHub and deployed to Vercel production
 - Current production alias: `https://www.thepainewedding.com`
-- Supabase leaderboard migration is still the final external blocker for live score persistence because the Supabase CLI on this machine is not authenticated
+- Supabase leaderboard migration was applied to the hosted project after authenticating the Supabase CLI and repairing the existing migration history
+- Repaired remote migration history for:
+- `0000`
+- `20260307000000`
+- Applied:
+- `20260308010000_add_game_leaderboards.sql`
+- Remote migration history now matches local for all three current migrations
