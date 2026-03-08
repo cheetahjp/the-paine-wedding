@@ -361,3 +361,5 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Locked trivia until wedding day with a countdown on `/games` and a gate on `/games/trivia`
 - Kept Painedle available immediately with a daily leaderboard keyed by the current puzzle date
 - Added a Games tab to `/admin` so scores can be reviewed inside the existing dashboard
+- Fixed production admin login by setting `ADMIN_PASSWORD_MASTER` and `ADMIN_PASSWORD_1`–`5` in Vercel and redeploying
+- Code is deployed live, but leaderboard writes are still blocked until the Supabase migration is actually applied to the hosted database
