@@ -492,3 +492,7 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Verified with:
 - `npm run lint` -> only the 2 known warnings remain (`src/app/layout.tsx` custom-font warning and unrelated `.claire` worktree warning)
 - `npm run build` -> passes
+- Committed to `main` as `c565864` (`Redesign games and split admin controls`)
+- Pushed to GitHub and deployed to Vercel production
+- Current production alias: `https://www.thepainewedding.com`
+- Supabase leaderboard migration is still the final external blocker for live score persistence because the Supabase CLI on this machine is not authenticated
