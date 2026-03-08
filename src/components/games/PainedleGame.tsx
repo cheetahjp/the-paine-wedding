@@ -61,6 +61,20 @@ function getTileSizeClasses(wordLength: number) {
     return "h-14 w-14 text-xl md:h-16 md:w-16 md:text-2xl";
 }
 
+function isEditableTarget(target: EventTarget | null) {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    const tagName = target.tagName;
+    return (
+        target.isContentEditable ||
+        tagName === "INPUT" ||
+        tagName === "TEXTAREA" ||
+        tagName === "SELECT"
+    );
+}
+
 async function validateGuessWord(guess: string) {
     const response = await fetch("/api/games/validate-word", {
         method: "POST",
@@ -230,6 +244,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
             if (event.metaKey || event.ctrlKey || event.altKey) return;
+            if (isEditableTarget(event.target)) return;
 
             const key = event.key;
             if (key === "Enter" || key === "Backspace") {

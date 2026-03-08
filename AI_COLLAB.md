@@ -502,3 +502,11 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Applied:
 - `20260308010000_add_game_leaderboards.sql`
 - Remote migration history now matches local for all three current migrations
+
+### Session 10 (Mar 8, 2026)
+- Fixed a Painedle front-end keyboard bug where the global `window` key listener was hijacking `Backspace` and letter keys while focus was inside the username/email fields
+- Root cause was `src/components/games/PainedleGame.tsx` calling `preventDefault()` for gameplay keys without first checking whether the event target was an editable element
+- Added an editable-target guard for `input`, `textarea`, `select`, and `contentEditable` elements so form controls behave normally while gameplay keyboard controls still work outside those fields
+- Revalidated with:
+- `npm run lint` -> only the 2 known warnings remain
+- `npm run build` -> passes
