@@ -232,8 +232,8 @@ export default function AdminDashboard() {
     );
     if (!isAuthenticated) {
         return (
-            <div className="pt-32 min-h-screen flex flex-col bg-surface">
-                <Section className="text-center pb-12 flex-grow flex flex-col justify-start">
+            <div className="min-h-screen flex flex-col bg-base">
+                <Section className="text-center pb-12 pt-24 flex-grow flex flex-col justify-start">
                     <div className="max-w-md mx-auto w-full bg-white p-10 shadow-sm border border-gray-100 mt-10">
                         <h1 className="font-heading text-3xl mb-6 text-primary">Admin Access</h1>
 
