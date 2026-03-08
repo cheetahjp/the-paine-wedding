@@ -510,3 +510,12 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - Revalidated with:
 - `npm run lint` -> only the 2 known warnings remain
 - `npm run build` -> passes
+
+### Session 11 (Mar 8, 2026)
+- Adjusted the signed-in games account UI in `src/components/games/GameAccountPanel.tsx`
+- Root issue: after a player profile was saved, the page still rendered a large onboarding-style account card above the game, which pushed the actual gameplay too far down the page
+- New behavior: saved players now see a compact account summary bar by default
+- Username/email editing still exists, but the full form is only shown when account settings are opened instead of always occupying the top of the page
+- Revalidated with:
+- `npm run lint` -> only the 2 known warnings remain
+- `npm run build` -> passes
