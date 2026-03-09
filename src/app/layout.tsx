@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { WEDDING } from "@/lib/wedding-data";
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: WEDDING.meta.title,
@@ -16,12 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
-      </head>
-      <body className={`font-body antialiased min-h-screen flex flex-col bg-base text-text-primary`}>
+      <body className={`${cormorant.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col bg-base text-text-primary`}>
         <Navbar />
         <main className="flex-grow">{children}</main>
         <Footer />

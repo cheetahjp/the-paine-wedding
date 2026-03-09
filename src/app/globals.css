@@ -1,27 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #142A44;
-  /* Navy */
-  --color-secondary: #7A1F24;
-  /* Burgundy */
-  --color-accent: #C69A72;
-  /* Tan */
+  /* Primary palette — white + lighter navy lead the visual language */
+  --color-primary: #1A3F6F;    /* Lighter navy — vibrant, clearly blue */
+  --color-secondary: #7A1F24;  /* Burgundy */
+  --color-accent: #C69A72;     /* Tan / warm gold */
 
-  --color-base: #FFFFFF;
-  /* White */
-  --color-surface: #F4F4F4;
-  /* Soft Gray */
+  --color-base: #FFFFFF;       /* White */
+  --color-surface: #F7F5F0;    /* Warm cream — replaces cold neutral gray */
 
-  --color-text-primary: #0F1720;
-  /* Almost Black */
-  --color-text-secondary: #3F5B7A;
-  /* Slate Blue */
+  --color-text-primary: #0F1720;  /* Near-black for body text */
+  --color-text-secondary: #3F5B7A; /* Slate blue for secondary text */
   --color-text-light: #FFFFFF;
-  /* White Text */
 
-  --font-heading: "Cormorant Garamond", serif;
-  --font-body: "Montserrat", sans-serif;
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-inter);
 }
 
 :root {
@@ -37,50 +30,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+/*
+  Default heading weight is 600 (semi-bold).
+  Cormorant Garamond at 400 has very thin strokes;
+  600 preserves the elegance while ensuring readability.
+*/
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), serif;
+  font-weight: 600;
 }
 
 @keyframes painedle-flip {
-  0% {
-    transform: rotateX(0deg);
-  }
-
-  50% {
-    transform: rotateX(90deg);
-  }
-
-  100% {
-    transform: rotateX(0deg);
-  }
+  0% { transform: rotateX(0deg); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
 }
 
 @keyframes painedle-shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  20% {
-    transform: translateX(-8px);
-  }
-
-  40% {
-    transform: translateX(8px);
-  }
-
-  60% {
-    transform: translateX(-6px);
-  }
-
-  80% {
-    transform: translateX(6px);
-  }
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
 }
 
 .animate-painedle-flip {
