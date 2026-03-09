@@ -8,7 +8,7 @@ export const WEDDING = {
   couple: {
     bride: { first: 'Ashlyn', last: 'Bimmerle', full: 'Ashlyn Bimmerle' },
     groom: { first: 'Jeffrey', last: 'Paine', full: 'Jeffrey Paine' },
-    names: 'Jeffrey & Ashlyn',
+    names: 'Ashlyn & Jeffrey',
     lastName: 'Paine',
   },
 
@@ -50,7 +50,7 @@ export const WEDDING = {
       time: '5:00 PM',
       title: 'Ceremony',
       description:
-        'The main event! Join us in the chapel as Jeffrey and Ashlyn exchange vows and begin forever.',
+        'The main event! Join us in the chapel as Ashlyn and Jeffrey exchange vows and begin forever.',
     },
     {
       time: '5:45 PM',
@@ -86,7 +86,7 @@ export const WEDDING = {
       time: '10:00 PM',
       title: 'Send-Off',
       description:
-        'The night ends with a send-off as Jeffrey and Ashlyn head into their happily ever after. Don\'t miss it!',
+        'The night ends with a send-off as Ashlyn and Jeffrey head into their happily ever after. Don\'t miss it!',
     },
   ] as Array<{ time: string; title: string; description: string }>,
 
@@ -312,7 +312,7 @@ export const WEDDING = {
   },
 
   meta: {
-    title: "Jeffrey & Ashlyn | The Paine Wedding",
+    title: "Ashlyn & Jeffrey | The Paine Wedding",
     description:
       'Join us to celebrate our wedding at Davis & Grey Farms on September 26, 2026.',
     ogImage: '/images/engagement/og-image.jpg',

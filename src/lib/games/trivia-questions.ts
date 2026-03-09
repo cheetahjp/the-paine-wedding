@@ -37,7 +37,7 @@ export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
         funFact: "Ashlyn takes the longer getting-ready route.",
     },
     {
-        prompt: "Where did Jeffrey and Ashlyn first meet?",
+        prompt: "Where did Ashlyn and Jeffrey first meet?",
         answers: ["Texas A&M University-Commerce", "Davis & Grey Farms", "Arbor Hills", "Galveston Bay Brewing"],
         correctIndex: 0,
         funFact: "It started with an ice cream social at Texas A&M University-Commerce in 2021.",

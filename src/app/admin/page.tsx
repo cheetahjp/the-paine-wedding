@@ -358,7 +358,7 @@ export default function AdminDashboard() {
                         <div className="mt-6 space-y-4">
                             <textarea
                                 className="min-h-[150px] w-full resize-none rounded-[1rem] border border-gray-200 bg-surface p-4 font-mono text-sm focus:border-primary focus:outline-none"
-                                placeholder={`The Paine Family\tJeffrey\tPaine\t\tJeff\nThe Paine Family\tAshlyn\tBimmerle\t\tAsh`}
+                                placeholder={`The Paine Family\tAshlyn\tBimmerle\t\t\nThe Paine Family\tJeffrey\tPaine\t\t`}
                                 value={importText}
                                 onChange={(event) => setImportText(event.target.value)}
                             />

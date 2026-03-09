@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
     captureBrowserProfile,
     clearStoredGamePlayer,
@@ -10,24 +10,27 @@ import {
 } from "@/lib/games/leaderboard";
 
 export default function GameAccountPanel() {
-    const [savedPlayer, setSavedPlayer] = useState<StoredGamePlayer | null>(null);
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [isEditing, setIsEditing] = useState(false);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        const stored = getStoredGamePlayer();
-        setSavedPlayer(stored);
-        if (stored) {
-            setUsername(stored.username);
-            setEmail(stored.email);
-            setIsEditing(false);
-        } else {
-            setIsEditing(true);
-        }
-        setMounted(true);
-    }, []);
+    const isClient = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false
+    );
+    const [savedPlayer, setSavedPlayer] = useState<StoredGamePlayer | null>(() => {
+        if (typeof window === "undefined") return null;
+        return getStoredGamePlayer();
+    });
+    const [username, setUsername] = useState(() => {
+        if (typeof window === "undefined") return "";
+        return getStoredGamePlayer()?.username ?? "";
+    });
+    const [email, setEmail] = useState(() => {
+        if (typeof window === "undefined") return "";
+        return getStoredGamePlayer()?.email ?? "";
+    });
+    const [isEditing, setIsEditing] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return !getStoredGamePlayer();
+    });
 
     function handleSave(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -59,7 +62,7 @@ export default function GameAccountPanel() {
     }
 
     // Don't render until client-side hydration is complete (localStorage isn't available on server)
-    if (!mounted) return null;
+    if (!isClient) return null;
 
     // Collapsed display — profile is saved and not editing
     if (savedPlayer && !isEditing) {

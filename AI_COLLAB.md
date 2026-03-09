@@ -8,7 +8,7 @@
 
 ## 🔑 Project Identity
 
-- **Site:** Jeff & Ashlyn Paine's wedding website
+- **Site:** Ashlyn & Jeffrey Paine's wedding website
 - **Wedding date:** September 26, 2026
 - **Venue:** Davis & Grey Farms, 2975 CR 1110, Celeste, TX 75423
 - **GitHub:** https://github.com/cheetahjp/the-paine-wedding (public repo)
@@ -171,7 +171,7 @@ ADMIN_PASSWORDS=JeffreyAndAshlyn!,JeffreyAndAshlyn1!,...   # server-side only
 
 All pages import from `WEDDING`. To update content across the whole site, edit this one file.
 Key top-level keys:
-- `WEDDING.couple` — Jeff & Ashlyn info
+- `WEDDING.couple` — Ashlyn & Jeffrey info
 - `WEDDING.event` — date, venue, address, times (many still `TODO`)
 - `WEDDING.story[]` — Our Story timeline items (year, title, description, image, imageFallback)
 - `WEDDING.bridalParty[]` — Wedding party (all placeholder names — needs real data from Ashlyn)
@@ -537,3 +537,10 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - `npm run lint` -> only the 2 known warnings remain
 - `npm run build` -> passes
 - This is the main handoff note for Claude if work resumes from here: Painedle answer scheduling is now sequential and the bank is 310 unique words, so short-cycle repeats should be resolved
+
+### Session 13 (Mar 9, 2026)
+- Normalized the public-facing couple-name order across the site to `Ashlyn & Jeffrey` / `Ashlyn and Jeffrey`
+- Updated the main couple name source in `src/lib/wedding-data.ts`, which also updates the site brand text driven by `WEDDING.couple.names`
+- Updated remaining visible website copy where the pair was still written as `Jeffrey and Ashlyn`
+- Removed `Jeff` / `Ash` nickname examples from the admin importer placeholder so the visible admin UI also uses the formal names
+- Hand-off note for Claude: treat `Ashlyn & Jeffrey` as the canonical display order for public-facing website copy unless sentence grammar requires a subject/object construction
