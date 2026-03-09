@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import { Bodoni_Moda, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { WEDDING } from "@/lib/wedding-data";
 
-const cormorant = Cormorant_Garamond({
+const bodoni = Bodoni_Moda({
   variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["700", "800", "900"],
   style: ["normal", "italic"],
 });
 
@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${cormorant.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col bg-base text-text-primary`}>
+      <body className={`${bodoni.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col bg-base text-text-primary`}>
         <Navbar />
         <main className="flex-grow">{children}</main>
         <Footer />
