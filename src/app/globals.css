@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #142A44; /* Navy */
-  --color-secondary: #7A1F24; /* Burgundy */
-  --color-accent: #C69A72; /* Tan */
-  
-  --color-base: #FFFFFF; /* White */
-  --color-surface: #F4F4F4; /* Soft Gray */
+  /* Primary palette — white + lighter navy lead the visual language */
+  --color-primary: #1A3F6F;    /* Lighter navy — vibrant, clearly blue */
+  --color-secondary: #7A1F24;  /* Burgundy */
+  --color-accent: #C69A72;     /* Tan / warm gold */
 
-  --color-text-primary: #0F1720; /* Almost Black */
-  --color-text-secondary: #3F5B7A; /* Slate Blue */
-  --color-text-light: #FFFFFF; /* White Text */
+  --color-base: #FFFFFF;       /* White */
+  --color-surface: #F7F5F0;    /* Warm cream — replaces cold neutral gray */
+
+  --color-text-primary: #0F1720;  /* Near-black for body text */
+  --color-text-secondary: #3F5B7A; /* Slate blue for secondary text */
+  --color-text-light: #FFFFFF;
 
   --font-heading: var(--font-playfair);
   --font-body: var(--font-inter);
@@ -29,6 +30,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+  Default heading weight is 600 (semi-bold).
+  Cormorant Garamond at 400 has very thin strokes;
+  600 preserves the elegance while ensuring readability.
+*/
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), serif;
+  font-weight: 600;
 }
