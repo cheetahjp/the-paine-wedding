@@ -1,9 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminGameScore, GamePlayerRecord } from "@/lib/games/admin-types";
-import { TRIVIA_QUESTIONS } from "@/lib/games/trivia-questions";
 import { PAINEDLE_WORDS } from "@/lib/games/word-list";
 import { getDailyWord, getTodayKey } from "@/lib/games/painedle";
 import { getTimeRemaining, getTriviaUnlockDate, TRIVIA_UNLOCK_LABEL } from "@/lib/games/schedule";
@@ -198,11 +197,153 @@ function ControlCard({
     );
 }
 
+type DbTriviaQuestion = {
+    id: string;
+    prompt: string;
+    answer_a: string;
+    answer_b: string;
+    answer_c: string;
+    answer_d: string;
+    correct_index: number;
+    fun_fact: string | null;
+    sort_order: number;
+    archived: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+type TriviaFormState = {
+    prompt: string;
+    answer_a: string;
+    answer_b: string;
+    answer_c: string;
+    answer_d: string;
+    correct_index: number;
+    fun_fact: string;
+    sort_order: string;
+};
+
+function emptyTriviaForm(sortHint = 0): TriviaFormState {
+    return { prompt: "", answer_a: "", answer_b: "", answer_c: "", answer_d: "", correct_index: 0, fun_fact: "", sort_order: String(sortHint) };
+}
+
+function questionToForm(q: DbTriviaQuestion): TriviaFormState {
+    return {
+        prompt: q.prompt,
+        answer_a: q.answer_a,
+        answer_b: q.answer_b,
+        answer_c: q.answer_c,
+        answer_d: q.answer_d,
+        correct_index: q.correct_index,
+        fun_fact: q.fun_fact ?? "",
+        sort_order: String(q.sort_order),
+    };
+}
+
+type TriviaFormProps = {
+    initial: TriviaFormState;
+    saving: boolean;
+    onSave: (form: TriviaFormState) => void;
+    onCancel: () => void;
+};
+
+function TriviaQuestionForm({ initial, saving, onSave, onCancel }: TriviaFormProps) {
+    const [form, setForm] = useState<TriviaFormState>(initial);
+
+    function field(key: keyof TriviaFormState) {
+        return {
+            value: form[key] as string,
+            onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                setForm((prev) => ({ ...prev, [key]: e.target.value })),
+        };
+    }
+
+    const inputClass = "w-full rounded-[0.9rem] border border-primary/12 bg-white px-3 py-2.5 text-sm text-text-primary outline-none transition-colors focus:border-primary";
+    const labelClass = "mb-1 block text-xs uppercase tracking-[0.22em] text-text-secondary";
+    const LETTERS = ["A", "B", "C", "D"] as const;
+
+    return (
+        <div className="space-y-4 rounded-[1.5rem] border border-primary/10 bg-[#fbf8f3] p-5">
+            <div>
+                <label className={labelClass}>Prompt</label>
+                <textarea
+                    rows={2}
+                    {...field("prompt")}
+                    className={`${inputClass} resize-none`}
+                    placeholder="Question prompt"
+                />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+                {(["answer_a", "answer_b", "answer_c", "answer_d"] as const).map((key, i) => (
+                    <div key={key}>
+                        <label className={labelClass}>{LETTERS[i]}</label>
+                        <input type="text" {...field(key)} className={inputClass} placeholder={`Answer ${LETTERS[i]}`} />
+                    </div>
+                ))}
+            </div>
+            <div>
+                <label className={labelClass}>Correct answer</label>
+                <div className="flex gap-3">
+                    {LETTERS.map((letter, i) => (
+                        <button
+                            key={letter}
+                            type="button"
+                            onClick={() => setForm((prev) => ({ ...prev, correct_index: i }))}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-medium uppercase tracking-[0.12em] transition-colors ${
+                                form.correct_index === i
+                                    ? "border-emerald-600 bg-emerald-600 text-white"
+                                    : "border-primary/15 bg-white text-text-secondary hover:border-primary"
+                            }`}
+                        >
+                            {letter}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                    <label className={labelClass}>Fun fact (optional)</label>
+                    <input type="text" {...field("fun_fact")} className={inputClass} placeholder="Fun fact after answer is revealed" />
+                </div>
+                <div>
+                    <label className={labelClass}>Sort order</label>
+                    <input type="number" {...field("sort_order")} className={inputClass} placeholder="0" />
+                </div>
+            </div>
+            <div className="flex gap-3 pt-1">
+                <button
+                    type="button"
+                    onClick={() => onSave(form)}
+                    disabled={saving}
+                    className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-xs font-medium uppercase tracking-[0.18em] text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90 disabled:bg-primary/40"
+                >
+                    {saving ? "Saving…" : "Save"}
+                </button>
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="inline-flex items-center justify-center rounded-full border border-primary/15 bg-white px-5 py-2.5 text-xs font-medium uppercase tracking-[0.18em] text-text-secondary transition-all hover:border-primary hover:text-primary"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    );
+}
+
 export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAdminPanelProps) {
     const [modalView, setModalView] = useState<ModalView | null>(null);
     const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
     const [wordSearch, setWordSearch] = useState("");
     const [remaining, setRemaining] = useState(() => getTimeRemaining(getTriviaUnlockDate()));
+    const [triviaQuestions, setTriviaQuestions] = useState<DbTriviaQuestion[]>([]);
+    const [triviaLoadState, setTriviaLoadState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [isAddingNew, setIsAddingNew] = useState(false);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [savingId, setSavingId] = useState<string | null>(null);
+    const [triviaOpError, setTriviaOpError] = useState<string | null>(null);
+    const hasFetchedTrivia = useRef(false);
     const [todayKey] = useState(() => getTodayKey());
     const todayWord = getDailyWord(todayKey);
 
@@ -220,6 +361,118 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
             document.body.style.overflow = "";
         };
     }, [modalView]);
+
+    const fetchTriviaQuestions = useCallback(async () => {
+        setTriviaLoadState("loading");
+        setTriviaOpError(null);
+
+        try {
+            const res = await fetch("/api/admin/trivia-questions");
+
+            if (!res.ok) {
+                throw new Error("Could not load questions.");
+            }
+
+            const json = await res.json() as { questions: DbTriviaQuestion[] };
+            setTriviaQuestions(json.questions);
+            setTriviaLoadState("ready");
+        } catch {
+            setTriviaLoadState("error");
+        }
+    }, []);
+
+    useEffect(() => {
+        if (modalView !== "trivia-bank") return;
+        if (hasFetchedTrivia.current) return;
+        hasFetchedTrivia.current = true;
+        void fetchTriviaQuestions();
+    }, [modalView, fetchTriviaQuestions]);
+
+    async function handleSaveQuestion(id: string | null, form: TriviaFormState) {
+        setSavingId(id ?? "new");
+        setTriviaOpError(null);
+
+        try {
+            const payload = {
+                prompt: form.prompt,
+                answer_a: form.answer_a,
+                answer_b: form.answer_b,
+                answer_c: form.answer_c,
+                answer_d: form.answer_d,
+                correct_index: form.correct_index,
+                fun_fact: form.fun_fact || null,
+                sort_order: parseInt(form.sort_order, 10) || 0,
+            };
+
+            const url = id ? `/api/admin/trivia-questions/${id}` : "/api/admin/trivia-questions";
+            const method = id ? "PUT" : "POST";
+
+            const res = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const err = await res.json() as { error?: string };
+                throw new Error(err.error ?? "Could not save question.");
+            }
+        } catch (err) {
+            setTriviaOpError(err instanceof Error ? err.message : "Could not save question.");
+            setSavingId(null);
+            return;
+        }
+
+        setSavingId(null);
+        setEditingId(null);
+        setIsAddingNew(false);
+        hasFetchedTrivia.current = false;
+        void fetchTriviaQuestions();
+    }
+
+    async function handleArchiveToggle(question: DbTriviaQuestion) {
+        setSavingId(question.id);
+        setTriviaOpError(null);
+
+        try {
+            const res = await fetch(`/api/admin/trivia-questions/${question.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ archived: !question.archived }),
+            });
+
+            if (!res.ok) throw new Error("Could not update question.");
+        } catch (err) {
+            setTriviaOpError(err instanceof Error ? err.message : "Could not update question.");
+            setSavingId(null);
+            return;
+        }
+
+        setSavingId(null);
+        hasFetchedTrivia.current = false;
+        void fetchTriviaQuestions();
+    }
+
+    async function handleDeleteQuestion(id: string) {
+        setSavingId(id);
+        setTriviaOpError(null);
+
+        try {
+            const res = await fetch(`/api/admin/trivia-questions/${id}`, { method: "DELETE" });
+
+            if (!res.ok) throw new Error("Could not delete question.");
+        } catch (err) {
+            setTriviaOpError(err instanceof Error ? err.message : "Could not delete question.");
+            setSavingId(null);
+            setDeleteConfirmId(null);
+            return;
+        }
+
+        setSavingId(null);
+        setDeleteConfirmId(null);
+        hasFetchedTrivia.current = false;
+        void fetchTriviaQuestions();
+    }
 
     const triviaScores = useMemo(
         () => gameScores.filter((score) => score.game === "trivia").sort(sortTriviaScores),
@@ -455,13 +708,19 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
         }
 
         if (modalView === "trivia-bank") {
+            const activeQuestions = triviaQuestions.filter((q) => !q.archived);
+            const archivedQuestions = triviaQuestions.filter((q) => q.archived);
+            const nextSortOrder = triviaQuestions.length > 0
+                ? Math.max(...triviaQuestions.map((q) => q.sort_order)) + 1
+                : 1;
+
             return (
                 <div className="space-y-6">
                     <div className="grid gap-4 md:grid-cols-3">
                         <OverviewMetric
-                            label="Question Count"
-                            value={TRIVIA_QUESTIONS.length}
-                            note="Number of prompts in the live trivia round."
+                            label="Active Questions"
+                            value={triviaLoadState === "ready" ? activeQuestions.length : "—"}
+                            note="Non-archived questions served to the game."
                         />
                         <OverviewMetric
                             label="Unlock"
@@ -469,48 +728,173 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                             note="Current status of the trivia launch gate."
                         />
                         <OverviewMetric
-                            label="Perfect Score"
-                            value={TRIVIA_QUESTIONS.length}
-                            note="Maximum points a guest can submit for trivia."
+                            label="Archived"
+                            value={triviaLoadState === "ready" ? archivedQuestions.length : "—"}
+                            note="Hidden questions not shown to guests."
                         />
                     </div>
 
-                    <div className="space-y-4">
-                        {TRIVIA_QUESTIONS.map((question, index) => (
-                            <div key={question.prompt} className="rounded-[1.8rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                    <div>
-                                        <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Question {index + 1}</p>
-                                        <h3 className="mt-3 font-heading text-3xl text-primary">{question.prompt}</h3>
-                                    </div>
-                                    <div className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs uppercase tracking-[0.22em] text-emerald-700">
-                                        Correct: {String.fromCharCode(65 + question.correctIndex)}
-                                    </div>
-                                </div>
-                                <div className="mt-6 grid gap-3 md:grid-cols-2">
-                                    {question.answers.map((answer, answerIndex) => (
-                                        <div
-                                            key={answer}
-                                            className={`rounded-[1.2rem] border px-4 py-4 text-sm ${
-                                                answerIndex === question.correctIndex
-                                                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                                                    : "border-primary/8 bg-[#fbf8f3] text-text-secondary"
-                                            }`}
-                                        >
-                                            <span className="mr-2 text-xs uppercase tracking-[0.26em] text-text-secondary">
-                                                {String.fromCharCode(65 + answerIndex)}
-                                            </span>
-                                            {answer}
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="mt-6 rounded-[1.2rem] border border-primary/8 bg-[#fbf8f3] px-4 py-4 text-sm leading-relaxed text-text-secondary">
-                                    <span className="mr-2 text-xs uppercase tracking-[0.26em] text-text-secondary">Fun Fact</span>
-                                    {question.funFact ?? "No fun fact provided for this question yet."}
-                                </div>
-                            </div>
-                        ))}
+                    {triviaOpError ? (
+                        <div className="rounded-[1.2rem] border border-secondary/20 bg-secondary/5 px-5 py-4 text-sm text-secondary">
+                            {triviaOpError}
+                        </div>
+                    ) : null}
+
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">
+                            {triviaLoadState === "loading" ? "Loading…" : `${activeQuestions.length} active, ${archivedQuestions.length} archived`}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => { setIsAddingNew(true); setEditingId(null); }}
+                            disabled={isAddingNew}
+                            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-medium uppercase tracking-[0.18em] text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90 disabled:bg-primary/40"
+                        >
+                            + Add Question
+                        </button>
                     </div>
+
+                    {isAddingNew ? (
+                        <TriviaQuestionForm
+                            initial={emptyTriviaForm(nextSortOrder)}
+                            saving={savingId === "new"}
+                            onSave={(form) => void handleSaveQuestion(null, form)}
+                            onCancel={() => setIsAddingNew(false)}
+                        />
+                    ) : null}
+
+                    {triviaLoadState === "loading" ? (
+                        <div className="py-8 text-center text-sm text-text-secondary">Loading questions…</div>
+                    ) : triviaLoadState === "error" ? (
+                        <div className="py-8 text-center text-sm text-secondary">
+                            Could not load questions.{" "}
+                            <button
+                                type="button"
+                                onClick={() => { hasFetchedTrivia.current = false; void fetchTriviaQuestions(); }}
+                                className="underline"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {[...activeQuestions, ...archivedQuestions].map((question, index) => {
+                                const answers = [question.answer_a, question.answer_b, question.answer_c, question.answer_d];
+                                const isEditing = editingId === question.id;
+                                const isConfirmingDelete = deleteConfirmId === question.id;
+                                const isBusy = savingId === question.id;
+
+                                return (
+                                    <div
+                                        key={question.id}
+                                        className={`rounded-[1.8rem] border p-5 shadow-[0_12px_34px_rgba(20,42,68,0.05)] transition-opacity ${
+                                            question.archived
+                                                ? "border-primary/6 bg-white/50 opacity-60"
+                                                : "border-primary/10 bg-white"
+                                        }`}
+                                    >
+                                        {isEditing ? (
+                                            <TriviaQuestionForm
+                                                initial={questionToForm(question)}
+                                                saving={isBusy}
+                                                onSave={(form) => void handleSaveQuestion(question.id, form)}
+                                                onCancel={() => setEditingId(null)}
+                                            />
+                                        ) : (
+                                            <>
+                                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">
+                                                                Q{index + 1} · Sort {question.sort_order}
+                                                            </p>
+                                                            {question.archived ? (
+                                                                <span className="rounded-full border border-primary/12 bg-[#fbf8f3] px-2.5 py-0.5 text-xs uppercase tracking-[0.2em] text-text-secondary">
+                                                                    Archived
+                                                                </span>
+                                                            ) : null}
+                                                        </div>
+                                                        <h3 className="mt-2 font-heading text-2xl text-primary">{question.prompt}</h3>
+                                                    </div>
+                                                    <div className="flex shrink-0 flex-wrap gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setEditingId(question.id); setIsAddingNew(false); setDeleteConfirmId(null); }}
+                                                            disabled={isBusy}
+                                                            className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs uppercase tracking-[0.18em] text-primary transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => void handleArchiveToggle(question)}
+                                                            disabled={isBusy}
+                                                            className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs uppercase tracking-[0.18em] text-primary transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
+                                                        >
+                                                            {question.archived ? "Unarchive" : "Archive"}
+                                                        </button>
+                                                        {isConfirmingDelete ? (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => void handleDeleteQuestion(question.id)}
+                                                                    disabled={isBusy}
+                                                                    className="rounded-full border border-secondary/40 bg-secondary px-4 py-2 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-secondary/90 disabled:opacity-40"
+                                                                >
+                                                                    {isBusy ? "Deleting…" : "Confirm Delete"}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setDeleteConfirmId(null)}
+                                                                    className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs uppercase tracking-[0.18em] text-text-secondary transition-colors hover:border-primary"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setDeleteConfirmId(question.id)}
+                                                                disabled={isBusy}
+                                                                className="rounded-full border border-secondary/20 bg-white px-4 py-2 text-xs uppercase tracking-[0.18em] text-secondary transition-colors hover:border-secondary/60 hover:bg-secondary/5 disabled:opacity-40"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-4 grid gap-2 md:grid-cols-2">
+                                                    {answers.map((answer, answerIndex) => (
+                                                        <div
+                                                            key={`${question.id}-answer-${answerIndex}`}
+                                                            className={`rounded-[1rem] border px-3 py-3 text-sm ${
+                                                                answerIndex === question.correct_index
+                                                                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                                                    : "border-primary/8 bg-[#fbf8f3] text-text-secondary"
+                                                            }`}
+                                                        >
+                                                            <span className="mr-1.5 text-xs uppercase tracking-[0.24em] opacity-60">
+                                                                {String.fromCharCode(65 + answerIndex)}
+                                                            </span>
+                                                            {answer}
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {question.fun_fact ? (
+                                                    <div className="mt-3 rounded-[1rem] border border-primary/8 bg-[#fbf8f3] px-4 py-3 text-sm leading-relaxed text-text-secondary">
+                                                        <span className="mr-2 text-xs uppercase tracking-[0.24em]">Fun Fact</span>
+                                                        {question.fun_fact}
+                                                    </div>
+                                                ) : null}
+                                            </>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             );
         }

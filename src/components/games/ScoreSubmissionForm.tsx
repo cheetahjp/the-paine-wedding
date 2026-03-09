@@ -80,12 +80,21 @@ export default function ScoreSubmissionForm({
         }
     }
 
+    if (status === "success") {
+        return (
+            <div className="rounded-[1.85rem] border border-emerald-200/70 bg-[linear-gradient(160deg,#f2faf5_0%,#e8f5ed_100%)] p-6 shadow-[0_12px_34px_rgba(20,42,68,0.06)]">
+                <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">Score Submitted</p>
+                <p className="mt-3 text-text-secondary">{successMessage}</p>
+            </div>
+        );
+    }
+
     return (
         <div className="rounded-[1.85rem] border border-primary/10 bg-[linear-gradient(160deg,#fffaf4_0%,#f3ebe0_100%)] p-6 shadow-[0_12px_34px_rgba(20,42,68,0.08)]">
             <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Claim Your Score</p>
             <p className="mt-3 text-text-secondary">
                 {storedPlayer
-                    ? `Submitting as ${storedPlayer.username}. Update account details above if you need to change this browser's saved profile.`
+                    ? `Submitting as ${storedPlayer.username}.`
                     : "Add a username and email to show up on the leaderboard."}
             </p>
 
@@ -130,10 +139,8 @@ export default function ScoreSubmissionForm({
                 </button>
             </form>
 
-            {message ? (
-                <p className={`mt-4 text-sm ${status === "error" ? "text-secondary" : "text-text-secondary"}`}>
-                    {message}
-                </p>
+            {message && status === "error" ? (
+                <p className="mt-4 text-sm text-secondary">{message}</p>
             ) : null}
         </div>
     );

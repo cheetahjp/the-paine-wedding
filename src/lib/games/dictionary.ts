@@ -3,7 +3,7 @@ import "server-only";
 import fs from "node:fs";
 import wordListPath from "word-list";
 import { PAINEDLE_WORDS } from "@/lib/games/word-list";
-import { MAX_WORD_LENGTH, MIN_WORD_LENGTH } from "@/lib/games/painedle";
+import { WORD_LENGTH } from "@/lib/games/painedle";
 
 let cachedDictionary: Set<string> | null = null;
 
@@ -12,7 +12,7 @@ function normalizeDictionaryWord(value: string) {
 }
 
 function isDictionaryWord(value: string) {
-    return /^[a-z]+$/.test(value) && value.length >= MIN_WORD_LENGTH && value.length <= MAX_WORD_LENGTH;
+    return /^[a-z]+$/.test(value) && value.length === WORD_LENGTH;
 }
 
 function loadDictionary() {

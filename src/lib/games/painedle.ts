@@ -1,8 +1,7 @@
 import { PAINEDLE_WORDS } from "@/lib/games/word-list";
 
 export const MAX_GUESSES = 6;
-export const MIN_WORD_LENGTH = 4;
-export const MAX_WORD_LENGTH = 7;
+export const WORD_LENGTH = 5;
 export const KEYBOARD_ROWS = [
     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
     ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -23,7 +22,7 @@ export function getStorageKey(dateKey: string) {
 }
 
 const PUZZLE_ROTATION_START = "2026-03-08";
-const PUZZLE_ROTATION_START_WORD = "sparkle";
+const PUZZLE_ROTATION_START_WORD = "bride";
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 function parseDateKeyAsUtc(dateKey: string) {
@@ -46,14 +45,6 @@ export function getPuzzleIndex(dateKey: string) {
 
 export function getDailyWord(dateKey: string) {
     return PAINEDLE_WORDS[getPuzzleIndex(dateKey)];
-}
-
-export function getWordLengthForPuzzle(dateKey: string) {
-    return getDailyWord(dateKey).length;
-}
-
-export function isSupportedGuessLength(length: number) {
-    return length >= MIN_WORD_LENGTH && length <= MAX_WORD_LENGTH;
 }
 
 export function evaluateGuess(guess: string, solution: string) {
