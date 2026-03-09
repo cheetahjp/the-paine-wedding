@@ -7,8 +7,8 @@
 export const WEDDING = {
   couple: {
     bride: { first: 'Ashlyn', last: 'Bimmerle', full: 'Ashlyn Bimmerle' },
-    groom: { first: 'Jeff', last: 'Paine', full: 'Jeff Paine' },
-    names: 'Jeff & Ashlyn',
+    groom: { first: 'Jeffrey', last: 'Paine', full: 'Jeffrey Paine' },
+    names: 'Jeffrey & Ashlyn',
     lastName: 'Paine',
   },
 
@@ -50,7 +50,7 @@ export const WEDDING = {
       time: '5:00 PM',
       title: 'Ceremony',
       description:
-        'The main event! Join us in the chapel as Jeff and Ashlyn exchange vows and begin forever.',
+        'The main event! Join us in the chapel as Jeffrey and Ashlyn exchange vows and begin forever.',
     },
     {
       time: '5:45 PM',
@@ -86,7 +86,7 @@ export const WEDDING = {
       time: '10:00 PM',
       title: 'Send-Off',
       description:
-        'The night ends with a send-off as Jeff and Ashlyn head into their happily ever after. Don\'t miss it!',
+        'The night ends with a send-off as Jeffrey and Ashlyn head into their happily ever after. Don\'t miss it!',
     },
   ] as Array<{ time: string; title: string; description: string }>,
 
@@ -135,13 +135,13 @@ export const WEDDING = {
       {
         name: 'Brynn Wilson',
         role: 'Bridesmaid',
-        relationship: "Jeff's Cousin",
+        relationship: "Jeffrey's Cousin",
         image: '/images/bridal-party/brynn-wilson.webp',
       },
       {
         name: 'Emma Wilson',
         role: 'Bridesmaid',
-        relationship: "Jeff's Cousin",
+        relationship: "Jeffrey's Cousin",
         image: '/images/bridal-party/emma-wilson.webp',
       },
     ],
@@ -149,37 +149,37 @@ export const WEDDING = {
       {
         name: 'John Paine',
         role: 'Best Man',
-        relationship: "Jeff's Brother",
+        relationship: "Jeffrey's Brother",
         image: '/images/bridal-party/john-paine.webp',
       },
       {
         name: 'Hudson Boyd',
         role: 'Groomsman',
-        relationship: "Jeff's College Friend",
+        relationship: "Jeffrey's College Friend",
         image: '/images/bridal-party/hudson-boyd.webp',
       },
       {
         name: 'Roman Richichi',
         role: 'Groomsman',
-        relationship: "Jeff's High School Friend",
+        relationship: "Jeffrey's High School Friend",
         image: '/images/bridal-party/roman-richichi.webp',
       },
       {
         name: 'Justin Luurtsema',
         role: 'Groomsman',
-        relationship: "Jeff's College Friend",
+        relationship: "Jeffrey's College Friend",
         image: '/images/bridal-party/justin-luurtsema.webp',
       },
       {
         name: 'Duncan Marshall',
         role: 'Groomsman',
-        relationship: "Jeff's High School Friend",
+        relationship: "Jeffrey's High School Friend",
         image: '/images/bridal-party/duncan-marshall.webp',
       },
       {
         name: 'Collin Groezinger',
         role: 'Groomsman',
-        relationship: "Jeff's Childhood Friend",
+        relationship: "Jeffrey's Childhood Friend",
         image: '/images/bridal-party/collin-groezinger.webp',
       },
       {
@@ -266,7 +266,7 @@ export const WEDDING = {
       year: 'Autumn 2021',
       title: 'How We Met',
       description:
-        'We met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce her to Jeff — she had been hoping for a chance to talk to him. After the introduction, we started texting and finding random excuses to hang out. Our first official date was a trip to Sonic and a long drive around town where we talked for hours. We ended up dating for about six months before going our separate ways — we both needed time to grow and mature in our walk with the Lord.',
+        'We met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce her to Jeffrey — she had been hoping for a chance to talk to him. After the introduction, we started texting and finding random excuses to hang out. Our first official date was a trip to Sonic and a long drive around town where we talked for hours. We ended up dating for about six months before going our separate ways — we both needed time to grow and mature in our walk with the Lord.',
       image: '/images/story/story-how-we-met.webp',
       imageFallback:
         'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80',
@@ -275,7 +275,7 @@ export const WEDDING = {
       year: 'October 2024',
       title: 'Our Reunion',
       description:
-        'Almost two years later, we both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. We spotted each other and kept our distance, unsure if the other wanted to reconnect. Afterward, Jeff texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeff asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeff drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where we talked for hours and realized that no time had really passed — we were just better versions of ourselves. On October 18th, 2024, we started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But we made the most of every weekend together, and we cannot wait to finally be in the same city for the rest of our lives.',
+        'Almost two years later, we both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. We spotted each other and kept our distance, unsure if the other wanted to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where we talked for hours and realized that no time had really passed — we were just better versions of ourselves. On October 18th, 2024, we started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But we made the most of every weekend together, and we cannot wait to finally be in the same city for the rest of our lives.',
       image: '/images/story/story-reunion.webp',
       imageFallback:
         'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&q=80',
@@ -284,7 +284,7 @@ export const WEDDING = {
       year: 'February 2026',
       title: 'The Proposal',
       description:
-        'Jeff proposed to Ashlyn on February 21st, 2026. Ashlyn thought she had planned a fun day for her friends Megan and Izzy to finally meet — little did she know they were already in on the secret. After a full day together, they suggested a walk at Arbor Hills Nature Preserve and steered Ashlyn down a different path through the trees. That is when she saw Jeff waiting for her. He got down on one knee and asked her to spend forever with him. She said, "Yes, yes, yes, yes — I will!" The evening was full of even more surprises: a private dinner for two at 60 Vines, where they talked about all the planning that had gone into the engagement, followed by the biggest surprise of all — a party at Jeff\'s parents\' house with all of their closest friends and family. They celebrated with every person they love most and felt completely surrounded by joy.',
+        'Jeffrey proposed to Ashlyn on February 21st, 2026. Ashlyn thought she had planned a fun day for her friends Megan and Izzy to finally meet — little did she know they were already in on the secret. After a full day together, they suggested a walk at Arbor Hills Nature Preserve and steered Ashlyn down a different path through the trees. That is when she saw Jeffrey waiting for her. He got down on one knee and asked her to spend forever with him. She said, "Yes, yes, yes, yes — I will!" The evening was full of even more surprises: a private dinner for two at 60 Vines, where they talked about all the planning that had gone into the engagement, followed by the biggest surprise of all — a party at Jeffrey\'s parents\' house with all of their closest friends and family. They celebrated with every person they love most and felt completely surrounded by joy.',
       image: '/images/story/story-proposal.webp',
       imageFallback:
         'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80',
@@ -312,7 +312,7 @@ export const WEDDING = {
   },
 
   meta: {
-    title: "Jeff & Ashlyn | The Paine Wedding",
+    title: "Jeffrey & Ashlyn | The Paine Wedding",
     description:
       'Join us to celebrate our wedding at Davis & Grey Farms on September 26, 2026.',
     ogImage: '/images/engagement/og-image.jpg',
@@ -327,7 +327,7 @@ export const WEDDING = {
 
 export const IMAGES = {
   hero: {
-    main: '/images/hero/hero-1.webp',
+    main: '/images/hero/JeffAshlyn-7977 2.jpg',
     fallback:
       'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80',
   },

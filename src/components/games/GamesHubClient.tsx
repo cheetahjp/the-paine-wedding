@@ -77,7 +77,7 @@ export default function GamesHubClient() {
                         </div>
                         <h2 className="mt-5 font-heading text-4xl md:text-5xl">Couple Trivia</h2>
                         <p className="mt-4 max-w-xl leading-relaxed text-white/80">
-                            Test how well you know Jeff and Ashlyn with a fast round of story, proposal, and
+                            Test how well you know Jeffrey and Ashlyn with a fast round of story, proposal, and
                             personality questions.
                         </p>
 

@@ -8,13 +8,13 @@ export type TriviaQuestion = {
 export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
     {
         prompt: 'Who said "I love you" first?',
-        answers: ["Jeff", "Ashlyn", "They said it together", "Nobody remembers"],
+        answers: ["Jeffrey", "Ashlyn", "They said it together", "Nobody remembers"],
         correctIndex: 0,
-        funFact: "Jeff got there first.",
+        funFact: "Jeffrey got there first.",
     },
     {
         prompt: "Who is the better cook?",
-        answers: ["Jeff", "Ashlyn", "They are evenly matched", "Whoever orders takeout"],
+        answers: ["Jeffrey", "Ashlyn", "They are evenly matched", "Whoever orders takeout"],
         correctIndex: 1,
         funFact: "Ashlyn holds the edge in the kitchen.",
     },
@@ -32,27 +32,27 @@ export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
     },
     {
         prompt: "Who takes longer to get ready?",
-        answers: ["Jeff", "Ashlyn", "They tie", "It depends on the day"],
+        answers: ["Jeffrey", "Ashlyn", "They tie", "It depends on the day"],
         correctIndex: 1,
         funFact: "Ashlyn takes the longer getting-ready route.",
     },
     {
-        prompt: "Where did Jeff and Ashlyn first meet?",
+        prompt: "Where did Jeffrey and Ashlyn first meet?",
         answers: ["Texas A&M University-Commerce", "Davis & Grey Farms", "Arbor Hills", "Galveston Bay Brewing"],
         correctIndex: 0,
         funFact: "It started with an ice cream social at Texas A&M University-Commerce in 2021.",
     },
     {
-        prompt: "How far did Jeff drive for their reunion date in Houston?",
+        prompt: "How far did Jeffrey drive for their reunion date in Houston?",
         answers: ["2 hours", "3 hours", "4.5 hours", "6 hours"],
         correctIndex: 2,
-        funFact: "Jeff made the four-and-a-half-hour drive for the reunion date.",
+        funFact: "Jeffrey made the four-and-a-half-hour drive for the reunion date.",
     },
     {
-        prompt: "Where did Jeff propose?",
+        prompt: "Where did Jeffrey propose?",
         answers: ["60 Vines", "Arbor Hills Nature Preserve", "Davis & Grey Farms", "At an A&M game"],
         correctIndex: 1,
-        funFact: "Ashlyn was guided down the path at Arbor Hills before seeing Jeff waiting there.",
+        funFact: "Ashlyn was guided down the path at Arbor Hills before seeing Jeffrey waiting there.",
     },
     {
         prompt: "When did they officially start dating again?",
