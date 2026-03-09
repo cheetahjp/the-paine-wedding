@@ -12,9 +12,6 @@
   --color-text-primary: #0F1720;  /* Near-black for body text */
   --color-text-secondary: #3F5B7A; /* Slate blue for secondary text */
   --color-text-light: #FFFFFF;
-
-  --font-heading: var(--font-playfair);
-  --font-body: var(--font-inter);
 }
 
 :root {
@@ -25,7 +22,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -36,8 +33,21 @@ body {
   600 preserves the elegance while ensuring readability.
 */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), serif;
+  font-family: var(--font-playfair), serif;
   font-weight: 600;
+}
+
+/*
+  Custom font utilities — defined here rather than @theme to avoid
+  Tailwind v4's nested var() resolution issues with next/font CSS vars.
+*/
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-playfair), serif;
+  }
+  .font-body {
+    font-family: var(--font-inter), sans-serif;
+  }
 }
 
 @keyframes painedle-flip {
