@@ -11,8 +11,15 @@ ALTER TABLE guests
   ADD COLUMN IF NOT EXISTS likelihood      TEXT;
 
 -- Ensure households.name is unique (required for ON CONFLICT upserts)
-ALTER TABLE households
-  ADD CONSTRAINT IF NOT EXISTS households_name_unique UNIQUE (name);
+-- Note: ADD CONSTRAINT doesn't support IF NOT EXISTS in Postgres — use a DO block instead
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'households_name_unique'
+  ) THEN
+    ALTER TABLE households ADD CONSTRAINT households_name_unique UNIQUE (name);
+  END IF;
+END $$;
 
 COMMENT ON COLUMN guests.plus_one_name IS 'Name of the plus-one listed on the original guest list (admin reference only)';
 COMMENT ON COLUMN guests.affiliation   IS 'Guest affiliation: Family | Our Friends | Their Friends';
