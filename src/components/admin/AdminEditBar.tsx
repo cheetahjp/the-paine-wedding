@@ -1005,36 +1005,67 @@ export default function AdminEditBar() {
     const [settings, setSettings] = useState<Record<string, unknown>>({});
     const [currentPath, setCurrentPath] = useState("/");
 
-    // 1. Check admin session on mount + track path
+    // 1. Check session on mount AND re-check on every client-side navigation.
+    //    Using cache:"no-store" so the browser never serves a stale 200 after logout.
     useEffect(() => {
+        let cancelled = false;
+
         const checkSession = async () => {
             try {
-                const r = await fetch("/api/admin/session");
+                const r = await fetch("/api/admin/session", { cache: "no-store" });
+                if (cancelled) return;
                 if (r.ok) {
                     const data = (await r.json()) as { role?: string };
                     setRole(data.role ?? null);
+                } else {
+                    // 401 or any error → not authenticated
+                    setRole(null);
+                    setEditMode(false);
                 }
             } catch {
-                // not authenticated — stay null
+                if (!cancelled) { setRole(null); setEditMode(false); }
             } finally {
-                setSessionLoading(false);
+                if (!cancelled) setSessionLoading(false);
             }
         };
-        void checkSession();
+
+        // Run immediately on mount
         setCurrentPath(window.location.pathname);
+        void checkSession();
+
+        // Re-run on every Next.js client navigation (popstate + DOM mutations)
+        const handleNav = () => {
+            const newPath = window.location.pathname;
+            setCurrentPath(newPath);
+            // Optimistically hide the toolbar until session re-validates.
+            // This makes logout feel instant rather than leaving a ghost toolbar.
+            setSessionLoading(true);
+            void checkSession();
+        };
+
+        window.addEventListener("popstate", handleNav);
+
+        // Next.js soft navigations don't fire popstate — detect them via a
+        // MutationObserver watching the <title> tag (changes on every route).
+        const observer = new MutationObserver(() => {
+            if (window.location.pathname !== currentPath) {
+                handleNav();
+            }
+        });
+        observer.observe(document.querySelector("title") ?? document.head, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+        });
+
+        return () => {
+            cancelled = true;
+            window.removeEventListener("popstate", handleNav);
+            observer.disconnect();
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Update path on navigation
-    useEffect(() => {
-        const onPop = () => setCurrentPath(window.location.pathname);
-        window.addEventListener("popstate", onPop);
-        // MutationObserver for Next.js client nav
-        const observer = new MutationObserver(() => {
-            setCurrentPath(window.location.pathname);
-        });
-        observer.observe(document, { subtree: true, childList: true });
-        return () => { window.removeEventListener("popstate", onPop); observer.disconnect(); };
-    }, []);
 
     // 2. Inject edit-mode CSS once
     useEffect(() => {

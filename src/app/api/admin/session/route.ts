@@ -8,11 +8,24 @@ export async function GET() {
     const session = verifyAdminSessionToken(token);
 
     if (!session) {
-        return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+        return NextResponse.json(
+            { error: "Unauthorized." },
+            {
+                status: 401,
+                headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+            }
+        );
     }
 
-    return NextResponse.json({ role: session.role }, { status: 200 });
+    return NextResponse.json(
+        { role: session.role },
+        {
+            status: 200,
+            headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+        }
+    );
 }
+
 
 export async function DELETE() {
     const response = NextResponse.json({ ok: true }, { status: 200 });
