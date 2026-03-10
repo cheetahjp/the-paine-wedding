@@ -1089,8 +1089,14 @@ export default function AdminEditBar() {
             setPanel({ mode: "image", key, currentUrl, currentOverlay, label });
         } else {
             const richText = type === "rich-text";
-            const currentText = (editable.dataset.adminCurrentText ?? editable.innerHTML ?? editable.innerText ?? "").trim();
-            setPanel({ mode: "text", key, currentText, richText, label });
+            // For plain text: use innerText (strips React <!-- --> comment nodes)
+            // For rich text: use innerHTML (preserves formatting)
+            // Always prefer data-admin-current-text if set (handles composite elements
+            // like the date display where the DOM combines multiple data fields)
+            const currentText = editable.dataset.adminCurrentText
+                ?? (richText ? editable.innerHTML : editable.innerText)
+                ?? ""; 
+            setPanel({ mode: "text", key, currentText: currentText.trim(), richText, label });
         }
     }, [settings]);
 

@@ -83,6 +83,7 @@ export default async function Home() {
               data-admin-key="date.display"
               data-admin-type="text"
               data-admin-label="Wedding Date Display"
+              data-admin-current-text={wedding.date.display}
             >
               {wedding.date.dayOfWeek}, {wedding.date.display}
             </p>
