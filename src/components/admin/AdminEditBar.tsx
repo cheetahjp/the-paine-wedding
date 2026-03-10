@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1003,68 +1004,31 @@ export default function AdminEditBar() {
     const [editMode, setEditMode] = useState(false);
     const [panel, setPanel] = useState<PanelState>({ mode: "closed" });
     const [settings, setSettings] = useState<Record<string, unknown>>({});
-    const [currentPath, setCurrentPath] = useState("/");
 
-    // 1. Check session on mount AND re-check on every client-side navigation.
-    //    Using cache:"no-store" so the browser never serves a stale 200 after logout.
+    const pathname = usePathname();
+
+    // Re-check session whenever the route changes.
+    // usePathname() from next/navigation updates correctly on every soft navigation
+    // without MutationObserver hacks or stale closures.
     useEffect(() => {
         let cancelled = false;
+        setSessionLoading(true);
 
-        const checkSession = async () => {
-            try {
-                const r = await fetch("/api/admin/session", { cache: "no-store" });
+        fetch("/api/admin/session", { cache: "no-store" })
+            .then(async (r) => {
                 if (cancelled) return;
                 if (r.ok) {
                     const data = (await r.json()) as { role?: string };
-                    setRole(data.role ?? null);
+                    if (!cancelled) { setRole(data.role ?? null); }
                 } else {
-                    // 401 or any error → not authenticated
-                    setRole(null);
-                    setEditMode(false);
+                    if (!cancelled) { setRole(null); setEditMode(false); }
                 }
-            } catch {
-                if (!cancelled) { setRole(null); setEditMode(false); }
-            } finally {
-                if (!cancelled) setSessionLoading(false);
-            }
-        };
+            })
+            .catch(() => { if (!cancelled) { setRole(null); setEditMode(false); } })
+            .finally(() => { if (!cancelled) setSessionLoading(false); });
 
-        // Run immediately on mount
-        setCurrentPath(window.location.pathname);
-        void checkSession();
-
-        // Re-run on every Next.js client navigation (popstate + DOM mutations)
-        const handleNav = () => {
-            const newPath = window.location.pathname;
-            setCurrentPath(newPath);
-            // Optimistically hide the toolbar until session re-validates.
-            // This makes logout feel instant rather than leaving a ghost toolbar.
-            setSessionLoading(true);
-            void checkSession();
-        };
-
-        window.addEventListener("popstate", handleNav);
-
-        // Next.js soft navigations don't fire popstate — detect them via a
-        // MutationObserver watching the <title> tag (changes on every route).
-        const observer = new MutationObserver(() => {
-            if (window.location.pathname !== currentPath) {
-                handleNav();
-            }
-        });
-        observer.observe(document.querySelector("title") ?? document.head, {
-            subtree: true,
-            childList: true,
-            characterData: true,
-        });
-
-        return () => {
-            cancelled = true;
-            window.removeEventListener("popstate", handleNav);
-            observer.disconnect();
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        return () => { cancelled = true; };
+    }, [pathname]);
 
 
     // 2. Inject edit-mode CSS once
@@ -1142,7 +1106,7 @@ export default function AdminEditBar() {
     return (
         <>
             {/* Edit-mode page nav */}
-            {editMode && <EditModeNav currentPath={currentPath} />}
+            {editMode && <EditModeNav currentPath={pathname} />}
 
             {/* ── Floating admin toolbar ── */}
             <div
