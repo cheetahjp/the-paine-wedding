@@ -16,7 +16,7 @@ Saturday, September 26, 2026
 
 **Couple names**
 
-Jeffreyrey Paine
+Jeffrey Paine
 
 Ashlyn Bimmerle
 
@@ -256,7 +256,7 @@ We met at an ice cream social event Texas A\&M University \- Commerce in 2021\. 
 
 **Favorite shared activity**
 
-Jeffrey and Ashlyn love to watch movies, hammock in the park, try new pizza places and find new recipes to make together\! We have learned how to make the most of our weekends together and find creative ways to spend quality time together from 4.5 hours away\! 
+Ashlyn and Jeffrey love to watch movies, hammock in the park, try new pizza places and find new recipes to make together\! We have learned how to make the most of our weekends together and find creative ways to spend quality time together from 4.5 hours away\! 
 
 **Proposal story**
 

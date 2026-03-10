@@ -1,6 +1,6 @@
 # The Paine Wedding Website — Context for Claude
 
-This document contains full context, architecture details, and design decisions for the wedding website of Jeffrey & Ashlyn (September 26, 2026, Celeste, Texas). It is tailored to give Claude full knowledge of the project's current state and technical implementation to seamlessly continue development.
+This document contains full context, architecture details, and design decisions for the wedding website of Ashlyn & Jeffrey (September 26, 2026, Celeste, Texas). It is tailored to give Claude full knowledge of the project's current state and technical implementation to seamlessly continue development.
 
 ---
 
@@ -62,7 +62,7 @@ The `h1–h6` global rule also references `var(--font-playfair)` directly at `fo
 
 Key fields:
 - `WEDDING.couple.groom.first` → `'Jeffrey'`
-- `WEDDING.couple.names` → `'Jeffrey & Ashlyn'`
+- `WEDDING.couple.names` → `'Ashlyn & Jeffrey'`
 - `IMAGES.hero.main` → `/images/hero/JeffAshlyn-7977 2.jpg` (real photo; falls back to Unsplash)
 
 ---
