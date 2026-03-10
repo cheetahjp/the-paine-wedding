@@ -159,13 +159,32 @@ Key files:
 **Admin games panel** (`/admin` → Games tab → `GamesAdminPanel`):
 - 7 data views (players, scores, leaderboards, etc.)
 - **Trivia Bank:** Full CRUD editor — add/edit/archive/delete questions, correct-answer radio selector, sort order controls
+    
+    API routes for admin trivia CRUD:
+    - `GET/POST /api/admin/trivia-questions`
+    - `GET/PUT/DELETE /api/admin/trivia-questions/[id]`
+    All admin routes validate the session cookie (set on login).
 
-API routes for admin trivia CRUD:
-- `GET/POST /api/admin/trivia-questions`
-- `GET/PUT/DELETE /api/admin/trivia-questions/[id]`
-All admin routes validate the session cookie (set on login).
+    ### Site-Wide Visual Edit Mode
+    Available only to the `'Master'` admin role. When logged in, a floating toolbar appears at the bottom of the page allowing the user to toggle "Edit Mode".
+    
+    **Architecture:**
+    - Active edit mode injects a `admin-edit-active` class to the HTML, which highlights all elements with a `data-admin-key` attribute (yellow dashed border, hover labels).
+    - Clicks on these elements are intercepted globally in `AdminEditBar.tsx` via the capture phase.
+    - Edits are saved to the `site_settings` Supabase table as JSON key-value pairs.
+    - The `site-settings.ts` utility runs on the server to merge these DB overrides on top of the default `WEDDING.ts` data before rendering the pages.
+    
+    **Text Editing:**
+    - Supports both plain text and rich text (via `document.execCommand`).
+    - The click handler captures text using `editable.innerText` (to strip React `<!-- -->` comment nodes) or `editable.innerHTML` (for rich text).
+    - **CRITICAL:** If a visual element combines multiple data fields (e.g. `{date.dayOfWeek}, {date.display}`), it MUST have a `data-admin-current-text={date.display}` attribute so the editor only captures and overwrites the intended editable portion.
+    
+    **Image Editing:**
+    - Supports uploading replacements, adjusting a translucent color overlay/opacity, and cropping.
+    - **SmartCropTool:** Uses a fixed-aspect-ratio frame. The aspect ratio is derived from the `data-admin-key`. Users drag the image to pan and use a slider to zoom. Exports a clean 1200px image via Canvas.
+    - **Compression:** Vercel serverless functions have a 4.5MB request body limit (413 errors). Admin image uploads are pre-compressed locally on the client via Canvas (max 2400px, 0.92 JPEG quality) before `apiUploadImage` is called.
 
----
+    ---
 
 ## Environment Variables
 
