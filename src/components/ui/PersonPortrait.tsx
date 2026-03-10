@@ -1,7 +1,10 @@
 "use client";
 import Image from "next/image";
 
-/** Client wrapper for a party member portrait — keeps onError while parent is server component */
+const DEFAULT_FALLBACK =
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
+
+/** Client component for bridal party portraits with onError fallback and admin-key */
 export function PersonPortrait({
     src,
     fallback,
@@ -21,22 +24,26 @@ export function PersonPortrait({
     const firstName = nameParts[0] ?? "";
     const lastName = nameParts.slice(1).join(" ");
 
+    // If src isn't an absolute https URL it's likely a local placeholder that 404s on prod.
+    // Skip trying to load it — go straight to fallback to prevent the 1-frame alt-text flash.
+    const safeSrc = src && /^https?:\/\//.test(src) ? src : (fallback || DEFAULT_FALLBACK);
+
     return (
         <div className="group text-center">
             <div
                 className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm"
                 data-admin-key={adminKey}
                 data-admin-type="image"
-                data-admin-current-url={src || fallback}
+                data-admin-current-url={safeSrc}
                 data-admin-label={`${name} — Photo`}
             >
                 <Image
-                    src={src || fallback}
+                    src={safeSrc}
                     alt={name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={(e) => {
-                        (e.target as HTMLImageElement).src = fallback;
+                        (e.target as HTMLImageElement).src = fallback || DEFAULT_FALLBACK;
                     }}
                 />
             </div>

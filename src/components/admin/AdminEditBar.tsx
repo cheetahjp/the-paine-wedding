@@ -256,158 +256,216 @@ async function cropImageBlob(
     });
 }
 
-// ─── CropTool ─────────────────────────────────────────────────────────────────
+// ─── SmartCropTool ─────────────────────────────────────────────────────────────
 
-type CropRect = { x: number; y: number; w: number; h: number };
+/** Returns [w, h] ratio matching the destination frame on the site for a given admin key */
+function getFrameAspect(key: string): [number, number] {
+    if (key.startsWith("bridal-party.")) return [3, 4];
+    if (key.startsWith("story.item.")) return [4, 5];
+    if (key === "images.hero") return [16, 7];
+    if (key.startsWith("images.attire.")) return [3, 4];
+    if (key.startsWith("images.")) return [16, 9];
+    return [4, 3];
+}
 
-function CropTool({
+const FRAME_DISPLAY_W = 290; // px — matches drawer width
+
+function SmartCropTool({
     imageUrl,
+    adminKey,
     onCrop,
     onCancel,
 }: {
     imageUrl: string;
-    onCrop: (rect: CropRect) => void;
+    adminKey: string;
+    onCrop: (blob: Blob) => void;
     onCancel: () => void;
 }) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [rect, setRect] = useState<CropRect>({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
-    const dragging = useRef<{ handle: string; startX: number; startY: number; startRect: CropRect } | null>(null);
+    const [ratioW, ratioH] = getFrameAspect(adminKey);
+    const frameH = Math.round(FRAME_DISPLAY_W * ratioH / ratioW);
 
-    const getRelPos = (e: MouseEvent | React.MouseEvent) => {
-        const el = containerRef.current;
-        if (!el) return { px: 0, py: 0 };
-        const bounds = el.getBoundingClientRect();
-        return {
-            px: Math.max(0, Math.min(1, (e.clientX - bounds.left) / bounds.width)),
-            py: Math.max(0, Math.min(1, (e.clientY - bounds.top) / bounds.height)),
-        };
-    };
+    const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+    const [zoom, setZoom] = useState(1);
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [applying, setApplying] = useState(false);
+    const [loadError, setLoadError] = useState(false);
+    const [cropError, setCropError] = useState<string | null>(null);
 
-    const onMouseDown = (handle: string) => (e: React.MouseEvent) => {
+    const imgRef = useRef<HTMLImageElement>(null);
+    const drag = useRef<{ sx: number; sy: number; px: number; py: number } | null>(null);
+
+    // "Cover" scale — makes the image exactly fill the frame at zoom=1
+    const coverScale = naturalSize
+        ? Math.max(FRAME_DISPLAY_W / naturalSize.w, frameH / naturalSize.h)
+        : 1;
+
+    // Max pan so the image never exposes blank space inside the frame
+    const maxPanX = naturalSize ? Math.max(0, (coverScale * zoom * naturalSize.w - FRAME_DISPLAY_W) / 2) : 0;
+    const maxPanY = naturalSize ? Math.max(0, (coverScale * zoom * naturalSize.h - frameH) / 2) : 0;
+    const clampPan = (p: typeof pan) => ({
+        x: Math.max(-maxPanX, Math.min(maxPanX, p.x)),
+        y: Math.max(-maxPanY, Math.min(maxPanY, p.y)),
+    });
+    const cp = clampPan(pan);
+
+    // Image display size
+    const dispW = naturalSize ? naturalSize.w * coverScale * zoom : FRAME_DISPLAY_W;
+    const dispH = naturalSize ? naturalSize.h * coverScale * zoom : frameH;
+
+    // Mouse drag to pan
+    const onMouseDown = (e: React.MouseEvent) => {
+        if (!naturalSize) return;
         e.preventDefault();
-        const { px, py } = getRelPos(e);
-        dragging.current = { handle, startX: px, startY: py, startRect: { ...rect } };
+        drag.current = { sx: e.clientX, sy: e.clientY, px: cp.x, py: cp.y };
     };
 
     useEffect(() => {
         const onMove = (e: MouseEvent) => {
-            if (!dragging.current) return;
-            const { handle, startX, startY, startRect } = dragging.current;
-            const { px, py } = getRelPos(e);
-            const dx = px - startX;
-            const dy = py - startY;
-            setRect((prev) => {
-                let { x, y, w, h } = startRect;
-                const minSize = 0.05;
-                if (handle === "move") {
-                    x = Math.max(0, Math.min(1 - w, x + dx));
-                    y = Math.max(0, Math.min(1 - h, y + dy));
-                } else {
-                    if (handle.includes("e")) { w = Math.max(minSize, Math.min(1 - x, w + dx)); }
-                    if (handle.includes("s")) { h = Math.max(minSize, Math.min(1 - y, h + dy)); }
-                    if (handle.includes("w")) { const dw = Math.min(dx, w - minSize); x = x + dw; w = w - dw; }
-                    if (handle.includes("n")) { const dh = Math.min(dy, h - minSize); y = y + dh; h = h - dh; }
-                }
-                void prev;
-                return { x, y, w, h };
-            });
+            if (!drag.current) return;
+            const dx = e.clientX - drag.current.sx;
+            const dy = e.clientY - drag.current.sy;
+            setPan(clampPan({ x: drag.current.px + dx, y: drag.current.py + dy }));
         };
-        const onUp = () => { dragging.current = null; };
+        const onUp = () => { drag.current = null; };
         window.addEventListener("mousemove", onMove);
         window.addEventListener("mouseup", onUp);
         return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [maxPanX, maxPanY]);
 
-    const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
-    const handles: Array<{ id: string; style: React.CSSProperties; cursor: string }> = [
-        { id: "nw", style: { top: 0, left: 0, transform: "translate(-50%,-50%)" }, cursor: "nw-resize" },
-        { id: "ne", style: { top: 0, right: 0, transform: "translate(50%,-50%)" }, cursor: "ne-resize" },
-        { id: "sw", style: { bottom: 0, left: 0, transform: "translate(-50%,50%)" }, cursor: "sw-resize" },
-        { id: "se", style: { bottom: 0, right: 0, transform: "translate(50%,50%)" }, cursor: "se-resize" },
-        { id: "n", style: { top: 0, left: "50%", transform: "translate(-50%,-50%)" }, cursor: "n-resize" },
-        { id: "s", style: { bottom: 0, left: "50%", transform: "translate(-50%,50%)" }, cursor: "s-resize" },
-        { id: "e", style: { top: "50%", right: 0, transform: "translate(50%,-50%)" }, cursor: "e-resize" },
-        { id: "w", style: { top: "50%", left: 0, transform: "translate(-50%,-50%)" }, cursor: "w-resize" },
-    ];
+    const handleApply = async () => {
+        if (!naturalSize || !imgRef.current) { setCropError("Image not loaded yet — wait a moment."); return; }
+        setApplying(true);
+        setCropError(null);
+        try {
+            const outW = 1200;
+            const outH = Math.round(outW * ratioH / ratioW);
+            const canvas = document.createElement("canvas");
+            canvas.width = outW;
+            canvas.height = outH;
+            const ctx = canvas.getContext("2d")!;
+
+            // Compute which slice of the natural image is visible in the frame
+            const es = coverScale * zoom;
+            const imgLeft = FRAME_DISPLAY_W / 2 + cp.x - dispW / 2;
+            const imgTop = frameH / 2 + cp.y - dispH / 2;
+            const srcX = Math.max(0, -imgLeft / es);
+            const srcY = Math.max(0, -imgTop / es);
+            const srcW = Math.min(naturalSize.w - srcX, FRAME_DISPLAY_W / es);
+            const srcH = Math.min(naturalSize.h - srcY, frameH / es);
+
+            ctx.drawImage(imgRef.current, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+            canvas.toBlob(
+                (blob) => {
+                    if (blob) { onCrop(blob); }
+                    else { setCropError("Export failed — try again."); setApplying(false); }
+                },
+                "image/jpeg", 0.92
+            );
+        } catch (e) {
+            setCropError((e as Error).message);
+            setApplying(false);
+        }
+    };
+
+    const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
     return (
         <div className="space-y-3">
             <p className="text-xs text-gray-500 leading-relaxed">
-                Drag the yellow box handles to select the crop area. The image will be cropped and re-uploaded.
+                <strong>Drag</strong> the image to reposition · <strong>Zoom slider</strong> to fill the frame. The amber border is the exact crop.
             </p>
+
+            {/* Frame preview */}
             <div
-                ref={containerRef}
-                className="relative select-none overflow-hidden rounded-lg bg-black"
-                style={{ aspectRatio: "16/9" }}
+                className="mx-auto overflow-hidden relative select-none rounded-sm border-2 border-amber-400"
+                style={{ width: FRAME_DISPLAY_W, height: frameH, cursor: naturalSize ? (drag.current ? "grabbing" : "grab") : "default" }}
+                onMouseDown={onMouseDown}
             >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl} alt="Crop preview" className="w-full h-full object-contain opacity-50" />
-                {/* Dark overlay outside crop */}
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute inset-0 bg-black/50" />
-                    {/* Cut-out (crop area) */}
-                    <div
-                        className="absolute bg-transparent"
+                {/* Checkerboard bg */}
+                <div className="absolute inset-0" style={{
+                    background: "repeating-conic-gradient(#d1d5db 0% 25%, #e5e7eb 0% 50%) 0 0 / 12px 12px",
+                }} />
+                {/* The image, positioned manually via transform */}
+                {!loadError && imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        ref={imgRef}
+                        src={imageUrl}
+                        alt=""
+                        crossOrigin="anonymous"
+                        draggable={false}
+                        onLoad={(e) => {
+                            const t = e.currentTarget;
+                            setNaturalSize({ w: t.naturalWidth, h: t.naturalHeight });
+                        }}
+                        onError={() => setLoadError(true)}
                         style={{
-                            left: pct(rect.x),
-                            top: pct(rect.y),
-                            width: pct(rect.w),
-                            height: pct(rect.h),
-                            boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)",
+                            position: "absolute",
+                            width: dispW,
+                            height: dispH,
+                            left: "50%",
+                            top: "50%",
+                            transform: `translate(calc(-50% + ${cp.x}px), calc(-50% + ${cp.y}px))`,
+                            maxWidth: "none",
+                            pointerEvents: "none",
+                            userSelect: "none",
                         }}
                     />
-                </div>
-                {/* Crop rect move handle */}
-                <div
-                    className="absolute border-2 border-amber-400"
-                    style={{
-                        left: pct(rect.x),
-                        top: pct(rect.y),
-                        width: pct(rect.w),
-                        height: pct(rect.h),
-                        cursor: "move",
-                    }}
-                    onMouseDown={onMouseDown("move")}
-                >
-                    {/* Resize handles */}
-                    {handles.map((h) => (
-                        <div
-                            key={h.id}
-                            className="absolute w-3 h-3 bg-amber-400 rounded-sm"
-                            style={{ ...h.style, cursor: h.cursor }}
-                            onMouseDown={(e) => { e.stopPropagation(); onMouseDown(h.id)(e); }}
-                        />
-                    ))}
-                    {/* Inside guide lines */}
-                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
-                        {[...Array(9)].map((_, i) => (
-                            <div key={i} className="border-[0.5px] border-amber-300/30" />
-                        ))}
+                )}
+                {loadError && (
+                    <div className="absolute inset-0 flex items-center justify-center text-center text-xs text-gray-400 p-4">
+                        Couldn&apos;t load image for cropping.
+                        <br />Upload via &ldquo;↑ Upload Photo&rdquo; first.
                     </div>
-                </div>
+                )}
+                {!naturalSize && !loadError && (
+                    <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400">
+                        Loading…
+                    </div>
+                )}
             </div>
-            <p className="text-xs text-gray-400 font-mono">
-                x:{pct(rect.x)} y:{pct(rect.y)} w:{pct(rect.w)} h:{pct(rect.h)}
+
+            {/* Ratio label */}
+            <p className="text-center text-xs text-gray-400">
+                {ratioW}:{ratioH} — matches the frame on the page
             </p>
+
+            {/* Zoom slider */}
+            <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 shrink-0">Zoom</span>
+                <input
+                    type="range" min={1} max={3} step={0.05}
+                    value={zoom}
+                    onChange={(e) => { setZoom(+e.target.value); setPan(p => clampPan(p)); }}
+                    className="flex-1 accent-amber-400"
+                    disabled={!naturalSize}
+                />
+                <span className="text-xs text-gray-400 w-8 text-right">{zoom.toFixed(1)}×</span>
+                <button onClick={resetView} className="text-xs text-gray-400 hover:text-gray-700 transition-colors ml-1" title="Reset view">↺</button>
+            </div>
+
+            {cropError && <p className="text-xs text-red-600 bg-red-50 rounded p-2">{cropError}</p>}
+
             <div className="flex gap-2">
-                <button
-                    onClick={onCancel}
-                    className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
-                >
+                <button onClick={onCancel} className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors">
                     ← Back
                 </button>
                 <button
-                    onClick={() => onCrop(rect)}
-                    className="flex-1 py-2 rounded-lg bg-amber-400 hover:bg-amber-500 text-gray-900 text-sm font-semibold transition-colors"
+                    onClick={() => void handleApply()}
+                    disabled={!naturalSize || applying || loadError}
+                    className="flex-1 py-2 rounded-lg bg-amber-400 hover:bg-amber-500 disabled:opacity-50 text-gray-900 text-sm font-semibold transition-colors"
                 >
-                    Apply Crop
+                    {applying ? "Exporting…" : "Apply Crop"}
                 </button>
             </div>
         </div>
     );
 }
 
+
 // ─── RichTextToolbar ──────────────────────────────────────────────────────────
+
 
 function RichTextToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElement | null> }) {
     const exec = (cmd: string, value?: string) => {
@@ -496,13 +554,11 @@ function ImageEditPanel({
         }
     };
 
-    const handleCrop = async (rect: { x: number; y: number; w: number; h: number }) => {
-        if (!croppingUrl) return;
+    const handleCrop = async (blob: Blob) => {
         setUploading(true);
         setError(null);
         setShowCrop(false);
         try {
-            const blob = await cropImageBlob(croppingUrl, rect);
             const newUrl = await apiUploadImage(blob, `cropped-${Date.now()}.jpg`);
             setUrl(newUrl);
             setCroppingUrl(null);
@@ -557,7 +613,7 @@ function ImageEditPanel({
     };
 
     if (showCrop && croppingUrl) {
-        return <CropTool imageUrl={croppingUrl} onCrop={handleCrop} onCancel={() => setShowCrop(false)} />;
+        return <SmartCropTool imageUrl={croppingUrl} adminKey={state.key} onCrop={handleCrop} onCancel={() => setShowCrop(false)} />;
     }
 
     return (
