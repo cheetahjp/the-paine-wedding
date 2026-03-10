@@ -6,6 +6,14 @@ import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 import { WEDDING } from "@/lib/wedding-data";
 
+/** Strip trailing number from household names for guest-facing display.
+ *  "The Paine Family 1" → "The Paine Family"
+ *  "The Paine Family"   → "The Paine Family"  (unchanged)
+ */
+function getDisplayHouseholdName(name: string): string {
+    return name.replace(/\s+\d+\s*$/, "").trim();
+}
+
 type Guest = {
     id: string;
     first_name: string;
@@ -126,7 +134,7 @@ export default function RSVP() {
         const initialResponses: Record<string, { attending: boolean; meal_choice: string }> = {};
         allHouseholdGuests.forEach((g: Guest) => {
             initialResponses[g.id] = {
-                attending: g.attending ?? false,
+                attending: g.attending ?? true,
                 meal_choice: g.meal_choice || "",
             };
         });
@@ -263,7 +271,7 @@ export default function RSVP() {
                     {step === "respond" && household && (
                         <form onSubmit={handleSubmitRSVP} className="space-y-8 text-left animate-fade-in-up">
                             <h2 className="font-heading text-2xl text-primary text-center pb-4 border-b border-surface">
-                                {household.name}
+                                {getDisplayHouseholdName(household.name)}
                             </h2>
 
                             {/* Per-guest attendance + meal */}
@@ -274,7 +282,7 @@ export default function RSVP() {
                                         key={guest.id}
                                         className="space-y-4 pb-6 border-b border-surface last:border-0"
                                     >
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                             <h3 className="font-medium text-lg border-l-2 border-primary pl-3">
                                                 {guest.first_name} {guest.last_name}{" "}
                                                 {guest.suffix && (
@@ -284,23 +292,35 @@ export default function RSVP() {
                                                 )}
                                             </h3>
 
-                                            <label className="flex items-center gap-3 cursor-pointer bg-surface/30 px-3 py-2 rounded border border-gray-100 hover:bg-surface/50 transition-colors">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isAttending || false}
-                                                    onChange={(e) =>
-                                                        handleResponseChange(
-                                                            guest.id,
-                                                            "attending",
-                                                            e.target.checked
-                                                        )
+                                            {/* Explicit Yes / No toggle — no ambiguous checkbox */}
+                                            <div className="flex gap-2 flex-shrink-0 pl-5 sm:pl-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleResponseChange(guest.id, "attending", true)
                                                     }
-                                                    className="w-5 h-5 accent-primary border-gray-300 rounded cursor-pointer"
-                                                />
-                                                <span className="text-sm font-medium whitespace-nowrap">
-                                                    {isAttending ? "Attending" : "Declined"}
-                                                </span>
-                                            </label>
+                                                    className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
+                                                        isAttending
+                                                            ? "bg-primary text-white border-primary"
+                                                            : "bg-white text-text-secondary border-gray-200 hover:border-primary hover:text-primary"
+                                                    }`}
+                                                >
+                                                    Attending
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleResponseChange(guest.id, "attending", false)
+                                                    }
+                                                    className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
+                                                        !isAttending
+                                                            ? "bg-secondary text-white border-secondary"
+                                                            : "bg-white text-text-secondary border-gray-200 hover:border-secondary hover:text-secondary"
+                                                    }`}
+                                                >
+                                                    Declined
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {isAttending && WEDDING.mealOptions.length > 0 && (

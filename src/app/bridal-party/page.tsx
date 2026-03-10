@@ -16,6 +16,11 @@ function PersonCard({ person }: { person: PartyMember }) {
     const fallback =
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
 
+    // Split first and last name for stacked mobile display
+    const nameParts = person.name.trim().split(/\s+/);
+    const firstName = nameParts[0] ?? "";
+    const lastName = nameParts.slice(1).join(" ");
+
     return (
         <div className="group text-center">
             <div className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm">
@@ -29,7 +34,11 @@ function PersonCard({ person }: { person: PartyMember }) {
                     }}
                 />
             </div>
-            <h3 className="font-heading text-xl text-primary">{person.name}</h3>
+            {/* Mobile: stacked first / last name. Desktop: single line */}
+            <h3 className="font-heading text-xl text-primary leading-tight">
+                <span className="block">{firstName}</span>
+                {lastName && <span className="block">{lastName}</span>}
+            </h3>
             <p className="uppercase tracking-[0.2em] text-xs text-text-secondary mt-2">{person.role}</p>
             {person.relationship && (
                 <p className="text-xs text-text-secondary/60 mt-1 italic">{person.relationship}</p>

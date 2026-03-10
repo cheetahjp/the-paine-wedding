@@ -17,6 +17,10 @@ type Guest = {
     food_allergies: string | null;
     song_request: string | null;
     advice: string | null;
+    plus_one_name: string | null;
+    affiliation: string | null;
+    side: string | null;
+    likelihood: string | null;
     households: {
         name: string;
     };
@@ -258,7 +262,11 @@ export default function AdminDashboard() {
                                     <thead className="border-b border-gray-200 bg-surface/80 text-xs uppercase tracking-widest text-text-secondary">
                                         <tr>
                                             <th className="px-6 py-4 font-normal">Household / Guest Name</th>
-                                            <th className="px-6 py-4 font-normal">Status</th>
+                                            <th className="px-6 py-4 font-normal">Affiliation</th>
+                                            <th className="px-6 py-4 font-normal">Side</th>
+                                            <th className="px-6 py-4 font-normal">Likelihood</th>
+                                            <th className="px-6 py-4 font-normal">Plus One</th>
+                                            <th className="px-6 py-4 font-normal">RSVP</th>
                                             <th className="px-6 py-4 font-normal">Meal</th>
                                         </tr>
                                     </thead>
@@ -275,7 +283,7 @@ export default function AdminDashboard() {
                                             .map(([householdName, householdGuests]) => (
                                                 <React.Fragment key={householdName}>
                                                     <tr className="border-t-2 border-gray-100 bg-surface/30">
-                                                        <td colSpan={3} className="px-6 py-3 font-heading font-bold text-primary">
+                                                        <td colSpan={7} className="px-6 py-3 font-heading font-bold text-primary">
                                                             {householdName}
                                                         </td>
                                                     </tr>
@@ -286,6 +294,48 @@ export default function AdminDashboard() {
                                                                 {guest.suffix ? (
                                                                     <span className="ml-1 text-gray-400">{guest.suffix}</span>
                                                                 ) : null}
+                                                            </td>
+                                                            <td className="px-6 py-3 text-text-secondary">
+                                                                {guest.affiliation ? (
+                                                                    <span className={`rounded px-2 py-1 text-xs ${
+                                                                        guest.affiliation === "Family"
+                                                                            ? "bg-purple-50 text-purple-700"
+                                                                            : guest.affiliation === "Our Friends"
+                                                                            ? "bg-blue-50 text-blue-700"
+                                                                            : "bg-teal-50 text-teal-700"
+                                                                    }`}>
+                                                                        {guest.affiliation}
+                                                                    </span>
+                                                                ) : "—"}
+                                                            </td>
+                                                            <td className="px-6 py-3 text-text-secondary">
+                                                                {guest.side ? (
+                                                                    <span className={`rounded px-2 py-1 text-xs ${
+                                                                        guest.side === "Jeff"
+                                                                            ? "bg-primary/10 text-primary"
+                                                                            : guest.side === "Ash"
+                                                                            ? "bg-secondary/10 text-secondary"
+                                                                            : "bg-gray-100 text-gray-600"
+                                                                    }`}>
+                                                                        {guest.side}
+                                                                    </span>
+                                                                ) : "—"}
+                                                            </td>
+                                                            <td className="px-6 py-3 text-text-secondary">
+                                                                {guest.likelihood ? (
+                                                                    <span className={`rounded px-2 py-1 text-xs ${
+                                                                        guest.likelihood === "Yes"
+                                                                            ? "bg-green-50 text-green-700"
+                                                                            : guest.likelihood === "Maybe"
+                                                                            ? "bg-yellow-50 text-yellow-600"
+                                                                            : "bg-red-50 text-red-600"
+                                                                    }`}>
+                                                                        {guest.likelihood}
+                                                                    </span>
+                                                                ) : "—"}
+                                                            </td>
+                                                            <td className="px-6 py-3 text-text-secondary text-xs">
+                                                                {guest.plus_one_name ?? "—"}
                                                             </td>
                                                             <td className="px-6 py-3">
                                                                 {guest.attending === true ? (

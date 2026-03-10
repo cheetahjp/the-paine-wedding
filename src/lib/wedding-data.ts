@@ -263,10 +263,10 @@ export const WEDDING = {
   // Our Story timeline
   story: [
     {
-      year: 'Autumn 2021',
+      year: '2021',
       title: 'How We Met',
       description:
-        'We met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce her to Jeffrey — she had been hoping for a chance to talk to him. After the introduction, we started texting and finding random excuses to hang out. Our first official date was a trip to Sonic and a long drive around town where we talked for hours. We ended up dating for about six months before going our separate ways — we both needed time to grow and mature in our walk with the Lord.',
+        'Ashlyn and Jeffrey met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce them — she had been hoping for a chance to talk to him. After the introduction, they started texting and finding random excuses to hang out. Their first official date was a trip to Sonic and a long drive around town where they talked for hours. They dated for about six months before going their separate ways — they both needed time to grow and mature in their walk with the Lord.',
       image: '/images/story/story-how-we-met.webp',
       imageFallback:
         'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80',
@@ -275,7 +275,7 @@ export const WEDDING = {
       year: 'October 2024',
       title: 'Our Reunion',
       description:
-        'Almost two years later, we both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. We spotted each other and kept our distance, unsure if the other wanted to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where we talked for hours and realized that no time had really passed — we were just better versions of ourselves. On October 18th, 2024, we started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But we made the most of every weekend together, and we cannot wait to finally be in the same city for the rest of our lives.',
+        'Almost two years later, they both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. They spotted each other and kept their distance, unsure if the other wanted to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where they talked for hours and realized that no time had really passed — they were just better versions of themselves. On October 18th, 2024, they started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But they made the most of every weekend together, and cannot wait to finally be in the same place for the rest of their lives.',
       image: '/images/story/story-reunion.webp',
       imageFallback:
         'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&q=80',
