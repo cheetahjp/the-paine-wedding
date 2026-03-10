@@ -174,13 +174,54 @@ async function apiDeleteSetting(key: string): Promise<void> {
     }
 }
 
+// ─── Client-side image compression ───────────────────────────────────────────
+
+/**
+ * Compress an image File/Blob via Canvas so it's always < 3 MB before upload.
+ * Vercel Serverless Functions cap the request body at ~4.5 MB; this ensures
+ * even large phone photos (10+ MB) are safely resized first.
+ */
+async function compressImageFile(file: File | Blob, maxPx = 2400, quality = 0.88): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            let { naturalWidth: w, naturalHeight: h } = img;
+            if (w > maxPx || h > maxPx) {
+                if (w > h) { h = Math.round((h * maxPx) / w); w = maxPx; }
+                else { w = Math.round((w * maxPx) / h); h = maxPx; }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+            canvas.toBlob(
+                (blob) => { if (blob) resolve(blob); else reject(new Error("Compression failed")); },
+                "image/jpeg",
+                quality
+            );
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")); };
+        img.src = url;
+    });
+}
+
 async function apiUploadImage(file: File | Blob, filename?: string): Promise<string> {
+    // Compress if it's a big File (e.g. from the file picker). Blobs from the
+    // crop tool are already sized, so we skip re-compression for those.
+    const toUpload = file instanceof File && file.size > 1_500_000
+        ? await compressImageFile(file)
+        : file;
     const fd = new FormData();
-    fd.append("file", file, filename ?? "upload.jpg");
+    fd.append("file", toUpload, filename ?? "upload.jpg");
     const r = await fetch("/api/admin/upload-image", { method: "POST", body: fd });
     if (!r.ok) {
-        const data = (await r.json()) as { error?: string };
-        throw new Error(data.error ?? "Upload failed");
+        // Guard against non-JSON responses (e.g. Vercel 413 "Request Entity Too Large")
+        const text = await r.text();
+        let msg = "Upload failed";
+        try { msg = (JSON.parse(text) as { error?: string }).error ?? msg; } catch { msg = text.slice(0, 120); }
+        throw new Error(msg);
     }
     const { url } = (await r.json()) as { url: string };
     return url;
