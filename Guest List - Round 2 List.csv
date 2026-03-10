@@ -1,0 +1,220 @@
+Household Name,Name,Affiliation,Side,Likelihood,Plus One,Address,Mail
+The Paine Family 1,Jennifer Paine,Family,Jeff,Yes,,,No
+The Paine Family 1,John Paine,Family,Jeff,Yes,,,No
+The Paine Family 1,John Paine 3,Family,Jeff,Yes,,,No
+The Wilson Family 1,Emma Wilson,Family,Jeff ,Yes,Chris,,No
+The Wilson Family 2,Brynn Wilson,Family,Jeff,Yes,Collin,,No
+The Bimmerle Family 1 ,Katie Bimmerle,Family,Ash ,Yes,,"3811 Snowdance Court, College Station, Tx. 77845",No
+The Birmmerly Family 1 ,John Bimmerle,Family,Ash ,Yes,,"3811 Snowdance Court, College Station, Tx. 77845",No
+The Bimmerle Family 1 ,Blake Bimmerle,Family,Ash ,Yes,,"3811 Snowdance Court, College Station, Tx. 77845",No
+The Bimmerle Family 1 ,Paige Bimmerle,Family,Ash ,Yes,Jacob,"3811 Snowdance Court, College Station, Tx. 77845",No
+The Paine Family 5,Hillary Paine,Family,Jeff ,Yes,,"2900 Reagan St. #102, Dallas, Tx. 75219",No
+The Lynch Family,Kate Lynch,Family,Jeff ,Yes,,"3113 Prestonwood Dr, Plano, TX 75093",No
+The Paine Family 2,Josh Paine,Family,Jeff,Yes,,"5700 Walden Dr. Plano, TX 75093",No
+The Paine Family 2,Schyler Paine,Family,Jeff,Yes,,"5700 Walden Dr. Plano, TX 75093",No
+The Paine Family 3,Sandy Paine,Family,Jeff,Yes,,"5909 Porto Fino Dr., Plano, TX 75093",No
+The Paine Family 3,Joshua Paine,Family,Jeff,Yes,,"5909 Porto Fino Dr., Plano, TX 75093",No
+The Paine Family 3,Sam Paine,Family,Jeff,Yes,,"5909 Porto Fino Dr., Plano, TX 75093",No
+The Paine Family 4,Margret Paine,Family,Jeff,Yes,,"5121 Mariners Drive, Plano, TX 75093",No
+The Wilson Family 3,Ainsley Wilson,Family,Jeff,Maybe,,"5121 Mariners Drive, Plano, TX 75093",Yes
+The Ray Family 1,Eddie Ray,Family,Jeff,Maybe,,"658 Anderson County Road 415, Palestine, TX 75803",Yes
+The Ray Family 1,Vickie Ray,Family,Jeff,No,,"658 Anderson County Road 415, Palestine, TX 75803",Yes
+The Ray Family 2,Joann Ray,Family,Jeff,Maybe,,,Yes
+The Runyon Family 1,Mary Beth Runyon,Family,Jeff,Yes,,"106 Park Street, Wrentham, MA 02093",Yes
+The Runyon Family 1,Tom Runyon,Family,Jeff,Yes,,"106 Park Street, Wrentham, MA 02093",Yes
+The Runyon Family 2,Maggie Runyon,Family,Jeff,Yes,,"68 Bennett Drive, Doylestown, PA 18901",Yes
+The Runyon Family 2,Tommy Runyon,Family,Jeff,Yes,,"68 Bennett Drive, Doylestown, PA 18901",Yes
+The Runyon Family 2,Audrey Runyon,Family,Jeff,Yes,,"68 Bennett Drive, Doylestown, PA 18901",Yes
+The Runyon Family 2,Charlie Runyon,Family,Jeff,Yes,,"68 Bennett Drive, Doylestown, PA 18901",Yes
+The Runyon Family 3,Matthew Runyon,Family,Jeff,Yes,,"24 Hastings Rd. Spencer, MA 01562",Yes
+The Runyon Family 3,Megan Runyon,Family,Jeff,Yes,,"24 Hastings Rd. Spencer, MA 01562",Yes
+The Robertson Family 1,Christy Robertson,Family,Ash ,Yes,,"5319 72nd St, Lubbock Tx, 79424",Yes
+The Robertson Family 1,Keith Robertson,Family,Ash ,Yes,,"5319 72nd St, Lubbock Tx, 79424",Yes
+The Robertson Family 1,Alyse Robertson,Family,Ash ,Yes,,"5319 72nd St, Lubbock Tx, 79424",Yes
+The Robertson Family 2,Ryan Robertson,Family,Ash ,Yes,,,Yes
+The Robertson Family 2,Sydney Robertson,Family,Ash ,Yes,,,Yes
+The Robertson Family 2,Adley Robertson,Family,Ash ,Yes,,,Yes
+The Robertson Family 2,Reese Robertson,Family,Ash ,Yes,,,Yes
+The Robertson Family 1,Tyler Robertson,Family,Ash ,Yes,Annie ,,Yes
+*,Sally Lawson,Family,Ash ,Yes,,"3301 Stonington Way, Bryan, Tx. 77808",Yes
+*,Greg Lawson,Family,Ash ,Yes,,"3301 Stonington Way, Bryan, Tx. 77808",Yes
+*,Natalie Lawson,Family,Ash ,Yes,,"3301 Stonington Way, Bryan, Tx. 77808",Yes
+*,Whitney Lawson,Family,Ash ,Yes,,,Yes
+*,Jackson Lord,Family,Ash ,Yes,,,Yes
+*,Gay Word,Family,Ash,Yes,,"5207 26th St, Lubbock, Tx. 79407",Yes
+*,Renee Welling,Family,Ash,Yes,,"9100 Lexford Dr. Amarillo, Tx. 79119-1750",Yes
+*,Frank Welling,Family,Ash,Yes,,"9100 Lexford Dr. Amarillo, Tx. 79119-1750",Yes
+*,Alice Ostryzniuk ,Family,Ash,No,,,Yes
+*,Bernie Ostryzniuk,Family,Ash,No,,,Yes
+The Bimmerle Family 2,Rachel Bimmerle,Family,Ash,Maybe,,"1200 N. Herndon St, Apt. 138, Arlington, VA 22201",Yes
+The Bimmerle Family 3,Tom Bimmerle,Family,Ash,No,,"7460 Twin Brooks Blvd. Knoxville, Tn. 37918",Yes
+*,Angie Proctor,Our Friends,Ash,Yes,,"18806 Roberts Road, Hockley, Tx. 77447",Yes
+*,Richard Proctor,Our Friends,Ash,Yes,,"18806 Roberts Road, Hockley, Tx. 77447",Yes
+*,Joe Tesfaye,Our Friends,Jeff,Yes,,"3311 Stillwater Dr, Wylie Tx 75098",Yes
+*,Will Raines,Our Friends,Jeff,Yes,,2553 Cain River Drive Little Elm Texas 75068,Yes
+*,Kayla Raines,Our Friends,Jeff,Yes,,2553 Cain River Drive Little Elm Texas 75068,Yes
+*,Hudson Boyd,Our Friends,Both ,Yes,,"3200 Maple Ave Apt 318, Dallas, TX 75201",Yes
+*,Abby Boyd,Our Friends,Both ,Yes,,"3200 Maple Ave Apt 318, Dallas, TX 75201",Yes
+*,Roman Richichi,Our Friends,Both ,Yes,,"4747 Brian Rd. Mechanicsburg, PA 17050",Yes
+*,Olivia Richichi,Our Friends,Both ,Yes,,"4747 Brian Rd. Mechanicsburg, PA 17050",Yes
+*,Connor Preston,Our Friends,Jeff,Yes,,"7850 Chinook Ct, Colorado Springs CO 80920, United States",Yes
+*,Justin Luurtsema,Our Friends,Jeff,Yes,,"100 Shawan Rd Unit 145 Cockeysville, MD 21030",Yes
+The Groezinger Family 2,Collin Groezinger,Our Friends,Both,Yes,,"7077 Watercrest Pkwy. Apt. 4113 Dallas, TX 75231",Yes
+The Groezinger Family 2,Megan Groezinger,Our Friends,Both ,Yes,,"7077 Watercrest Pkwy. Apt. 4113 Dallas, TX 75231",Yes
+*,Duncan Marshall,Our Friends,Jeff,Yes,,,Yes
+*,Caitlyn Marshall,Our Friends,Jeff,Yes,,,Yes
+*,Kaden Westbrook,Our Friends,Jeff,Yes,,3342 Firewheel Pkwy. #11-104 Garland TX 75040,Yes
+*,Kaitlyn Westbrook,Our Friends,Jeff,Yes,,3342 Firewheel Pkwy. #11-104 Garland TX 75040,Yes
+*,Jeremy Gonzales,Our Friends,Jeff,Maybe,,"1305 Mae Dr. Carrollton, TX 75007",Yes
+*,Sam Gonzales,Our Friends,Jeff,Maybe,,"1305 Mae Dr. Carrollton, TX 75007",Yes
+*,John Reece,Our Friends,Jeff,Yes,,"1207 Tiana Street. Anna, TX 75409",Yes
+*,Kimberly Reece,Our Friends,Jeff,Yes,,"1207 Tiana Street. Anna, TX 75409",Yes
+The Groezinger Family 1,Julanne Groezinger,Their Friends,Jeff,Yes,,"3920 Fens Drive, Carrollton, TX 75007",No
+The Groezinger Family 1,Jason Groezinger,Their Friends,Jeff,Yes,,"3920 Fens Drive, Carrollton, TX 75007",No
+The Groezinger Family 3,Moises Groezinger,Our Friends,Jeff,Maybe,Girlfriend ,"3920 Fens Drive, Carrollton, TX 75007",No
+*,Megan Ray,Our Friends,Ash ,Yes,,"PO Box 68, Sulphur Springs, Tx. 75483",Yes
+*,Dustin Ray,Our Friends,Ash ,Yes,,"PO Box 68, Sulphur Springs, Tx. 75483",Yes
+*,Jolynn Meirovitz,Our Friends,Ash,Yes,,,No
+*,Casey Meirovitz,Our Friends,Ash ,Yes,,,No
+*,Rocki Hoops,Our Friends,Ash,Yes,,"120 CR 4728 Cumby, TX 75433",Yes
+*,Cary Hoops,Our Friends,Ash,Yes,,"120 CR 4728 Cumby, TX 75433",Yes
+*,Shelby Gerner,Our Friends,Ash,Yes,,,No
+*,Izzy May,Our Friends,Ash,Yes,,"2250 Hunters Creek Rd. Apt. 4212 Denton, Tx. 76210",Yes
+*,Alondra Santillan,Our Friends,Ash,Yes,Cade,"615 Ingram St. Sulphur Springs, Tx. 75482",Yes
+*,Liz Alvarez ,Our Friends,Ash,Yes,Nate,"138 A Lundy Street, Sulphur Springs, Tx. 75052",Yes
+*,Samantha Jwanouskos,Our Friends,Ash,Yes,Fiance,"3655 Prairie Waters Dr. 3 SixtyFlats, Apt. 1108, Grand Prairie, Tx. 75052",Yes
+*,Hannah Franks,Our Friends,Ash ,Yes,Cameron,,No
+*,Marissa Halverson,Our Friends,Ash ,Yes,Nate,,No
+*,Kyla Crawford,Our Friends,Ash ,Yes,,,No
+*,Katey Brown,Our Friends,Ash,Yes,Steven ,"1612 Wright Street, Sulphur Springs, Tx. 75482",Yes
+*,Ryan Horne,Our Friends,Ash,Yes,,,Yes
+*,Amanda Horne,Our Friends,Ash,Yes,,,Yes
+*,Zayda Luna,Our Friends,Ash,Yes,,"1225 W Interstate Hwy 20 Apt 4209 Grand Prairie, Tx 75052",Yes
+*,Carlos Luna,Our Friends,Ash,Yes,,"1225 W Interstate Hwy 20 Apt 4209 Grand Prairie, Tx 75052",Yes
+*,Emma Isom ,Our Friends,Ash,Yes,,1030 County Road 4205 Campbell,Yes
+*,Sydney Washburn ,Our Friends,Ash,Yes,,"802 Timber Lan, Nashville, TN 37215",Yes
+*,David Howe,Our Friends,Jeff ,Yes,David's Fiance ,"4618 Dusk Meadow Dr. Carrollton, TX 75010",Yes
+*,Mike Bishop ,Our Friends,Jeff,Yes,,"5528 Big River Dr. The Colony, TX 75056",Yes
+*,Angie Bishop ,Our Friends,Jeff ,Yes,,"5528 Big River Dr. The Colony, TX 75056",Yes
+*,Jennifer Taylor,Their Friends,Ash ,Yes,,,Yes
+*,Bryan Taylor,Their Friends,Ash,Yes,,,Yes
+*,Brylan Taylor,Their Friends,Ash,Yes,,,Yes
+*,Trent Taylor ,Their Friends,Ash,Yes,,,Yes
+*,Cailey Taylor,Their Friends,Ash,Yes,,,Yes
+*,Nathan Taylor,Their Friends,Ash,Yes,Scout ,,Yes
+*,Callie Chiu,Their Friends,Ash,Yes,,,Yes
+*,Allen Chiu,Their Friends,Ash,Yes,,,Yes
+*,Amy Cary ,Their Friends,Ash,Maybe,,,Yes
+*,Steve Cary ,Their Friends,Ash,Maybe ,,,Yes
+*,Anna Cary,Their Friends,Ash,Maybe ,Husband,,Yes
+*,Sarah Adams,Our Friends,Jeff,Yes,,"13099 E US Highway 79, Oakwood TX 75855",Yes
+*,Emma Adams,Our Friends,Jeff,Yes,,"535 Northwest Hwy. Apt # 3407 Irving, TX 75039",Yes
+*,Brendan Redell,Our Friends,Jeff,Maybe,,"2017 Westhill Parkway, Blacksburg VA, 24060",Yes
+*,Caroline Redell,Our Friends,Jeff,Maybe,,"2017 Westhill Parkway, Blacksburg VA, 24060",Yes
+*,Lisa Redell,Their Friends,Jeff,Yes,,"4500 Bluestem Drive #6105 Prosper, TX 75078",Yes
+*,Ron Redell ,Their Friends,Jeff,Yes,,"4500 Bluestem Drive #6105 Prosper, TX 75078",Yes
+*,Kalina Redell,Their Friends,Jeff,Yes,,"4500 Bluestem Drive #6105 Prosper, TX 75078",Yes
+*,Macie Redell,Their Friends,Jeff,Yes,Fiance,"3000 Mountain Creek Pkwy. Box #604 Dallas, TX 75211",Yes
+*,Clay Dover ,Their Friends,Jeff,Yes,,5639 Oslo Ln. Park City UT 84098,Yes
+*,Rebecca Dover ,Their Friends,Jeff,Yes,,5639 Oslo Ln. Park City UT 84098,Yes
+*,Becky Armstrong ,Their Friends,Jeff,Yes,,4330 McKinney Ave #14 Dallas TX 75205,Yes
+*,Les Howard ,Their Friends,Jeff,Yes,,"9118 Cumberland Dr, Irving, TX 75063",Yes
+*,Dani Edwards,Our Friends,Both ,Maybe,,"925 Sealy Ave, Apt 10, Galveston, TX. 77550",Yes
+*,Josh Edwards,Our Friends,Both ,Maybe,,"925 Sealy Ave, Apt 10, Galveston, TX. 77550",Yes
+*,Meichell Arnold,Our Friends,Ash ,Yes,,"3114 Winding Way, Huntsville, Tx. 77340",Yes
+*,Carter Coffey ,Our Friends,Both ,Yes,,,No
+*,Jonathan Potoeschnik,Our Friends,Jeff,Yes,His wife ,,Yes
+*,Julie Francis ,Our Friends,Both,Yes,,"17060 Upper Bay Road, Addison, TX 75001",Yes
+*,Ethan Francis ,Our Friends ,Both ,Yes,,"17060 Upper Bay Road, Addison, TX 75001",Yes
+*,Iris Pizzarello,Their Friends,Jeff,Yes,,"12770 Swan Lake Dr. Frisco, TX 75033",Yes
+*,Nico Pizzarello ,Their Friends,Jeff,Yes,,"12770 Swan Lake Dr. Frisco, TX 75033",Yes
+*,Jen Simpson ,Our Friend ,Ash,Yes,Brian ,"4209 CR 4509, Commerce, TX 75428",Yes
+*,Renee Walker ,Our Friend ,Ash,Yes,John Walker ,"PO Box 1403, Commerce, TX 75429",Yes
+*,Greg Smith ,Their Friends,Jeff,Yes,,,Yes
+*,Holly Smith,Their Friends,Jeff,Maybe,,,Yes
+*,Heidi Smith ,Their Friends,Jeff,Maybe,,,Yes
+*,Lisa Smith ,Their Friends,Jeff,Yes,,,Yes
+*,Ethan Cavagnaro ,Our Friends ,Jeff,Yes,Girlfriend,"3816 Hunters Trail, Carrollton, TX 75007",Yes
+*,Jim Gribnitz ,Their Friends,Jeff,Maybe,,,Yes
+*,Nikki Gribnitz ,Their Friends,Jeff,Maybe,,,Yes
+*,Hannah Gribnitz ,Their Friends,Jeff,Maybe,,,Yes
+*,Abigail Gribnitz ,Their Friends,Jeff,Maybe,,,Yes
+*,Seth Gribnitz ,Their Friends,Jeff,Maybe,,,Yes
+*,Carley Stevenson ,Their Friends,Jeff,Yes,,"11305 Huntington Road, Frisco, TX 75035",Yes
+*,Jason Stevenson ,Their Friends,Jeff,Yes,,"11305 Huntington Road, Frisco, TX 75035",Yes
+*,Lori Owen ,Their Friends,Ash,Yes,,,Yes
+*,Bruce Owen ,Their Friends,Ash,Yes,,,Yes
+*,Tandra Eaton,Their Friends,Ash,Yes,,,Yes
+*,Kathy Hearn ,Their Friends,Ash,Yes,,,Yes
+*,Casey Kassady ,Their Friends,Ash ,Yes,,,Yes
+*,Emily Bardin,Their Friends,Ash,Yes,,,Yes
+*,Brad Bardin ,Their Friends,Ash,Yes,,,Yes
+*,Brent Bardin ,Their Friends,Ash,Maybe,Ramon ,,Yes
+*,Dylan Bardin ,Their Friends,Ash,Maybe,,,Yes
+*,Susan Horton ,Their Friends,Ash ,Maybe,,,Yes
+*,Chris Horton ,Their Friends,Ash ,Maybe,,,Yes
+*,Kim Blackwood,Their Friends,Ash ,Maybe,,,Yes
+*,Nathan Blackwood ,Their Friends,Ash ,Maybe,,,Yes
+*,Elaine Reid ,Family ,Ash ,No,,"13N171 Wedgewood, Elgin, IL 60124",Yes
+*,Jeff Reid ,Family,Ash ,No,,"13N171 Wedgewood, Elgin, IL 60124",Yes
+*,Donna Young ,Family,Ash ,No,,"14345 Braun Road, Golden, CO 80401",Yes
+*,Peter Young ,Family,Ash ,No,,"14345 Braun Road, Golden, CO 80401",Yes
+The Finforck Family 1,Paul Finforck ,Family,Ash ,No,,"3367 Songbird Lane, Lakeland, Fl. 33811",Yes
+The Finforck Family 1,Patricia Finfrock ,Family,Ash ,No ,,"3367 Songbird Lane, Lakeland, Fl. 33811",Yes
+The Finforck Family 2,Duane Finfrock ,Family,Ash ,No,,"118 Prather Drive, Davenport, FL 33847",Yes
+The Finforck Family 2,Kathy Finfrock ,Family,Ash ,No,,"118 Prather Drive, Davenport, FL 33847",Yes
+The Ray Family 3,Glen Ray,Family,Jeff,Maybe,,,Yes
+The Ray Family 3,Shawn Ray,Family,Jeff,Maybe,,,Yes
+The Ray Family 4,Rodney Ray,Family,Jeff,Maybe,,,Yes
+The Ray Family 4,Vicki Ray,Family,Jeff,Maybe,,,Yes
+The Ray Family 5,Jimmy Ray,Family,Jeff,Maybe,,,Yes
+The Ray Family 5,Kim Ray,Family,Jeff,Maybe,,,Yes
+*,Bill Pauly,Family,Jeff,No,,,Yes
+*,Heather Cornelison,Family,Jeff,Maybe,,,Yes
+*,Alan Cornelison,Family,Jeff,Maybe,,,Yes
+*,Becky Mitchell,Family,Jeff,Maybe,,,Yes
+*,Janice Muldoon,Family,Jeff,No,,,Yes
+*,Kate Renz,Their Friends,Jeff,Maybe,,,Yes
+*,Sam Renz,Their Friends,Jeff,Maybe,,,Yes
+*,Dave Proulx,Their Friends,Jeff,No,,,Yes
+*,Aimee Proulx,Their Friends,Jeff,No,,,Yes
+The Byler McPherson Family,Jenny Byler,Their Friends,Jeff,Maybe,,,Yes
+The Byler McPherson Family,Katie McPherson,Their Friends,Jeff,Maybe,,,Yes
+The Byler McPherson Family,Jake McPherson,Their Friends,Jeff,Maybe,,,Yes
+*,Donna Handcock,Family,Jeff,No,,,Yes
+*,Rick Handcock,Family,Jeff,No,,,Yes
+*,Nancy Ouska,Family,Jeff,No,,,Yes
+*,Jerry Ouska,Family,Jeff,No,,,Yes
+*,Jasper Purvis,Their Friends,Jeff,Maybe,,,No
+*,Jessica Purvis,Their Friends,Jeff,Maybe,,,No
+*,Chacory Demart,Their Friends,Jeff,Maybe,,,No
+*,Maliaki Demart,Their Friends,Jeff,Maybe,,,No
+*,Patrick Leung,Our Friends,Ash,Maybe,,,No
+*,Monit Cheung,Our Friends,Ash,Maybe,,,No
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,Second Round List,,,,,,
+,Shayla Mullins,,,,,,
+,David Mullins,,,,,,
+,Sydney ,,,,,,
+,Addison ,,,,,,
+,Kelly ,,,,,,
+,Carter ,,,,,,
+,Avery ,,,,,,
+,Amy ,,,,,,
+,Becky ,,,,,,
+,Madi ,,,,,,
+,Kailee,,,,,,
+,Ian Marshall ,,,,,,
+,Shelley Marshall ,,,,,,
+,Ben Stroop,,,,Fiance ,,
+,Molly,,,,,,
+,Cozette Hicks ,,,,,,
+,Dr. Shanna ,,,,,,
+,Bri Pearson,,,,,,
+,Aaron Pearson,,,,,,
+,Travis Fruge,,,,,,

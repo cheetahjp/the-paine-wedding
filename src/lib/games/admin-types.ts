@@ -7,7 +7,7 @@ export type GamePlayerRecord = {
 
 export type AdminGameScore = {
     id: string;
-    game: "trivia" | "painedle";
+    game: "trivia" | "painedle" | "crossword";
     puzzle_key: string;
     score: number;
     max_score: number | null;

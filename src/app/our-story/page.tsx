@@ -1,9 +1,11 @@
 import React from "react";
 import Section from "@/components/ui/Section";
 import StoryItem from "@/components/ui/StoryItem";
-import { WEDDING } from "@/lib/wedding-data";
+import { getWeddingData } from "@/lib/site-settings";
 
-export default function OurStory() {
+export default async function OurStory() {
+    const { wedding, content } = await getWeddingData();
+
     return (
         <div className="pt-20">
             {/* Page header */}
@@ -16,24 +18,39 @@ export default function OurStory() {
                     <span className="h-px w-12 bg-accent" />
                 </div>
                 <h1 className="font-heading text-5xl md:text-7xl mb-6 text-primary">
-                    {WEDDING.couple.names}
+                    {wedding.couple.names}
                 </h1>
-                <p className="max-w-xl mx-auto text-text-secondary leading-relaxed">
-                    From a chance meeting to a lifetime commitment. Here is a glimpse into our journey together.
+                <p
+                    className="max-w-xl mx-auto text-text-secondary leading-relaxed"
+                    data-admin-key="story.subtitle"
+                    data-admin-type="rich-text"
+                    data-admin-current-text={content.storySubtitle}
+                    data-admin-label="Story Page Subtitle"
+                >
+                    {content.storySubtitle}
                 </p>
             </Section>
 
-            {/* Thin burgundy rule to anchor the section */}
+            {/* Thin rule */}
             <div className="flex items-center justify-center mb-16 px-6">
                 <span className="h-px flex-1 max-w-xs bg-surface" />
                 <span className="mx-4 text-secondary text-xs">&#10022;</span>
                 <span className="h-px flex-1 max-w-xs bg-surface" />
             </div>
 
-            {/* Timeline items */}
+            {/* Timeline items — each item has inline edit attributes */}
             <div className="max-w-6xl mx-auto px-6 pb-32 space-y-28">
-                {WEDDING.story.map((item, index) => (
-                    <StoryItem key={item.title} item={item} index={index} />
+                {wedding.story.map((item, index) => (
+                    <div key={item.title} className="relative">
+                        {/* Image target for edit mode */}
+                        <StoryItem
+                            item={item}
+                            index={index}
+                            adminImageKey={`story.item.${index}.image`}
+                            adminTitleKey={`story.item.${index}.title`}
+                            adminDescKey={`story.item.${index}.description`}
+                        />
+                    </div>
                 ))}
             </div>
         </div>

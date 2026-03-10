@@ -14,9 +14,13 @@ interface StoryItemData {
 interface StoryItemProps {
     item: StoryItemData;
     index: number;
+    // Optional admin edit keys — injected by the server page when master session is active
+    adminImageKey?: string;
+    adminTitleKey?: string;
+    adminDescKey?: string;
 }
 
-export default function StoryItem({ item, index }: StoryItemProps) {
+export default function StoryItem({ item, index, adminImageKey, adminTitleKey, adminDescKey }: StoryItemProps) {
     const [visible, setVisible] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const isReversed = index % 2 !== 0;
@@ -44,7 +48,7 @@ export default function StoryItem({ item, index }: StoryItemProps) {
                 isReversed ? "md:flex-row-reverse" : ""
             }`}
         >
-            {/* Image panel */}
+            {/* Image panel — tagged for admin edit if key provided */}
             <div
                 className={`w-full md:w-1/2 transition-all duration-700 ease-out ${
                     visible
@@ -53,6 +57,14 @@ export default function StoryItem({ item, index }: StoryItemProps) {
                         ? "opacity-0 translate-x-12"
                         : "opacity-0 -translate-x-12"
                 }`}
+                {...(adminImageKey
+                    ? {
+                          "data-admin-key": adminImageKey,
+                          "data-admin-type": "image",
+                          "data-admin-current-url": item.image,
+                          "data-admin-label": `${item.title} — Photo`,
+                      }
+                    : {})}
             >
                 <div className="relative aspect-[4/5] w-full overflow-hidden shadow-[0_24px_64px_rgba(26,63,111,0.13)]">
                     <Image
@@ -86,11 +98,31 @@ export default function StoryItem({ item, index }: StoryItemProps) {
                     <span className="h-px w-8 bg-accent md:hidden" />
                 </div>
 
-                <h2 className="font-heading text-4xl lg:text-5xl text-primary leading-tight">
+                <h2
+                    className="font-heading text-4xl lg:text-5xl text-primary leading-tight"
+                    {...(adminTitleKey
+                        ? {
+                              "data-admin-key": adminTitleKey,
+                              "data-admin-type": "text",
+                              "data-admin-current-text": item.title,
+                              "data-admin-label": `${item.title} — Title`,
+                          }
+                        : {})}
+                >
                     {item.title}
                 </h2>
 
-                <p className="text-text-secondary leading-relaxed md:pr-10">
+                <p
+                    className="text-text-secondary leading-relaxed md:pr-10"
+                    {...(adminDescKey
+                        ? {
+                              "data-admin-key": adminDescKey,
+                              "data-admin-type": "rich-text",
+                              "data-admin-current-text": item.description,
+                              "data-admin-label": `${item.title} — Description`,
+                          }
+                        : {})}
+                >
                     {item.description.startsWith("TODO")
                         ? "Our story is being written… check back soon."
                         : item.description}

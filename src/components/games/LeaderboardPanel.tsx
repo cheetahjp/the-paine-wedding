@@ -28,6 +28,32 @@ export default function LeaderboardPanel({
     const [error, setError] = useState<string | null>(null);
     const [refreshVersion, setRefreshVersion] = useState(0);
 
+    function getEntrySubtitle(entry: LeaderboardEntry) {
+        if (game === "trivia") {
+            return `${entry.score}${entry.maxScore ? ` / ${entry.maxScore}` : ""}`;
+        }
+
+        if (game === "crossword") {
+            const duration = typeof entry.metadata?.duration_seconds === "number" ? entry.metadata.duration_seconds : null;
+            const reveals = typeof entry.metadata?.reveals_used === "number" ? entry.metadata.reveals_used : null;
+            const minutes = duration ? Math.max(1, Math.round(duration / 60)) : null;
+
+            if (minutes && typeof reveals === "number") {
+                return `${minutes} min${minutes === 1 ? "" : "s"} • ${reveals} reveal${reveals === 1 ? "" : "s"}`;
+            }
+
+            if (minutes) {
+                return `${minutes} min${minutes === 1 ? "" : "s"}`;
+            }
+
+            return entry.solved ? "Completed puzzle" : "In progress";
+        }
+
+        return entry.solved
+            ? `Solved in ${entry.attempts} ${entry.attempts === 1 ? "guess" : "guesses"}`
+            : "Unsolved";
+    }
+
     useEffect(() => {
         let isActive = true;
 
@@ -96,13 +122,7 @@ export default function LeaderboardPanel({
                                 </div>
                                 <div>
                                     <p className="font-medium text-primary">{entry.username}</p>
-                                    <p className="text-sm text-text-secondary">
-                                        {game === "trivia"
-                                            ? `${entry.score}${entry.maxScore ? ` / ${entry.maxScore}` : ""}`
-                                            : entry.solved
-                                                ? `Solved in ${entry.attempts} ${entry.attempts === 1 ? "guess" : "guesses"}`
-                                                : "Unsolved"}
-                                    </p>
+                                    <p className="text-sm text-text-secondary">{getEntrySubtitle(entry)}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="font-heading text-2xl text-primary">{entry.score}</p>

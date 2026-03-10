@@ -1,55 +1,15 @@
-"use client";
-
 import React from "react";
 import Section from "@/components/ui/Section";
-import Image from "next/image";
-import { WEDDING } from "@/lib/wedding-data";
+import { PersonPortrait } from "@/components/ui/PersonPortrait";
+import { getWeddingData } from "@/lib/site-settings";
 
-type PartyMember = {
-    name: string;
-    role: string;
-    relationship: string;
-    image: string;
-};
+export default async function BridalParty() {
+    const { wedding } = await getWeddingData();
+    const { bridesmaids, groomsmen } = wedding.bridalParty;
+    const hasParty = bridesmaids.length > 0 || groomsmen.length > 0;
 
-function PersonCard({ person }: { person: PartyMember }) {
     const fallback =
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
-
-    // Split first and last name for stacked mobile display
-    const nameParts = person.name.trim().split(/\s+/);
-    const firstName = nameParts[0] ?? "";
-    const lastName = nameParts.slice(1).join(" ");
-
-    return (
-        <div className="group text-center">
-            <div className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm">
-                <Image
-                    src={person.image || fallback}
-                    alt={person.name}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).src = fallback;
-                    }}
-                />
-            </div>
-            {/* Mobile: stacked first / last name. Desktop: single line */}
-            <h3 className="font-heading text-xl text-primary leading-tight">
-                <span className="block">{firstName}</span>
-                {lastName && <span className="block">{lastName}</span>}
-            </h3>
-            <p className="uppercase tracking-[0.2em] text-xs text-text-secondary mt-2">{person.role}</p>
-            {person.relationship && (
-                <p className="text-xs text-text-secondary/60 mt-1 italic">{person.relationship}</p>
-            )}
-        </div>
-    );
-}
-
-export default function BridalParty() {
-    const { bridesmaids, groomsmen } = WEDDING.bridalParty;
-    const hasParty = bridesmaids.length > 0 || groomsmen.length > 0;
 
     return (
         <div>
@@ -87,7 +47,14 @@ export default function BridalParty() {
                                                 : "w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1.333rem)]"
                                                 }`}
                                         >
-                                            <PersonCard person={person} />
+                                            <PersonPortrait
+                                                src={person.image}
+                                                fallback={fallback}
+                                                name={person.name}
+                                                role={person.role}
+                                                relationship={person.relationship}
+                                                adminKey={`bridal-party.bridesmaids.${idx}.image`}
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -108,7 +75,14 @@ export default function BridalParty() {
                                                 : "w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1.333rem)]"
                                                 }`}
                                         >
-                                            <PersonCard person={person} />
+                                            <PersonPortrait
+                                                src={person.image}
+                                                fallback={fallback}
+                                                name={person.name}
+                                                role={person.role}
+                                                relationship={person.relationship}
+                                                adminKey={`bridal-party.groomsmen.${idx}.image`}
+                                            />
                                         </div>
                                     ))}
                                 </div>

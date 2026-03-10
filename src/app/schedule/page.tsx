@@ -1,9 +1,10 @@
 import React from "react";
 import Section from "@/components/ui/Section";
-import { WEDDING } from "@/lib/wedding-data";
+import { getWeddingData } from "@/lib/site-settings";
 
-export default function Schedule() {
-    const hasSchedule = WEDDING.schedule.length > 0;
+export default async function Schedule() {
+    const { wedding } = await getWeddingData();
+    const hasSchedule = wedding.schedule.length > 0;
 
     return (
         <div>
@@ -18,18 +19,38 @@ export default function Schedule() {
                 <div className="max-w-3xl mx-auto">
                     {hasSchedule ? (
                         <div className="relative border-l border-primary/20 pl-8 ml-4 md:pl-12 md:ml-12 space-y-16">
-                            {WEDDING.schedule.map((item, index) => (
+                            {wedding.schedule.map((item, index) => (
                                 <div key={index} className="relative">
                                     {/* Timeline Dot */}
                                     <div className="absolute -left-[41px] md:-left-[57px] top-1.5 w-4 h-4 rounded-full bg-primary ring-4 ring-surface" />
 
                                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-2">
-                                        <h2 className="font-heading text-2xl text-primary">{item.title}</h2>
-                                        <span className="text-sm font-medium tracking-[0.2em] text-accent mt-2 md:mt-0 uppercase">
+                                        <h2
+                                            className="font-heading text-2xl text-primary"
+                                            data-admin-key={`schedule.${index}.title`}
+                                            data-admin-type="text"
+                                            data-admin-current-text={item.title}
+                                            data-admin-label={`Schedule #${index + 1} — Title`}
+                                        >
+                                            {item.title}
+                                        </h2>
+                                        <span
+                                            className="text-sm font-medium tracking-[0.2em] text-accent mt-2 md:mt-0 uppercase"
+                                            data-admin-key={`schedule.${index}.time`}
+                                            data-admin-type="text"
+                                            data-admin-current-text={item.time}
+                                            data-admin-label={`Schedule #${index + 1} — Time`}
+                                        >
                                             {item.time}
                                         </span>
                                     </div>
-                                    <p className="text-text-secondary leading-relaxed">
+                                    <p
+                                        className="text-text-secondary leading-relaxed"
+                                        data-admin-key={`schedule.${index}.description`}
+                                        data-admin-type="rich-text"
+                                        data-admin-current-text={item.description}
+                                        data-admin-label={`Schedule #${index + 1} — Description`}
+                                    >
                                         {item.description}
                                     </p>
                                 </div>
@@ -39,7 +60,7 @@ export default function Schedule() {
                         <div className="text-center py-16 space-y-4">
                             <p className="font-heading text-2xl text-primary">Schedule Coming Soon</p>
                             <p className="text-text-secondary max-w-sm mx-auto leading-relaxed">
-                                We&apos;re finalizing the details for {WEDDING.date.display}. Check back soon!
+                                We&apos;re finalizing the details for {wedding.date.display}. Check back soon!
                             </p>
                         </div>
                     )}

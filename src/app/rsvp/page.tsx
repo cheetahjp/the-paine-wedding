@@ -40,7 +40,7 @@ export default function RSVP() {
     const [step, setStep] = useState<"search" | "respond" | "success">("search");
     const [household, setHousehold] = useState<Household | null>(null);
     const [responses, setResponses] = useState<{
-        [guestId: string]: { attending: boolean; meal_choice: string };
+        [guestId: string]: { attending: boolean | null; meal_choice: string };
     }>({});
 
     // Household-level extra fields
@@ -131,10 +131,12 @@ export default function RSVP() {
             return;
         }
 
-        const initialResponses: Record<string, { attending: boolean; meal_choice: string }> = {};
+        // Initialize with null for unselected guests so neither button appears highlighted.
+        // If a guest has already RSVPed (true/false), preserve that value.
+        const initialResponses: Record<string, { attending: boolean | null; meal_choice: string }> = {};
         allHouseholdGuests.forEach((g: Guest) => {
             initialResponses[g.id] = {
-                attending: g.attending ?? true,
+                attending: g.attending ?? null,
                 meal_choice: g.meal_choice || "",
             };
         });
@@ -145,7 +147,7 @@ export default function RSVP() {
         setLoading(false);
     };
 
-    const handleResponseChange = (guestId: string, field: string, value: string | boolean) => {
+    const handleResponseChange = (guestId: string, field: string, value: string | boolean | null) => {
         setResponses((prev) => ({
             ...prev,
             [guestId]: {
@@ -157,10 +159,20 @@ export default function RSVP() {
 
     const handleSubmitRSVP = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
 
         if (!household) return;
+
+        // Validate: every guest must have an explicit Attending or Declined selection
+        const unselected = household.guests.find((g) => responses[g.id]?.attending === null);
+        if (unselected) {
+            setError(
+                `Please select Attending or Declined for ${unselected.first_name}.`
+            );
+            return;
+        }
+
+        setLoading(true);
 
         try {
             const foodAllergiesValue = hasFoodAllergy ? foodAllergyDetails || "Yes" : null;
@@ -191,8 +203,9 @@ export default function RSVP() {
         }
     };
 
+    // Only show extras section when at least one guest has explicitly chosen to attend
     const anyAttending = household
-        ? household.guests.some((g) => responses[g.id]?.attending)
+        ? household.guests.some((g) => responses[g.id]?.attending === true)
         : false;
 
     return (
@@ -292,7 +305,7 @@ export default function RSVP() {
                                                 )}
                                             </h3>
 
-                                            {/* Explicit Yes / No toggle — no ambiguous checkbox */}
+                                            {/* Explicit Yes / No toggle — neither highlighted until selected */}
                                             <div className="flex gap-2 flex-shrink-0 pl-5 sm:pl-0">
                                                 <button
                                                     type="button"
@@ -300,7 +313,7 @@ export default function RSVP() {
                                                         handleResponseChange(guest.id, "attending", true)
                                                     }
                                                     className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
-                                                        isAttending
+                                                        isAttending === true
                                                             ? "bg-primary text-white border-primary"
                                                             : "bg-white text-text-secondary border-gray-200 hover:border-primary hover:text-primary"
                                                     }`}
@@ -313,7 +326,7 @@ export default function RSVP() {
                                                         handleResponseChange(guest.id, "attending", false)
                                                     }
                                                     className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
-                                                        !isAttending
+                                                        isAttending === false
                                                             ? "bg-secondary text-white border-secondary"
                                                             : "bg-white text-text-secondary border-gray-200 hover:border-secondary hover:text-secondary"
                                                     }`}
@@ -323,7 +336,7 @@ export default function RSVP() {
                                             </div>
                                         </div>
 
-                                        {isAttending && WEDDING.mealOptions.length > 0 && (
+                                        {isAttending === true && WEDDING.mealOptions.length > 0 && (
                                             <div className="space-y-2 pt-2 animate-fade-in-up">
                                                 <label className="block text-xs uppercase tracking-widest text-text-secondary">
                                                     Meal Preference

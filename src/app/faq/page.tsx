@@ -1,8 +1,10 @@
 import React from "react";
 import Section from "@/components/ui/Section";
-import { WEDDING } from "@/lib/wedding-data";
+import { getWeddingData } from "@/lib/site-settings";
 
-export default function FAQ() {
+export default async function FAQ() {
+    const { wedding } = await getWeddingData();
+
     return (
         <div>
             <Section className="text-center pb-12">
@@ -14,10 +16,24 @@ export default function FAQ() {
 
             <Section background="surface" className="py-24">
                 <div className="max-w-3xl mx-auto space-y-8">
-                    {WEDDING.faq.map((faq, idx) => (
+                    {wedding.faq.map((faq, idx) => (
                         <div key={idx} className="bg-white p-8 md:p-10 shadow-sm rounded-sm">
-                            <h3 className="font-heading text-2xl text-primary mb-4">{faq.q}</h3>
-                            <p className="text-text-secondary leading-relaxed">
+                            <h3
+                                className="font-heading text-2xl text-primary mb-4"
+                                data-admin-key={`faq.${idx}.q`}
+                                data-admin-type="text"
+                                data-admin-current-text={faq.q}
+                                data-admin-label={`FAQ #${idx + 1} — Question`}
+                            >
+                                {faq.q}
+                            </h3>
+                            <p
+                                className="text-text-secondary leading-relaxed"
+                                data-admin-key={`faq.${idx}.a`}
+                                data-admin-type="rich-text"
+                                data-admin-current-text={faq.a === "TBD" ? "Details coming soon — check back as we get closer to the date!" : faq.a}
+                                data-admin-label={`FAQ #${idx + 1} — Answer`}
+                            >
                                 {faq.a === "TBD" ? "Details coming soon — check back as we get closer to the date!" : faq.a}
                             </p>
                         </div>

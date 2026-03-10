@@ -1,18 +1,19 @@
 import React from "react";
 import Section from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
-import { WEDDING } from "@/lib/wedding-data";
+import { getWeddingData } from "@/lib/site-settings";
 
-export default function Travel() {
-    const hasHotels = WEDDING.hotels.length > 0;
+export default async function Travel() {
+    const { wedding } = await getWeddingData();
+    const hasHotels = wedding.hotels.length > 0;
 
     return (
         <div>
             <Section className="text-center pb-12">
-                <h1 className="font-heading text-5xl md:text-6xl mb-6">Travel & Stay</h1>
+                <h1 className="font-heading text-5xl md:text-6xl mb-6">Travel &amp; Stay</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide leading-relaxed">
                     Everything you need to get here and settle in. The venue is located at{" "}
-                    <span className="font-medium text-primary">{WEDDING.venue.fullAddress}</span> in
+                    <span className="font-medium text-primary">{wedding.venue.fullAddress}</span> in
                     the Dallas / Celeste area of Texas.
                 </p>
             </Section>
@@ -24,7 +25,7 @@ export default function Travel() {
                         Nearest Airports
                     </h2>
                     <div className="grid md:grid-cols-2 gap-8">
-                        {WEDDING.travel.airports.map((airport) => (
+                        {wedding.travel.airports.map((airport, idx) => (
                             <div
                                 key={airport.code}
                                 className="bg-white border border-surface p-8 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] rounded-sm"
@@ -37,7 +38,13 @@ export default function Travel() {
                                         {airport.code}
                                     </span>
                                 </div>
-                                <p className="text-text-secondary leading-relaxed mb-4">
+                                <p
+                                    className="text-text-secondary leading-relaxed mb-4"
+                                    data-admin-key={`travel.airport.${idx}.description`}
+                                    data-admin-type="rich-text"
+                                    data-admin-current-text={airport.description}
+                                    data-admin-label={`Airport ${airport.code} — Description`}
+                                >
                                     {airport.description}
                                 </p>
                                 <a
@@ -62,7 +69,7 @@ export default function Travel() {
 
                         {hasHotels ? (
                             <div className="space-y-6 text-left">
-                                {WEDDING.hotels.map((hotel, idx) => (
+                                {wedding.hotels.map((hotel, idx) => (
                                     <div
                                         key={idx}
                                         className="border-b border-gray-200 pb-6 last:border-0 last:pb-0"
@@ -103,7 +110,7 @@ export default function Travel() {
                                     >
                                         hotels near Celeste, TX
                                     </a>{" "}
-                                    for available options close to {WEDDING.venue.name}.
+                                    for available options close to {wedding.venue.name}.
                                 </p>
                                 <p className="text-sm italic text-text-secondary/70">
                                     We recommend booking early — September is a popular travel season!
@@ -115,20 +122,20 @@ export default function Travel() {
                     <div className="order-1 md:order-2">
                         <div className="w-full aspect-square bg-gray-200 shadow-sm relative overflow-hidden group">
                             <iframe
-                                src={WEDDING.venue.mapsEmbedSrc}
+                                src={wedding.venue.mapsEmbedSrc}
                                 className="absolute inset-0 w-full h-full grayscale opacity-80 transition-opacity duration-300 group-hover:grayscale-0 group-hover:opacity-100 mix-blend-multiply"
                                 style={{ border: 0 }}
                                 allowFullScreen
                                 loading="lazy"
-                                title={`Map showing ${WEDDING.venue.name}`}
+                                title={`Map showing ${wedding.venue.name}`}
                             ></iframe>
                         </div>
                         <p className="text-center text-xs text-text-secondary mt-3 tracking-wider uppercase">
-                            {WEDDING.venue.name} &mdash; {WEDDING.venue.fullAddress}
+                            {wedding.venue.name} &mdash; {wedding.venue.fullAddress}
                         </p>
                         <div className="text-center mt-3">
                             <a
-                                href={WEDDING.venue.mapsUrl}
+                                href={wedding.venue.mapsUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-sm underline underline-offset-4 text-primary/70 hover:text-primary transition-colors"

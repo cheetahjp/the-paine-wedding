@@ -3,9 +3,16 @@
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminGameScore, GamePlayerRecord } from "@/lib/games/admin-types";
+import { CROSSWORD_PUZZLE, CROSSWORD_PUZZLE_KEY } from "@/lib/games/crossword";
 import { PAINEDLE_WORDS } from "@/lib/games/word-list";
 import { getDailyWord, getTodayKey } from "@/lib/games/painedle";
-import { getTimeRemaining, getTriviaUnlockDate, TRIVIA_UNLOCK_LABEL } from "@/lib/games/schedule";
+import {
+    CROSSWORD_UNLOCK_LABEL,
+    getCrosswordUnlockDate,
+    getTimeRemaining,
+    getTriviaUnlockDate,
+    TRIVIA_UNLOCK_LABEL,
+} from "@/lib/games/schedule";
 
 type GamesAdminPanelProps = {
     gameScores: AdminGameScore[];
@@ -16,12 +23,13 @@ type ModalView =
     | "today-word"
     | "schedule"
     | "word-bank"
+    | "crossword"
     | "trivia-bank"
     | "leaderboards"
     | "submissions"
     | "players";
 
-type ScoreFilter = "all" | "trivia" | "painedle";
+type ScoreFilter = "all" | "trivia" | "painedle" | "crossword";
 
 type PlayerSummary = {
     email: string;
@@ -30,8 +38,10 @@ type PlayerSummary = {
     totalSubmissions: number;
     triviaSubmissions: number;
     painedleSubmissions: number;
+    crosswordSubmissions: number;
     bestTriviaScore: number | null;
     bestPainedleScore: number | null;
+    bestCrosswordScore: number | null;
     latestSeenAt: string | null;
     latestTimezone: string | null;
     latestLocation: string | null;
@@ -111,11 +121,21 @@ function getScoreLabel(score: AdminGameScore) {
         return `${score.score}${score.max_score ? ` / ${score.max_score}` : ""}`;
     }
 
+    if (score.game === "crossword") {
+        const duration = score.metadata?.duration_seconds;
+        const reveals = score.metadata?.reveals_used;
+        const durationLabel = typeof duration === "number" ? ` • ${Math.max(1, Math.round(duration / 60))} min` : "";
+        const revealLabel = typeof reveals === "number" ? ` • ${reveals} reveal${reveals === 1 ? "" : "s"}` : "";
+        return `${score.score} pts${durationLabel}${revealLabel}`;
+    }
+
     return `${score.score} pts${score.attempts ? ` • ${score.attempts} guesses` : ""}`;
 }
 
 function getPuzzleLabel(score: AdminGameScore) {
-    return score.game === "trivia" ? "Wedding-day trivia" : score.puzzle_key;
+    if (score.game === "trivia") return "Wedding-day trivia";
+    if (score.game === "crossword") return "Mini crossword";
+    return score.puzzle_key;
 }
 
 function PillButton({
@@ -336,6 +356,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
     const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
     const [wordSearch, setWordSearch] = useState("");
     const [remaining, setRemaining] = useState(() => getTimeRemaining(getTriviaUnlockDate()));
+    const [crosswordRemaining, setCrosswordRemaining] = useState(() => getTimeRemaining(getCrosswordUnlockDate()));
     const [triviaQuestions, setTriviaQuestions] = useState<DbTriviaQuestion[]>([]);
     const [triviaLoadState, setTriviaLoadState] = useState<"idle" | "loading" | "ready" | "error">("idle");
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -350,6 +371,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
     useEffect(() => {
         const interval = window.setInterval(() => {
             setRemaining(getTimeRemaining(getTriviaUnlockDate()));
+            setCrosswordRemaining(getTimeRemaining(getCrosswordUnlockDate()));
         }, 1000);
 
         return () => window.clearInterval(interval);
@@ -478,6 +500,10 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
         () => gameScores.filter((score) => score.game === "trivia").sort(sortTriviaScores),
         [gameScores]
     );
+    const crosswordScores = useMemo(
+        () => gameScores.filter((score) => score.game === "crossword").sort(sortTriviaScores),
+        [gameScores]
+    );
     const painedleScores = useMemo(
         () => gameScores.filter((score) => score.game === "painedle").sort(sortPainedleScores),
         [gameScores]
@@ -507,8 +533,10 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                     totalSubmissions: 1,
                     triviaSubmissions: score.game === "trivia" ? 1 : 0,
                     painedleSubmissions: score.game === "painedle" ? 1 : 0,
+                    crosswordSubmissions: score.game === "crossword" ? 1 : 0,
                     bestTriviaScore: score.game === "trivia" ? score.score : null,
                     bestPainedleScore: score.game === "painedle" ? score.score : null,
+                    bestCrosswordScore: score.game === "crossword" ? score.score : null,
                     latestSeenAt: score.created_at,
                     latestTimezone: getMetadataValue(score, "browser_timezone"),
                     latestLocation: getProfileSummary(score).location,
@@ -522,9 +550,12 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
             if (score.game === "trivia") {
                 existing.triviaSubmissions += 1;
                 existing.bestTriviaScore = Math.max(existing.bestTriviaScore ?? 0, score.score);
-            } else {
+            } else if (score.game === "painedle") {
                 existing.painedleSubmissions += 1;
                 existing.bestPainedleScore = Math.max(existing.bestPainedleScore ?? 0, score.score);
+            } else {
+                existing.crosswordSubmissions += 1;
+                existing.bestCrosswordScore = Math.max(existing.bestCrosswordScore ?? 0, score.score);
             }
             if (!existing.createdAt && player.created_at) {
                 existing.createdAt = player.created_at;
@@ -546,9 +577,10 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
     const leaderboardPreview = useMemo(
         () => ({
             trivia: triviaScores.slice(0, 5),
+            crossword: crosswordScores.slice(0, 5),
             painedle: todaysPainedleScores.slice(0, 5),
         }),
-        [todaysPainedleScores, triviaScores]
+        [crosswordScores, todaysPainedleScores, triviaScores]
     );
     const upcomingSchedule = useMemo(() => buildUpcomingSchedule(21), []);
     const filteredWordBank = useMemo(() => {
@@ -701,6 +733,91 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                     {word}
                                 </span>
                             ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        if (modalView === "crossword") {
+            return (
+                <div className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <OverviewMetric
+                            label="Unlock"
+                            value={crosswordRemaining.isUnlocked ? "Live" : CROSSWORD_UNLOCK_LABEL}
+                            note="The mini crossword opens one week before the wedding."
+                        />
+                        <OverviewMetric
+                            label="Puzzle Key"
+                            value={CROSSWORD_PUZZLE_KEY}
+                            note="Static leaderboard key for this one-board puzzle."
+                        />
+                        <OverviewMetric
+                            label="Entries"
+                            value={CROSSWORD_PUZZLE.entries.length}
+                            note="Interlocking fill-in-the-blank clues built from their story."
+                        />
+                    </div>
+
+                    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+                        <div className="rounded-[1.9rem] border border-primary/10 bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-5 text-white shadow-[0_18px_48px_rgba(20,42,68,0.14)]">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.24em] text-white/62">Board Preview</p>
+                                    <p className="mt-2 text-sm text-white/76">Answers are visible here for admin review only.</p>
+                                </div>
+                                <div className="rounded-full border border-white/14 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/85">
+                                    {CROSSWORD_PUZZLE.rows} x {CROSSWORD_PUZZLE.cols}
+                                </div>
+                            </div>
+                            <div
+                                className="mt-5 grid gap-1.5"
+                                style={{ gridTemplateColumns: `repeat(${CROSSWORD_PUZZLE.cols}, minmax(0, 1fr))` }}
+                            >
+                                {CROSSWORD_PUZZLE.cells.map((cell) => (
+                                    cell.answer ? (
+                                        <div key={cell.key} className="relative flex aspect-square items-center justify-center rounded-[0.82rem] border border-white/18 bg-white/88 text-base font-semibold uppercase text-primary">
+                                            {cell.number ? (
+                                                <span className="absolute left-1.5 top-1 text-[10px] font-medium text-primary/60">
+                                                    {cell.number}
+                                                </span>
+                                            ) : null}
+                                            {cell.answer}
+                                        </div>
+                                    ) : (
+                                        <div key={cell.key} className="aspect-square rounded-[0.72rem] bg-[#0f2033]" />
+                                    )
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
+                                <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Across</p>
+                                <div className="mt-5 space-y-3">
+                                    {CROSSWORD_PUZZLE.across.map((entry) => (
+                                        <div key={entry.id} className="rounded-[1.2rem] border border-primary/10 bg-[#fbf8f3] px-4 py-4">
+                                            <p className="text-xs uppercase tracking-[0.22em] text-text-secondary">{entry.number}</p>
+                                            <p className="mt-2 text-sm leading-relaxed text-primary">{entry.clue}</p>
+                                            <p className="mt-3 font-mono text-xs uppercase tracking-[0.24em] text-text-secondary">{entry.answer}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
+                                <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Down</p>
+                                <div className="mt-5 space-y-3">
+                                    {CROSSWORD_PUZZLE.down.map((entry) => (
+                                        <div key={entry.id} className="rounded-[1.2rem] border border-primary/10 bg-[#fbf8f3] px-4 py-4">
+                                            <p className="text-xs uppercase tracking-[0.22em] text-text-secondary">{entry.number}</p>
+                                            <p className="mt-2 text-sm leading-relaxed text-primary">{entry.clue}</p>
+                                            <p className="mt-3 font-mono text-xs uppercase tracking-[0.24em] text-text-secondary">{entry.answer}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -901,7 +1018,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
 
         if (modalView === "leaderboards") {
             return (
-                <div className="grid gap-6 xl:grid-cols-2">
+                <div className="grid gap-6 xl:grid-cols-3">
                     <div className="rounded-[1.8rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
                         <div className="flex items-end justify-between gap-4 border-b border-primary/8 pb-4">
                             <div>
@@ -924,6 +1041,40 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                             <div>
                                                 <p className="font-medium text-primary">{player?.username ?? "Guest"}</p>
                                                 <p className="text-sm text-text-secondary">{player?.email ?? "No email"}</p>
+                                            </div>
+                                            <div className="text-right text-primary">
+                                                <p className="font-heading text-2xl">{score.score}</p>
+                                                <p className="text-xs uppercase tracking-[0.22em] text-text-secondary">points</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="rounded-[1.8rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
+                        <div className="flex items-end justify-between gap-4 border-b border-primary/8 pb-4">
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Crossword</p>
+                                <h3 className="mt-3 font-heading text-3xl text-primary">Top crossword scores</h3>
+                            </div>
+                            <p className="text-sm text-text-secondary">{crosswordScores.length} submissions</p>
+                        </div>
+                        {gameScoresError ? (
+                            <p className="mt-6 text-sm leading-relaxed text-secondary">{gameScoresError}</p>
+                        ) : crosswordScores.length === 0 ? (
+                            <p className="mt-6 text-sm text-text-secondary">No crossword submissions yet.</p>
+                        ) : (
+                            <div className="mt-6 space-y-3">
+                                {crosswordScores.slice(0, 10).map((score, index) => {
+                                    const player = getPlayerDetails(score);
+                                    return (
+                                        <div key={score.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[1.2rem] border border-primary/8 bg-[#fbf8f3] px-4 py-4">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{index + 1}</div>
+                                            <div>
+                                                <p className="font-medium text-primary">{player?.username ?? "Guest"}</p>
+                                                <p className="text-sm text-text-secondary">{getScoreLabel(score)}</p>
                                             </div>
                                             <div className="text-right text-primary">
                                                 <p className="font-heading text-2xl">{score.score}</p>
@@ -987,6 +1138,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         <div className="flex flex-wrap gap-2">
                             <ModalButton label="All" active={scoreFilter === "all"} onClick={() => setScoreFilter("all")} />
                             <ModalButton label="Trivia" active={scoreFilter === "trivia"} onClick={() => setScoreFilter("trivia")} />
+                            <ModalButton label="Crossword" active={scoreFilter === "crossword"} onClick={() => setScoreFilter("crossword")} />
                             <ModalButton label="Painedle" active={scoreFilter === "painedle"} onClick={() => setScoreFilter("painedle")} />
                         </div>
                     </div>
@@ -1059,6 +1211,11 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                             value={uniquePlayers.filter((player) => player.triviaSubmissions > 0).length}
                             note="Unique guests who have submitted at least one trivia score."
                         />
+                        <OverviewMetric
+                            label="Crossword Players"
+                            value={uniquePlayers.filter((player) => player.crosswordSubmissions > 0).length}
+                            note="Unique guests who have submitted the crossword board."
+                        />
                     </div>
 
                     {gameScoresError ? (
@@ -1067,22 +1224,24 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         </div>
                     ) : (
                         <div className="overflow-hidden rounded-[1.8rem] border border-primary/10 bg-white shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                            <div className="grid grid-cols-[1fr_0.55fr_0.7fr_0.7fr_1fr] gap-4 border-b border-primary/8 bg-[#fbf8f3] px-6 py-4 text-xs uppercase tracking-[0.26em] text-text-secondary">
+                            <div className="grid grid-cols-[1fr_0.45fr_0.55fr_0.55fr_0.55fr_1fr] gap-4 border-b border-primary/8 bg-[#fbf8f3] px-6 py-4 text-xs uppercase tracking-[0.26em] text-text-secondary">
                                 <div>Player</div>
                                 <div>Total</div>
                                 <div>Best Trivia</div>
+                                <div>Best Crossword</div>
                                 <div>Best Painedle</div>
                                 <div>Latest Profile</div>
                             </div>
                             <div className="max-h-[32rem] overflow-auto divide-y divide-primary/6">
                                 {uniquePlayers.map((player) => (
-                                    <div key={player.email || player.username} className="grid grid-cols-[1fr_0.55fr_0.7fr_0.7fr_1fr] gap-4 px-6 py-4 text-sm text-text-secondary">
+                                    <div key={player.email || player.username} className="grid grid-cols-[1fr_0.45fr_0.55fr_0.55fr_0.55fr_1fr] gap-4 px-6 py-4 text-sm text-text-secondary">
                                         <div>
                                             <p className="font-medium text-primary">{player.username}</p>
                                             <p className="text-xs text-text-secondary">{player.email || "No email"}</p>
                                         </div>
                                         <div>{player.totalSubmissions}</div>
                                         <div>{player.bestTriviaScore ?? "-"}</div>
+                                        <div>{player.bestCrosswordScore ?? "-"}</div>
                                         <div>{player.bestPainedleScore ?? "-"}</div>
                                         <div>
                                             <p className="text-primary">{player.latestDevice ?? "Unknown device"}</p>
@@ -1122,12 +1281,12 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         <p className="text-xs uppercase tracking-[0.28em] text-white/60">Games Status</p>
                         <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <p className="max-w-3xl text-sm leading-relaxed text-white/80">
-                                Trivia is {remaining.isUnlocked ? "live" : `locked until ${TRIVIA_UNLOCK_LABEL}`}. Painedle is live now, today&rsquo;s answer is loaded, and leaderboard data is available in this panel.
+                                Painedle is live now, the crossword unlocks {crosswordRemaining.isUnlocked ? "now" : `on ${CROSSWORD_UNLOCK_LABEL}`}, and trivia stays locked until {TRIVIA_UNLOCK_LABEL}.
                             </p>
                             <div className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/78">
-                                {remaining.isUnlocked
-                                    ? "Trivia Live"
-                                    : `${remaining.days}d ${remaining.hours}h ${remaining.minutes}m until unlock`}
+                                {crosswordRemaining.isUnlocked
+                                    ? (remaining.isUnlocked ? "Crossword + Trivia Live" : "Crossword Live")
+                                    : `${crosswordRemaining.days}d ${crosswordRemaining.hours}h ${crosswordRemaining.minutes}m until crossword`}
                             </div>
                         </div>
                     </div>
@@ -1137,7 +1296,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                     <OverviewMetric
                         label="Total Scores"
                         value={gameScores.length}
-                        note="All leaderboard rows across both games."
+                        note="All leaderboard rows across the live game set."
                     />
                     <OverviewMetric
                         label="Unique Players"
@@ -1148,6 +1307,11 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         label="Trivia Scores"
                         value={triviaScores.length}
                         note="All trivia submissions so far."
+                    />
+                    <OverviewMetric
+                        label="Crossword Scores"
+                        value={crosswordScores.length}
+                        note="All mini crossword submissions so far."
                     />
                     <OverviewMetric
                         label="Avg Trivia"
@@ -1178,6 +1342,15 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                     </ControlCard>
 
                     <ControlCard
+                        eyebrow="Crossword Control Room"
+                        title="Week-before puzzle preview"
+                        copy="Review the full clue list, the solved grid, and the unlock date without exposing the answers in the overview."
+                    >
+                        <PillButton label="Preview crossword" onClick={() => setModalView("crossword")} />
+                        <PillButton label="Leaderboards" onClick={() => setModalView("leaderboards")} />
+                    </ControlCard>
+
+                    <ControlCard
                         eyebrow="Trivia Control Room"
                         title="Question and launch management"
                         copy="Review every trivia prompt, the correct answer, fun facts, and the current launch state without dumping the entire question bank into the tab body."
@@ -1196,7 +1369,36 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                     </ControlCard>
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-2">
+                <div className="grid gap-6 xl:grid-cols-3">
+                    <div className="rounded-[1.8rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
+                        <div className="flex items-end justify-between gap-4 border-b border-primary/8 pb-4">
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Preview</p>
+                                <h3 className="mt-3 font-heading text-3xl text-primary">Crossword board</h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setModalView("crossword")}
+                                className="text-xs uppercase tracking-[0.22em] text-primary hover:text-secondary"
+                            >
+                                Open preview
+                            </button>
+                        </div>
+                        <div className="mt-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Unlock</p>
+                                <p className="mt-2 text-lg text-primary">{CROSSWORD_UNLOCK_LABEL}</p>
+                                <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+                                    Static one-board puzzle with fill-in-the-blank clues from the couple&apos;s story.
+                                </p>
+                            </div>
+                            <div className="rounded-[1.4rem] border border-primary/10 bg-[#fbf8f3] px-5 py-4 text-center">
+                                <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Entries</p>
+                                <p className="mt-2 font-heading text-4xl text-primary">{CROSSWORD_PUZZLE.entries.length}</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="rounded-[1.8rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
                         <div className="flex items-end justify-between gap-4 border-b border-primary/8 pb-4">
                             <div>
@@ -1297,6 +1499,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                     {modalView === "today-word" && "Today's Painedle"}
                                     {modalView === "schedule" && "Painedle schedule preview"}
                                     {modalView === "word-bank" && "Painedle word bank"}
+                                    {modalView === "crossword" && "Mini crossword preview"}
                                     {modalView === "trivia-bank" && "Trivia question bank"}
                                     {modalView === "leaderboards" && "Leaderboard views"}
                                     {modalView === "submissions" && "Recent submissions"}

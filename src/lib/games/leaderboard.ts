@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 
-export type GameType = "trivia" | "painedle";
+export type GameType = "trivia" | "painedle" | "crossword";
 
 export type LeaderboardEntry = {
     id: string;
@@ -11,6 +11,7 @@ export type LeaderboardEntry = {
     solved: boolean | null;
     createdAt: string;
     puzzleKey: string;
+    metadata?: Record<string, string | number | boolean | null> | null;
 };
 
 export type SubmitGameScoreInput = {
@@ -121,7 +122,7 @@ export async function fetchLeaderboard(game: GameType, options?: { limit?: numbe
     const limit = options?.limit ?? 10;
     let query = supabase
         .from("game_scores")
-        .select("id, score, max_score, attempts, solved, created_at, puzzle_key, game_players!inner(username)")
+        .select("id, score, max_score, attempts, solved, created_at, puzzle_key, metadata, game_players!inner(username)")
         .eq("game", game)
         .order("score", { ascending: false })
         .order("attempts", { ascending: true, nullsFirst: false })
@@ -143,6 +144,7 @@ export async function fetchLeaderboard(game: GameType, options?: { limit?: numbe
         solved: boolean | null;
         created_at: string;
         puzzle_key: string;
+        metadata?: Record<string, string | number | boolean | null> | null;
         game_players: { username: string } | Array<{ username: string }> | null;
     };
 
@@ -157,5 +159,6 @@ export async function fetchLeaderboard(game: GameType, options?: { limit?: numbe
         solved: entry.solved,
         createdAt: entry.created_at,
         puzzleKey: entry.puzzle_key,
+        metadata: entry.metadata ?? null,
     })) as LeaderboardEntry[];
 }

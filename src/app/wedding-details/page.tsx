@@ -1,26 +1,49 @@
 import React from "react";
 import Section from "@/components/ui/Section";
 import { MapPin, Shirt, CalendarHeart, Info } from "lucide-react";
-import { WEDDING } from "@/lib/wedding-data";
+import { getWeddingData } from "@/lib/site-settings";
 import Link from "next/link";
 
-export default function WeddingDetails() {
+export default async function WeddingDetails() {
+    const { wedding } = await getWeddingData();
+
     const details = [
         {
             title: "The Venue",
             icon: CalendarHeart,
             content: (
                 <>
-                    <p className="font-medium text-lg mb-2">{WEDDING.venue.name}</p>
-                    <p>{WEDDING.venue.address}</p>
-                    <p>{WEDDING.venue.city}</p>
-                    {WEDDING.venue.ceremonyTime !== "TBD" && (
-                        <p className="mt-2 text-sm font-medium tracking-widest uppercase text-accent">
-                            Ceremony at {WEDDING.venue.ceremonyTime}
+                    <p
+                        className="font-medium text-lg mb-2"
+                        data-admin-key="venue.name"
+                        data-admin-type="text"
+                        data-admin-current-text={wedding.venue.name}
+                        data-admin-label="Venue Name"
+                    >
+                        {wedding.venue.name}
+                    </p>
+                    <p
+                        data-admin-key="venue.address"
+                        data-admin-type="text"
+                        data-admin-current-text={wedding.venue.address}
+                        data-admin-label="Venue Address"
+                    >
+                        {wedding.venue.address}
+                    </p>
+                    <p>{wedding.venue.city}</p>
+                    {wedding.venue.ceremonyTime !== "TBD" && (
+                        <p
+                            className="mt-2 text-sm font-medium tracking-widest uppercase text-accent"
+                            data-admin-key="venue.ceremonyTime"
+                            data-admin-type="text"
+                            data-admin-current-text={wedding.venue.ceremonyTime}
+                            data-admin-label="Ceremony Time"
+                        >
+                            Ceremony at {wedding.venue.ceremonyTime}
                         </p>
                     )}
                     <Link
-                        href={WEDDING.venue.mapsUrl}
+                        href={wedding.venue.mapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-4 inline-block text-sm underline underline-offset-4 text-primary/70 hover:text-primary transition-colors"
@@ -35,12 +58,26 @@ export default function WeddingDetails() {
             icon: Shirt,
             content: (
                 <>
-                    <p className="font-medium text-lg mb-2">
-                        {WEDDING.dresscode.short === "TBD" ? "Details Coming Soon" : WEDDING.dresscode.short}
+                    <p
+                        className="font-medium text-lg mb-2"
+                        data-admin-key="dresscode.short"
+                        data-admin-type="text"
+                        data-admin-current-text={wedding.dresscode.short}
+                        data-admin-label="Dress Code (Short)"
+                    >
+                        {wedding.dresscode.short === "TBD" ? "Details Coming Soon" : wedding.dresscode.short}
                     </p>
-                    {WEDDING.dresscode.short !== "TBD" ? (
+                    {wedding.dresscode.short !== "TBD" ? (
                         <>
-                            <p className="text-sm">{WEDDING.dresscode.summary}</p>
+                            <p
+                                className="text-sm"
+                                data-admin-key="dresscode.summary"
+                                data-admin-type="rich-text"
+                                data-admin-current-text={wedding.dresscode.summary}
+                                data-admin-label="Dress Code Summary"
+                            >
+                                {wedding.dresscode.summary}
+                            </p>
                             <Link
                                 href="/attire"
                                 className="mt-4 inline-block text-sm underline underline-offset-4 text-primary/70 hover:text-primary transition-colors"
@@ -60,15 +97,28 @@ export default function WeddingDetails() {
             content: (
                 <>
                     <p className="font-medium text-lg mb-2">Parking &amp; Transport</p>
-                    <p>
-                        {WEDDING.venue.parking === "TBD"
+                    <p
+                        data-admin-key="venue.parking"
+                        data-admin-type="rich-text"
+                        data-admin-current-text={wedding.venue.parking}
+                        data-admin-label="Parking Info"
+                    >
+                        {wedding.venue.parking === "TBD"
                             ? "Parking details coming soon."
-                            : WEDDING.venue.parking}
+                            : wedding.venue.parking}
                     </p>
-                    {WEDDING.venue.shuttle !== "TBD" && WEDDING.venue.shuttle !== "none" && (
-                        <p className="mt-2">{WEDDING.venue.shuttle}</p>
+                    {wedding.venue.shuttle !== "TBD" && wedding.venue.shuttle !== "none" && (
+                        <p
+                            className="mt-2"
+                            data-admin-key="venue.shuttle"
+                            data-admin-type="rich-text"
+                            data-admin-current-text={wedding.venue.shuttle}
+                            data-admin-label="Shuttle Info"
+                        >
+                            {wedding.venue.shuttle}
+                        </p>
                     )}
-                    {WEDDING.venue.shuttle === "none" && (
+                    {wedding.venue.shuttle === "none" && (
                         <p className="mt-2 text-sm">
                             No shuttle service is provided. Please arrange your own transportation.
                         </p>
@@ -81,10 +131,26 @@ export default function WeddingDetails() {
             icon: Info,
             content: (
                 <>
-                    <p className="font-medium text-lg mb-2">{WEDDING.date.dayOfWeek}</p>
-                    <p>{WEDDING.date.display}</p>
+                    <p className="font-medium text-lg mb-2">{wedding.date.dayOfWeek}</p>
+                    <p
+                        data-admin-key="date.display"
+                        data-admin-type="text"
+                        data-admin-current-text={wedding.date.display}
+                        data-admin-label="Wedding Date Display"
+                    >
+                        {wedding.date.display}
+                    </p>
                     <p className="mt-2 text-sm">
-                        RSVP by <span className="font-medium">{WEDDING.date.rsvpDeadline}</span>
+                        RSVP by{" "}
+                        <span
+                            className="font-medium"
+                            data-admin-key="date.rsvpDeadline"
+                            data-admin-type="text"
+                            data-admin-current-text={wedding.date.rsvpDeadline}
+                            data-admin-label="RSVP Deadline"
+                        >
+                            {wedding.date.rsvpDeadline}
+                        </span>
                     </p>
                 </>
             ),
