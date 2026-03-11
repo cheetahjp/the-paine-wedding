@@ -269,7 +269,7 @@ function getFrameAspect(key: string): [number, number] {
     return [4, 3];
 }
 
-const FRAME_DISPLAY_W = 290; // px — matches drawer width
+const FRAME_DISPLAY_W = 360; // px — wider in modal view
 
 function SmartCropTool({
     imageUrl,
@@ -525,10 +525,12 @@ function ImageEditPanel({
     state,
     settings,
     onClose,
+    onSaved,
 }: {
     state: ImagePanelState;
     settings: Record<string, unknown>;
     onClose: () => void;
+    onSaved: () => void;
 }) {
     const [url, setUrl] = useState(state.currentUrl);
     const [hasOverlay, setHasOverlay] = useState(!!state.currentOverlay);
@@ -593,7 +595,7 @@ function ImageEditPanel({
             } else {
                 await apiSaveSetting(key, { url, overlay: hasOverlay ? overlay : null });
             }
-            window.location.reload();
+            onSaved();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -606,7 +608,7 @@ function ImageEditPanel({
         setError(null);
         try {
             await apiDeleteSetting(state.key);
-            window.location.reload();
+            onSaved();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -766,9 +768,11 @@ function ImageEditPanel({
 function TextEditPanel({
     state,
     onClose,
+    onSaved,
 }: {
     state: TextPanelState;
     onClose: () => void;
+    onSaved: () => void;
 }) {
     const [richMode, setRichMode] = useState(state.richText);
     const [text, setText] = useState(state.currentText);
@@ -785,7 +789,7 @@ function TextEditPanel({
         try {
             const value = richMode ? getRichContent() : text;
             await apiSaveSetting(state.key, value);
-            window.location.reload();
+            onSaved();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -797,7 +801,7 @@ function TextEditPanel({
         setSaving(true);
         try {
             await apiDeleteSetting(state.key);
-            window.location.reload();
+            onSaved();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -882,9 +886,22 @@ function TextEditPanel({
     );
 }
 
-// ─── EditDrawer (right-side slide panel) ─────────────────────────────────────
+// ─── SavedToast ───────────────────────────────────────────────────────────────
 
-function EditDrawer({
+function SavedToast() {
+    return (
+        <div
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[10000] px-6 py-3 rounded-full text-sm font-semibold text-white shadow-xl pointer-events-none"
+            style={{ background: "#16a34a", fontFamily: "system-ui,-apple-system,sans-serif" }}
+        >
+            ✓ Saved!
+        </div>
+    );
+}
+
+// ─── EditModal (centered dialog) ──────────────────────────────────────────────
+
+function EditModal({
     panel,
     settings,
     onClose,
@@ -893,49 +910,70 @@ function EditDrawer({
     settings: Record<string, unknown>;
     onClose: () => void;
 }) {
+    const [saved, setSaved] = useState(false);
+
+    // Escape key to close
     useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose();
-        };
+        const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
         document.addEventListener("keydown", handler);
         return () => document.removeEventListener("keydown", handler);
     }, [onClose]);
+
+    // Prevent body scroll while modal is open
+    useEffect(() => {
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = ""; };
+    }, []);
+
+    const handleSaved = () => {
+        setSaved(true);
+        setTimeout(() => { window.location.reload(); }, 800);
+    };
 
     const title = panel.mode === "image" ? "Edit Image" : "Edit Text";
     const label = (panel as ImagePanelState | TextPanelState).label ?? panel.key;
 
     return (
         <>
-            {/* Scrim */}
+            {saved && <SavedToast />}
+
+            {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/20 z-[9998]"
+                className="fixed inset-0 z-[9998]"
+                style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
                 onClick={onClose}
             />
-            {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-[340px] bg-white shadow-2xl z-[9999] flex flex-col">
-                {/* Header */}
-                <div className="flex items-start justify-between p-5 border-b border-gray-100 shrink-0">
-                    <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-                        <p className="text-xs text-amber-600 font-medium mt-0.5 truncate">{label}</p>
-                        <p className="text-[10px] font-mono text-gray-300 mt-0.5 truncate">{panel.key}</p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="ml-3 shrink-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-lg leading-none transition-colors"
-                    >
-                        ×
-                    </button>
-                </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-5">
-                    {panel.mode === "image" && (
-                        <ImageEditPanel state={panel} settings={settings} onClose={onClose} />
-                    )}
-                    {panel.mode === "text" && (
-                        <TextEditPanel state={panel} onClose={onClose} />
-                    )}
+            {/* Dialog */}
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+                <div
+                    className="bg-white rounded-2xl shadow-2xl w-full pointer-events-auto flex flex-col"
+                    style={{ maxWidth: 560, maxHeight: "88vh" }}
+                >
+                    {/* Header */}
+                    <div className="flex items-start justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+                        <div className="min-w-0">
+                            <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+                            <p className="text-xs text-amber-600 font-medium mt-0.5 truncate">{label}</p>
+                            <p className="text-[10px] font-mono text-gray-300 mt-0.5 truncate">{panel.key}</p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="ml-4 shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-xl leading-none transition-colors"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    {/* Scrollable body */}
+                    <div className="flex-1 overflow-y-auto px-6 py-5">
+                        {panel.mode === "image" && (
+                            <ImageEditPanel state={panel} settings={settings} onClose={onClose} onSaved={handleSaved} />
+                        )}
+                        {panel.mode === "text" && (
+                            <TextEditPanel state={panel} onClose={onClose} onSaved={handleSaved} />
+                        )}
+                    </div>
                 </div>
             </div>
         </>
@@ -1176,9 +1214,9 @@ export default function AdminEditBar() {
                 )}
             </div>
 
-            {/* ── Edit drawer ── */}
+            {/* ── Edit modal ── */}
             {panel.mode !== "closed" && (
-                <EditDrawer
+                <EditModal
                     panel={panel}
                     settings={settings}
                     onClose={() => setPanel({ mode: "closed" })}
