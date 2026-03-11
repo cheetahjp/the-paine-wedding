@@ -106,43 +106,43 @@ export const WEDDING = {
         name: 'Paige Bimmerle',
         role: 'Maid of Honor',
         relationship: "Ashlyn's Sister",
-        image: '/images/bridal-party/paige-bimmerle.webp',
+        image: '/images/bridal-party/Bridesmaids/Paige.jpg',
       },
       {
         name: 'Shelby Gerner',
         role: 'Bridesmaid',
         relationship: "Ashlyn's Friend & Roommate",
-        image: '/images/bridal-party/shelby-gerner.webp',
+        image: '/images/bridal-party/Bridesmaids/Shelvy.jpg',
       },
       {
         name: 'Izzy May',
         role: 'Bridesmaid',
         relationship: "Ashlyn's College Friend",
-        image: '/images/bridal-party/izzy-may.webp',
+        image: '/images/bridal-party/Bridesmaids/Izzy.jpg',
       },
       {
         name: 'Alondra Santillan',
         role: 'Bridesmaid',
         relationship: "Ashlyn's High School & College Friend",
-        image: '/images/bridal-party/alondra-santillan.webp',
+        image: '/images/bridal-party/Bridesmaids/Alondra.jpg',
       },
       {
         name: 'Megan Groezinger',
         role: 'Bridesmaid',
         relationship: "Ashlyn's Friend",
-        image: '/images/bridal-party/megan-groezinger.webp',
+        image: '/images/bridal-party/Bridesmaids/Megan.jpg',
       },
       {
         name: 'Brynn Wilson',
         role: 'Bridesmaid',
         relationship: "Jeffrey's Cousin",
-        image: '/images/bridal-party/brynn-wilson.webp',
+        image: '/images/bridal-party/Bridesmaids/Brynn.jpg',
       },
       {
         name: 'Emma Wilson',
         role: 'Bridesmaid',
         relationship: "Jeffrey's Cousin",
-        image: '/images/bridal-party/emma-wilson.webp',
+        image: '/images/bridal-party/Bridesmaids/Emma.jpg',
       },
     ],
     groomsmen: [
@@ -150,43 +150,43 @@ export const WEDDING = {
         name: 'John Paine',
         role: 'Best Man',
         relationship: "Jeffrey's Brother",
-        image: '/images/bridal-party/john-paine.webp',
+        image: '/images/bridal-party/Groomsmen/John.jpg',
       },
       {
         name: 'Hudson Boyd',
         role: 'Groomsman',
         relationship: "Jeffrey's College Friend",
-        image: '/images/bridal-party/hudson-boyd.webp',
+        image: '/images/bridal-party/Groomsmen/Hudson.jpg',
       },
       {
         name: 'Roman Richichi',
         role: 'Groomsman',
         relationship: "Jeffrey's High School Friend",
-        image: '/images/bridal-party/roman-richichi.webp',
+        image: '/images/bridal-party/Groomsmen/Roman.jpg',
       },
       {
         name: 'Justin Luurtsema',
         role: 'Groomsman',
         relationship: "Jeffrey's College Friend",
-        image: '/images/bridal-party/justin-luurtsema.webp',
+        image: '/images/bridal-party/Groomsmen/Justin.jpg',
       },
       {
         name: 'Duncan Marshall',
         role: 'Groomsman',
         relationship: "Jeffrey's High School Friend",
-        image: '/images/bridal-party/duncan-marshall.webp',
+        image: '/images/bridal-party/Groomsmen/Duncan.jpg',
       },
       {
         name: 'Collin Groezinger',
         role: 'Groomsman',
         relationship: "Jeffrey's Childhood Friend",
-        image: '/images/bridal-party/collin-groezinger.webp',
+        image: '/images/bridal-party/Groomsmen/Collin.jpg',
       },
       {
         name: 'Blake Bimmerle',
         role: 'Groomsman',
         relationship: "Ashlyn's Brother",
-        image: '/images/bridal-party/blake-bimmerle.webp',
+        image: '/images/bridal-party/Groomsmen/Blake.jpg',
       },
     ],
   } as {
@@ -267,7 +267,7 @@ export const WEDDING = {
       title: 'How We Met',
       description:
         'Ashlyn and Jeffrey met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce them — she had been hoping for a chance to talk to him. After the introduction, they started texting and finding random excuses to hang out. Their first official date was a trip to Sonic and a long drive around town where they talked for hours. They dated for about six months before going their separate ways — they both needed time to grow and mature in their walk with the Lord.',
-      image: '/images/story/story-how-we-met.webp',
+      image: '/images/story/First round.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80',
     },
@@ -275,17 +275,66 @@ export const WEDDING = {
       year: 'October 2024',
       title: 'Our Reunion',
       description:
-        'Almost two years later, they both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. They spotted each other and kept their distance, unsure if the other wanted to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where they talked for hours and realized that no time had really passed — they were just better versions of themselves. On October 18th, 2024, they started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But they made the most of every weekend together, and cannot wait to finally be in the same place for the rest of their lives.',
-      image: '/images/story/story-reunion.webp',
+        'Almost two years later, they both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. They spotted each other and kept their distance, unsure if the other wanted to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where they talked for hours and realized that no time had really passed — they were just better versions of themselves.',
+      image: '/images/story/A&M Game(Reunion).jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&q=80',
+    },
+    {
+      year: 'October 2024',
+      title: 'Lake and beach days',
+      description:
+        'On October 18th, 2024, they started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But they made the most of every weekend together, and cannot wait to finally be in the same place for the rest of their lives.',
+      image: '/images/story/Lake.jpg',
+      imageFallback:
+        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80',
+    },
+    {
+      year: '2024',
+      title: 'Trip to NY',
+      description: '',
+      image: '/images/story/NYC.jpg',
+      imageFallback:
+        'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&q=80',
+    },
+    {
+      year: '2025',
+      title: 'Hammocking',
+      description: '',
+      image: '/images/story/Hammock.jpg',
+      imageFallback:
+        'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80',
+    },
+    {
+      year: '2025',
+      title: 'Starting up a photography business',
+      description: '',
+      image: '/images/story/Photographers.jpg',
+      imageFallback:
+        'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80',
+    },
+    {
+      year: '2025',
+      title: 'One-year trip to San Antonio',
+      description: '',
+      image: '/images/story/San Antonio.jpg',
+      imageFallback:
+        'https://images.unsplash.com/photo-1531218150217-5afc461afac8?auto=format&fit=crop&q=80',
+    },
+    {
+      year: '2025',
+      title: 'Fredericksburg',
+      description: '',
+      image: '/images/story/Fredricksburg.jpg',
+      imageFallback:
+        'https://images.unsplash.com/photo-1605371304245-2070f8ee9bae?auto=format&fit=crop&q=80',
     },
     {
       year: 'February 2026',
       title: 'The Proposal',
       description:
         'Jeffrey proposed to Ashlyn on February 21st, 2026. Ashlyn thought she had planned a fun day for her friends Megan and Izzy to finally meet — little did she know they were already in on the secret. After a full day together, they suggested a walk at Arbor Hills Nature Preserve and steered Ashlyn down a different path through the trees. That is when she saw Jeffrey waiting for her. He got down on one knee and asked her to spend forever with him. She said, "Yes, yes, yes, yes — I will!" The evening was full of even more surprises: a private dinner for two at 60 Vines, where they talked about all the planning that had gone into the engagement, followed by the biggest surprise of all — a party at Jeffrey\'s parents\' house with all of their closest friends and family. They celebrated with every person they love most and felt completely surrounded by joy.',
-      image: '/images/story/story-proposal.webp',
+      image: '/images/story/Proposal.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80',
     },

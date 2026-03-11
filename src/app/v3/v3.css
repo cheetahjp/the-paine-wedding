@@ -1,0 +1,97 @@
+/* ============================================================
+   V3 — Velvet Gallery
+   Museum exhibit aesthetic: gallery wall, framed portraits,
+   plaque labels, generous white space, Bodoni headings.
+   ============================================================ */
+
+.v3-theme {
+  --v-bg:          #f5f1eb;  /* gallery wall — warm off-white */
+  --v-surface:     #ede8e0;  /* card / mat surface */
+  --v-navy:        #163865;  /* plaque headings, CTA buttons */
+  --v-burgundy:    #7c1f28;  /* velvet accent — room dividers, highlights */
+  --v-tan:         #c89a73;  /* gold frame color */
+  --v-cream:       #faf7f3;  /* inner mat / paper white */
+  --v-text:        #08111d;  /* primary ink */
+  --v-text-muted:  #5a6170;  /* secondary / caption text */
+  --v-border:      #b8a899;  /* frame / card border */
+  --v-gold:        #c89a73;  /* alias for tan */
+
+  background-color: var(--v-bg);
+  color: var(--v-text);
+  min-height: 100vh;
+}
+
+/* Gallery frame — wraps any content with outer border + inner mat */
+.v3-frame {
+  border: 2px solid var(--v-tan);
+  padding: 12px;
+  background-color: var(--v-cream);
+  display: inline-block;
+}
+
+.v3-frame-inner {
+  background-color: var(--v-cream);
+}
+
+/* Museum plaque — appears below a framed piece */
+.v3-plaque {
+  border-top: 2px solid var(--v-navy);
+  padding: 10px 0 4px;
+  margin-top: 8px;
+}
+
+/* Room divider — "Room 01 · The Beginning" */
+.v3-room-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.v3-room-divider::before,
+.v3-room-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--v-tan);
+}
+
+/* Gallery lighting effect on portrait photos */
+.v3-gallery-light {
+  position: relative;
+}
+
+.v3-gallery-light::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Tracked small-caps label style */
+.v3-label {
+  font-family: var(--font-inter);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--v-text-muted);
+}
+
+/* Nav link style — tracked small caps, tan underline on hover */
+.v3-nav-link {
+  font-family: var(--font-inter);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--v-text-muted);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.v3-nav-link:hover {
+  color: var(--v-text);
+  border-bottom-color: var(--v-tan);
+}

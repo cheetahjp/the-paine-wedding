@@ -1,0 +1,70 @@
+/* ─────────────────────────────────────────────────
+   V2 — Paper Atlas  |  Warm travel folio aesthetic
+   ───────────────────────────────────────────────── */
+
+.v2-theme {
+  --v-bg:           #fbf8f4;
+  --v-surface:      #f5f1eb;
+  --v-paper-dark:   #ede8e0;
+  --v-navy:         #163865;
+  --v-navy-2:       #294d7b;
+  --v-burgundy:     #7c1f28;
+  --v-tan:          #c89a73;
+  --v-cream:        #f0e7dd;
+  --v-text:         #08111d;
+  --v-text-muted:   #657791;
+  --v-border:       #d4c5b0;
+  background-color: var(--v-bg);
+  color: var(--v-text);
+  min-height: 100vh;
+}
+
+.v2-btn-primary {
+  display: inline-block;
+  background-color: var(--v-navy);
+  color: var(--v-cream);
+  padding: 12px 28px;
+  font-family: var(--font-inter);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  border: 1px solid var(--v-navy);
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+.v2-btn-primary:hover { background-color: var(--v-navy-2); }
+
+.v2-btn-outline {
+  display: inline-block;
+  background-color: transparent;
+  color: var(--v-text);
+  padding: 12px 28px;
+  font-family: var(--font-inter);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  border: 1px solid var(--v-text);
+  transition: background-color 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.v2-btn-outline:hover { background-color: var(--v-text); color: var(--v-bg); }
+
+.v2-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--v-border);
+  padding: 8px 0;
+  color: var(--v-text);
+  font-family: var(--font-inter);
+  font-size: 15px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.v2-input:focus { border-bottom-color: var(--v-navy); }
+.v2-input::placeholder { color: var(--v-text-muted); }
+
+.v2-stamp { border: 2px dashed var(--v-border); padding: 16px; background-color: var(--v-surface); }
+.font-caveat { font-family: var(--font-caveat), cursive; }

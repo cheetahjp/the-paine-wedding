@@ -1,0 +1,112 @@
+/* ============================================================
+   V1 — MIDNIGHT EDITORIAL THEME
+   Cinematic dark navy, cream text, burgundy lipstick accents.
+   ============================================================ */
+
+.v1-theme {
+  --v-bg: #08111d;
+  --v-surface: #0d1e30;
+  --v-navy: #163865;
+  --v-navy-2: #1e3f6e;
+  --v-burgundy: #7c1f28;
+  --v-burgundy-light: #9a2633;
+  --v-tan: #c89a73;
+  --v-cream: #f0e7dd;
+  --v-text: #f5f1eb;
+  --v-text-muted: #8a9ab5;
+  --v-text-dim: #4a5a70;
+  --v-border: #1e3450;
+  --v-border-subtle: #152a40;
+
+  background-color: var(--v-bg);
+  color: var(--v-text);
+  min-height: 100vh;
+}
+
+/* Typography helpers */
+.v1-theme .v1-label {
+  font-family: var(--font-inter);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--v-text-muted);
+}
+
+.v1-theme .v1-folio {
+  font-family: var(--font-playfair);
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--v-border);
+  user-select: none;
+}
+
+.v1-theme .v1-rule {
+  border: none;
+  border-top: 1px solid var(--v-burgundy);
+}
+
+.v1-theme .v1-rule-subtle {
+  border: none;
+  border-top: 1px solid var(--v-border);
+}
+
+/* Button styles */
+.v1-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2.5rem;
+  background-color: var(--v-burgundy);
+  color: var(--v-cream);
+  font-family: var(--font-inter);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--v-burgundy);
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.v1-btn-primary:hover {
+  background-color: var(--v-burgundy-light);
+  border-color: var(--v-burgundy-light);
+}
+
+.v1-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2.5rem;
+  background-color: transparent;
+  color: var(--v-cream);
+  font-family: var(--font-inter);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--v-cream);
+  transition: background-color 0.2s, color 0.2s;
+}
+.v1-btn-outline:hover {
+  background-color: var(--v-cream);
+  color: var(--v-bg);
+}
+
+/* Input styles for dark theme */
+.v1-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--v-border);
+  color: var(--v-text);
+  padding: 0.5rem 0;
+  font-family: var(--font-inter);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.v1-input::placeholder { color: var(--v-text-dim); }
+.v1-input:focus { border-bottom-color: var(--v-burgundy); }
