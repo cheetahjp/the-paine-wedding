@@ -207,3 +207,13 @@ The service role key is used server-side only (API routes) for admin writes that
 - **Trivia questions live in Supabase**, not in the static `trivia-questions.ts` file. The static file (`src/lib/games/trivia-questions.ts`) is kept as a reference/seed but is no longer used by `CoupleTriviaGame.tsx` at runtime.
 - **Admin auth uses a simple session cookie** (`admin_session`) set on the server after password validation. No NextAuth or JWT.
 - **Hero image:** CSS `background-image` (not `next/image`), references `IMAGES.hero.main` with a Unsplash fallback.
+
+---
+
+## Recent Architectural Updates & Changes
+
+- **Themes Archiving:** The legacy `v1`, `v2`, and `v3` template layouts (and their associated components/routing) have been excised from the Next.js cache and the live `src/app` architecture. They are preserved locally within the `archive/themes` directory. The production deployment now only serves the main site at `/` and throws a `404` for the old version routes.
+- **Story Structure:** The `Our Story` page is now dynamically built. The `WEDDING.story` array was expanded into 9 discrete chapters with custom imagery (from `/images/story`), mapping exactly to the components layout. 
+- **Attire Scaling Arrays:** The Attire layout was modified to run a dynamic flex grid driven by the length of the `IMAGES.attire` array, accommodating arbitrary payloads of inspiration photos. Current active arrays contain 12 Ladies and 9 Gents photos.
+- **Registry Reduction:** Scrapped the Honeymoon Fund block from `wedding-data.ts`. The registry array only contains dynamic routing options to Amazon and Target.
+- **Games Hub Timers:** Updated the structural break units for the grid in `GamesHubClient.tsx`, narrowing padding limits and reducing the time string labels (ex: "Hours" -> "Hr") so they fit inside viewport containers without overflowing bounds on smaller devices.
