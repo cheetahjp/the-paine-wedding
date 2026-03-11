@@ -17,13 +17,13 @@ export default async function Home() {
         data-admin-label="Hero Photo"
       >
         <div
-          className="absolute inset-0 bg-primary/20 bg-cover bg-center z-[-1]"
+          className="absolute inset-0 bg-primary/20 bg-cover bg-center pointer-events-none"
           style={{ backgroundImage: `url('${images.hero.main}'), url('${images.hero.fallback}')` }}
         />
-        <div className="absolute inset-0 bg-text-primary/30 z-0" />
+        <div className="absolute inset-0 bg-text-primary/30 pointer-events-none" />
         {overlays.hero && (
           <div
-            className="absolute inset-0 z-[1]"
+            className="absolute inset-0 pointer-events-none"
             style={{
               backgroundColor: overlays.hero.color,
               opacity: overlays.hero.opacity,
