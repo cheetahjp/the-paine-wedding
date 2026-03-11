@@ -31,274 +31,101 @@ export default async function V3StoryPage() {
           How We Got Here
         </h1>
         <p className="mt-4" style={{ fontFamily: "var(--font-inter)", fontSize: "0.8rem", letterSpacing: "0.1em", color: "var(--v-text-muted)" }}>
-          Four rooms · Commerce to Celeste
+          {wedding.story.length} chapters · Commerce to Celeste
         </p>
       </div>
 
-      {/* ── ROOM I: THE BEGINNING ── */}
-      <section className="py-20 px-6 max-w-5xl mx-auto">
-        <V3RoomDivider roomNumber="Room I" title="The Beginning" />
+      {/* Chapters (Dynamic Mapping) */}
+      <div className="max-w-5xl mx-auto">
+        {wedding.story.map((story, i) => {
+          const isEven = i % 2 === 0;
+          const chapterNumeral = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"][i] || (i + 1).toString();
 
-        <div className="grid md:grid-cols-2 gap-12 items-start mt-6">
-          {/* Framed portrait */}
-          <V3Frame
-            caption={meetStory.title}
-            captionSub={`${meetStory.year} · Commerce, Texas`}
-            withLight
-            matPadding={14}
-            className="w-full"
-          >
-            <div className="relative w-full" style={{ paddingBottom: "125%" }}>
-              <Image
-                src={meetStory.image}
-                alt={meetStory.title}
-                fill
-                className="object-cover"
-              />
-            </div>
-          </V3Frame>
-
-          {/* Story plaques */}
-          <div className="space-y-8">
-            <V3Plaque
-              title="Commerce, Texas · 2021"
-              medium="Chapter I"
-            />
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.875rem", color: "var(--v-text)", lineHeight: 1.8 }}>
-              {meetStory.description}
-            </p>
-
-            {/* Pull quote */}
-            <div
-              className="p-5"
+          return (
+            <section
+              key={i}
+              className="py-20 px-6"
               style={{
-                borderLeft: "3px solid var(--v-tan)",
-                backgroundColor: "var(--v-surface)",
+                backgroundColor: i === wedding.story.length - 1 ? "var(--v-navy)" : "transparent",
+                color: i === wedding.story.length - 1 ? "var(--v-cream)" : "var(--v-text)",
               }}
             >
-              <p
-                style={{
-                  fontFamily: "var(--font-playfair)",
-                  fontSize: "1.05rem",
-                  fontStyle: "italic",
-                  color: "var(--v-text)",
-                  lineHeight: 1.6,
-                }}
-              >
-                "She had been hoping for a chance to talk to him."
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+              <V3RoomDivider roomNumber={`Room ${chapterNumeral}`} title={story.title} />
 
-      {/* ── ROOM II: THE DISTANCE ── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--v-surface)" }}>
-        <div className="max-w-5xl mx-auto">
-          <V3RoomDivider roomNumber="Room II" title="The Distance" />
+              <div className="grid md:grid-cols-2 gap-12 items-start mt-6">
+                {/* ── Framed Portrait ── */}
+                <div className={!isEven ? "md:order-2" : ""}>
+                  <V3Frame
+                    caption={story.title}
+                    captionSub={`${story.year}`}
+                    withLight
+                    matPadding={i === wedding.story.length - 1 ? 12 : 14}
+                    className="w-full"
+                  >
+                    <div className="relative w-full" style={{ paddingBottom: "125%" }}>
+                      <Image
+                        src={story.image}
+                        alt={story.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </V3Frame>
+                </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center mt-6">
-            {/* Stat artwork */}
-            <div className="text-center py-12">
-              <p className="v3-label mb-4">Measurement, 2022–2024</p>
-              <h2
-                style={{
-                  fontFamily: "var(--font-playfair)",
-                  fontSize: "clamp(3rem, 7vw, 5.5rem)",
-                  color: "var(--v-text)",
-                  lineHeight: 1,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                860
-              </h2>
-              <p
-                style={{
-                  fontFamily: "var(--font-inter)",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.25em",
-                  textTransform: "uppercase",
-                  color: "var(--v-text-muted)",
-                  marginTop: "8px",
-                }}
-              >
-                Miles Apart
-              </p>
-              <div className="w-12 h-px mx-auto my-5" style={{ backgroundColor: "var(--v-tan)" }} />
-              <p
-                style={{
-                  fontFamily: "var(--font-playfair)",
-                  fontSize: "2rem",
-                  color: "var(--v-text-muted)",
-                }}
-              >
-                ~2 Years
-              </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-inter)",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.25em",
-                  textTransform: "uppercase",
-                  color: "var(--v-text-muted)",
-                  marginTop: "8px",
-                }}
-              >
-                Apart
-              </p>
-            </div>
-
-            {/* Plaque text */}
-            <div className="space-y-6">
-              <V3Plaque
-                title="The Distance"
-                medium="Chapter II · 2022–2024"
-              />
-              <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.875rem", color: "var(--v-text-muted)", lineHeight: 1.8 }}>
-                After six months together, they went their separate ways — not with bitterness, but with the quiet understanding that they both needed time to grow. The miles between them stretched long. But some stories aren't finished in the first chapter.
-              </p>
-              <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.875rem", color: "var(--v-text-muted)", lineHeight: 1.8 }}>
-                They stayed in each other's thoughts across the years that followed — two people growing into better versions of themselves, unknowingly growing back toward each other.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── ROOM III: THE RETURN ── */}
-      <section className="py-20 px-6 max-w-5xl mx-auto">
-        <V3RoomDivider roomNumber="Room III" title="The Return" />
-
-        <div className="grid md:grid-cols-2 gap-12 items-start mt-6">
-          {/* Story text */}
-          <div className="space-y-6 md:order-2">
-            <V3Plaque
-              title="Houston, Texas · 2024"
-              medium="Chapter III"
-            />
-            <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.875rem", color: "var(--v-text)", lineHeight: 1.8 }}>
-              {reunionStory.description}
-            </p>
-
-            {/* Pull quote */}
-            <div
-              className="p-5"
-              style={{
-                borderLeft: "3px solid var(--v-burgundy)",
-                backgroundColor: "var(--v-surface)",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: "var(--font-playfair)",
-                  fontSize: "1.05rem",
-                  fontStyle: "italic",
-                  color: "var(--v-text)",
-                  lineHeight: 1.6,
-                }}
-              >
-                "They were just better versions of themselves."
-              </p>
-            </div>
-          </div>
-
-          {/* Three small frames */}
-          <div className="grid grid-cols-1 gap-4 md:order-1">
-            <V3Frame
-              caption={reunionStory.title}
-              captionSub={reunionStory.year}
-              withLight
-              matPadding={10}
-              className="w-full"
-            >
-              <div className="relative w-full" style={{ paddingBottom: "70%" }}>
-                <Image
-                  src={reunionStory.image}
-                  alt={reunionStory.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </V3Frame>
-          </div>
-        </div>
-      </section>
-
-      {/* ── ROOM IV: THE PROPOSAL ── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--v-navy)" }}>
-        <div className="max-w-5xl mx-auto">
-          {/* Room divider on dark bg */}
-          <div className="flex items-center gap-5 py-8">
-            <div className="flex-1 h-px" style={{ backgroundColor: "var(--v-burgundy)" }} />
-            <div className="text-center shrink-0">
-              <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.6rem", letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--v-burgundy)", marginBottom: "4px" }}>
-                Room IV
-              </p>
-              <p style={{ fontFamily: "var(--font-playfair)", fontSize: "1.1rem", color: "var(--v-cream)" }}>
-                The Proposal
-              </p>
-            </div>
-            <div className="flex-1 h-px" style={{ backgroundColor: "var(--v-burgundy)" }} />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-start mt-6">
-            {/* Ornate frame — largest */}
-            <div>
-              {/* Double-border effect for "most ornate" */}
-              <div style={{ border: "4px solid var(--v-burgundy)", padding: "6px" }}>
-                <V3Frame
-                  caption="The Proposal"
-                  captionSub="February 21, 2026 · Celeste, Texas"
-                  withLight
-                  matPadding={12}
-                  className="w-full"
-                >
-                  <div className="relative w-full" style={{ paddingBottom: "130%" }}>
-                    <Image
-                      src={proposalStory.image}
-                      alt="The Proposal"
-                      fill
-                      className="object-cover"
-                    />
+                {/* ── Plaque Text ── */}
+                <div className={`space-y-6 ${!isEven ? "md:order-1" : ""}`}>
+                  <div
+                    style={
+                      i === wedding.story.length - 1
+                        ? { borderTop: "2px solid var(--v-burgundy)", paddingTop: "10px" }
+                        : {}
+                    }
+                  >
+                    {i === wedding.story.length - 1 ? (
+                      <>
+                        <h3 style={{ fontFamily: "var(--font-playfair)", fontSize: "1.8rem", color: "var(--v-cream)", marginBottom: "6px" }}>
+                          {story.title}
+                        </h3>
+                        <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--v-burgundy)" }}>
+                          Chapter {chapterNumeral} · {story.year}
+                        </p>
+                      </>
+                    ) : (
+                      <V3Plaque
+                        title={story.year}
+                        medium={`Chapter ${chapterNumeral}`}
+                      />
+                    )}
                   </div>
-                </V3Frame>
+                  
+                  {story.description && (
+                    <p style={{
+                      fontFamily: "var(--font-inter)",
+                      fontSize: "0.875rem",
+                      color: i === wedding.story.length - 1 ? "#8a9ab5" : "var(--v-text-muted)",
+                      lineHeight: 1.8
+                    }}>
+                      {story.description}
+                    </p>
+                  )}
+
+                  {/* Add RSVP button on final step */}
+                  {i === wedding.story.length - 1 && (
+                    <Link
+                      href="/v3/rsvp"
+                      className="inline-block mt-4 px-6 py-3 text-xs tracking-widest uppercase"
+                      style={{ backgroundColor: "var(--v-burgundy)", color: "var(--v-cream)", fontFamily: "var(--font-inter)" }}
+                    >
+                      Reserve Your Place →
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-
-            {/* Featured plaque — cream on dark */}
-            <div className="space-y-6">
-              <div style={{ borderTop: "2px solid var(--v-burgundy)", paddingTop: "10px" }}>
-                <h3 style={{ fontFamily: "var(--font-playfair)", fontSize: "1.8rem", color: "var(--v-cream)", marginBottom: "6px" }}>
-                  The Proposal
-                </h3>
-                <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--v-burgundy)" }}>
-                  Chapter IV · February 2026
-                </p>
-              </div>
-
-              <p style={{ fontFamily: "var(--font-inter)", fontSize: "0.875rem", color: "#8a9ab5", lineHeight: 1.8 }}>
-                {proposalStory.description}
-              </p>
-
-              {/* "Yes yes yes" pull quote */}
-              <div style={{ borderLeft: "3px solid var(--v-burgundy)", paddingLeft: "16px" }}>
-                <p style={{ fontFamily: "var(--font-playfair)", fontSize: "1.4rem", fontStyle: "italic", color: "var(--v-cream)", lineHeight: 1.5 }}>
-                  "Yes, yes, yes, yes — I will!"
-                </p>
-              </div>
-
-              <Link
-                href="/v3/rsvp"
-                className="inline-block mt-4 px-6 py-3 text-xs tracking-widest uppercase"
-                style={{ backgroundColor: "var(--v-burgundy)", color: "var(--v-cream)", fontFamily: "var(--font-inter)" }}
-              >
-                Reserve Your Place →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }
