@@ -634,3 +634,43 @@ Complete site-wide admin visual edit mode accessible only to the **Master** pass
 
 ### Known limitation
 Cropping requires the image to be CORS-accessible (same-origin or permissive headers). Supabase Storage public bucket URLs work fine; external URLs may fail with "Image load failed" and the admin should upload the image first.
+
+---
+
+## Session Log — 2026-03-11
+
+### What was done
+Real photos added to `public/images/` subfolders by the user. Two component bugs were fixed so local image paths actually display. Our Story descriptions were rewritten with real content.
+
+### Bug fixes
+
+| File | Fix |
+|------|-----|
+| `src/components/ui/PersonPortrait.tsx` | `safeSrc` regex only allowed `https://` URLs — any local path (`/images/...`) was immediately discarded and the Unsplash fallback used instead. Fixed to also accept paths starting with `/`. |
+| `src/components/ui/AttireImage.tsx` | Same `safeSrc` bug — same fix. |
+
+### Content updated — `src/lib/wedding-data.ts`
+
+All `WEDDING.story` items rewritten with real text provided by Jeff (third-person narrative, no fluff):
+- **How We Met** — refined from Jeff's notes
+- **Our Reunion** — expanded with correct detail (Oct 18 start date moved here)
+- **Beach & Lake Days** — title updated, new description
+- **New York City** — title updated from "Trip to NY", new description
+- **Hammocking** — new description
+- **Photography** — title updated from "Starting up a photography business", new description
+- **San Antonio** — title updated from "One-year trip to San Antonio", new description
+- **Fredericksburg** — new description (image path `Fredricksburg.jpg` unchanged to match actual filename)
+- **The Proposal** — tightened description
+
+### Images now live (no code changes needed — paths were already in wedding-data.ts)
+
+| Folder | Files |
+|--------|-------|
+| `public/images/hero/` | `JeffAshlyn-7977 2.jpg` |
+| `public/images/story/` | `First round.jpg`, `A&M Game(Reunion).jpg`, `Lake.jpg`, `NYC.jpg`, `Hammock.jpg`, `Photographers.jpg`, `San Antonio.jpg`, `Fredricksburg.jpg`, `Proposal.jpg` |
+| `public/images/bridal-party/Bridesmaids/` | `Paige.jpg`, `Shelvy.jpg`, `Izzy.jpg`, `Alondra.jpg`, `Megan.jpg`, `Brynn.jpg`, `Emma.jpg` |
+| `public/images/bridal-party/Groomsmen/` | `John.jpg`, `Hudson.jpg`, `Roman.jpg`, `Justin.jpg`, `Duncan.jpg`, `Collin.jpg`, `Blake.jpg` |
+| `public/images/attire/` | `Womens Outfit 1–12` (.jpg/.png), `Mens Outfit 1–9` (.jpg/.png) |
+
+### Build status
+`npm run build` — passes cleanly, 29 routes, zero TypeScript or prerender errors.

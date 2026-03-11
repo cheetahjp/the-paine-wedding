@@ -265,7 +265,7 @@ export const WEDDING = {
       year: '2021',
       title: 'How We Met',
       description:
-        'Ashlyn and Jeffrey met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce them — she had been hoping for a chance to talk to him. After the introduction, they started texting and finding random excuses to hang out. Their first official date was a trip to Sonic and a long drive around town where they talked for hours. They dated for about six months before going their separate ways — they both needed time to grow and mature in their walk with the Lord.',
+        'Ashlyn and Jeffrey met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce them because she had been hoping for a chance to talk to him. After the introduction, they started texting and finding excuses to hang out. Their first official date was a trip to Sonic and a long drive around town where they talked for hours. They dated for about six months before going their separate ways — they both needed time to grow and mature in their walk with the Lord.',
       image: '/images/story/First round.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80',
@@ -274,24 +274,25 @@ export const WEDDING = {
       year: 'October 2024',
       title: 'Our Reunion',
       description:
-        'Almost two years later, they both ended up at an A&M football game with 100,000 other people — and were sitting just five rows apart. They spotted each other and kept their distance, unsure if the other wanted to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins that grew warmer over time. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first — nervous and second-guessing herself — but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where they talked for hours and realized that no time had really passed — they were just better versions of themselves.',
+        'Almost two years later, they both ended up at an A&M football game with 100,000 other people — sitting just five rows apart. They spotted each other and kept their distance, unsure if the other would want to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first, nervous and second-guessing herself, but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where they talked for hours and realized they were both different people who had grown a lot in the years apart. Two months later, they started dating again on October 18th, 2024.',
       image: '/images/story/A&M Game(Reunion).jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&q=80',
     },
     {
       year: 'October 2024',
-      title: 'Lake and beach days',
+      title: 'Beach & Lake Days',
       description:
-        'On October 18th, 2024, they started dating again. What followed was a year and a half of long distance, visits every other week, long car rides, FaceTime calls, and really hard goodbyes. But they made the most of every weekend together, and cannot wait to finally be in the same place for the rest of their lives.',
+        'The last year and a half has been long distance, but Ashlyn lives thirty minutes from Galveston — which means plenty of beach days and trips to the lake in Dallas. Any excuse to be outside in the sun, they took it.',
       image: '/images/story/Lake.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80',
     },
     {
       year: '2024',
-      title: 'Trip to NY',
-      description: '',
+      title: 'New York City',
+      description:
+        'They love to travel and experience new places together. Their first big trip was New York City — Ashlyn had never been. Jeffrey has traveled his whole life, but he says experiencing places with Ashlyn for the first time makes it feel brand new again.',
       image: '/images/story/NYC.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&q=80',
@@ -299,23 +300,26 @@ export const WEDDING = {
     {
       year: '2025',
       title: 'Hammocking',
-      description: '',
+      description:
+        'Any weekend without plans, they head to the park with their hammocks. They read, talk about life, or just enjoy being outside together. It is one of their favorite simple things.',
       image: '/images/story/Hammock.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80',
     },
     {
       year: '2025',
-      title: 'Starting up a photography business',
-      description: '',
+      title: 'Photography',
+      description:
+        'Jeffrey has done photography and videography for years, and Ashlyn shot photos in high school. They started getting asked to shoot proposals and weddings and discovered they make a great team — Jeffrey behind the camera, Ashlyn directing and posing clients. It has become a fun way to spend time together and be part of their friends\' biggest moments.',
       image: '/images/story/Photographers.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80',
     },
     {
       year: '2025',
-      title: 'One-year trip to San Antonio',
-      description: '',
+      title: 'San Antonio',
+      description:
+        'To celebrate one year of dating, they headed to San Antonio for the weekend. They strolled the River Walk, tried new restaurants, and ended with a celebratory dinner at what Google called "the most romantic restaurant in Texas." They spent the evening reflecting on the year and talking through their favorite memories together.',
       image: '/images/story/San Antonio.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1531218150217-5afc461afac8?auto=format&fit=crop&q=80',
@@ -323,7 +327,8 @@ export const WEDDING = {
     {
       year: '2025',
       title: 'Fredericksburg',
-      description: '',
+      description:
+        'A first for both of them — they went on wine tours, learned how the wine is made, and explored the Hill Country together. Another trip, another set of memories.',
       image: '/images/story/Fredricksburg.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1605371304245-2070f8ee9bae?auto=format&fit=crop&q=80',
@@ -332,7 +337,7 @@ export const WEDDING = {
       year: 'February 2026',
       title: 'The Proposal',
       description:
-        'Jeffrey proposed to Ashlyn on February 21st, 2026. Ashlyn thought she had planned a fun day for her friends Megan and Izzy to finally meet — little did she know they were already in on the secret. After a full day together, they suggested a walk at Arbor Hills Nature Preserve and steered Ashlyn down a different path through the trees. That is when she saw Jeffrey waiting for her. He got down on one knee and asked her to spend forever with him. She said, "Yes, yes, yes, yes — I will!" The evening was full of even more surprises: a private dinner for two at 60 Vines, where they talked about all the planning that had gone into the engagement, followed by the biggest surprise of all — a party at Jeffrey\'s parents\' house with all of their closest friends and family. They celebrated with every person they love most and felt completely surrounded by joy.',
+        'Jeffrey proposed on February 21st, 2026. Ashlyn thought she had planned a day for her friends Megan and Izzy to meet — she had no idea they were already in on it. After a full day together, they suggested a walk at Arbor Hills Nature Preserve and steered Ashlyn down a different path through the trees. That is when she saw Jeffrey waiting for her. He got down on one knee and asked her to spend forever with him. She said, "Yes, yes, yes, yes — I will!" The evening kept going: a private dinner at 60 Vines where they talked through all the planning that had gone into the day, then the biggest surprise of all — a party at Jeffrey\'s parents\' house filled with every person they love most.',
       image: '/images/story/Proposal.jpg',
       imageFallback:
         'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80',

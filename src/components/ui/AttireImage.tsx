@@ -17,9 +17,10 @@ export function AttireImage({
     overlayColor?: string;
     overlayOpacity?: number;
 }) {
-    // If src isn't an absolute https URL it's likely a local placeholder that 404s on prod.
-    // Skip trying to load it — go straight to fallback to prevent the 1-frame alt-text flash.
-    const safeSrc = src && /^https?:\/\//.test(src) ? src : fallback;
+    // Allow local paths (starting with /) as well as absolute https URLs.
+    // Fall back to Unsplash only if src is empty or an unrecognised format.
+    const safeSrc =
+        src && (src.startsWith("/") || /^https?:\/\//.test(src)) ? src : fallback;
 
     return (
         <div
