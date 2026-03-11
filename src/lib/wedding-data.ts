@@ -205,7 +205,6 @@ export const WEDDING = {
     description: string;
     bookingUrl: string;
   }>,
-
   registry: [
     {
       name: 'Amazon',
@@ -214,10 +213,10 @@ export const WEDDING = {
       icon: 'gift' as const,
     },
     {
-      name: 'Honeymoon Fund',
-      description: 'Contribute to our honeymoon adventure.',
-      url: 'TODO', // TODO: paste honeymoon fund URL here
-      icon: 'heart' as const,
+      name: 'Target',
+      description: 'Our Target registry for home essentials.',
+      url: 'TODO', // TODO: paste Target registry URL here
+      icon: 'gift' as const,
     },
   ],
 
@@ -388,14 +387,29 @@ export const IMAGES = {
   },
   attire: {
     ladies: [
-      '/images/attire/ladies-1.webp',
-      '/images/attire/ladies-2.webp',
-      '/images/attire/ladies-3.webp',
+      '/images/attire/Womens Outfit 1.png',
+      '/images/attire/Womens Outfit 2.jpg',
+      '/images/attire/Womens Outfit 3.jpg',
+      '/images/attire/Womens Outfit 4.jpg',
+      '/images/attire/Womens Outfit 5.jpg',
+      '/images/attire/Womens Outfit 6.png',
+      '/images/attire/Womens Outfit 7.png',
+      '/images/attire/Womens Outfit 8.jpg',
+      '/images/attire/Womens Outfit 9.jpg',
+      '/images/attire/Womens Outfit 10.jpg',
+      '/images/attire/Womens Outfit 11.png',
+      '/images/attire/Womens Outfit 12.png',
     ],
     gents: [
-      '/images/attire/gents-1.webp',
-      '/images/attire/gents-2.webp',
-      '/images/attire/gents-3.webp',
+      '/images/attire/Mens Outfit 1.jpg',
+      '/images/attire/Mens Outfit 2.jpg',
+      '/images/attire/Mens Outfit 3.jpg',
+      '/images/attire/Mens Outfit 4.png',
+      '/images/attire/Mens Outfit 5.jpg',
+      '/images/attire/Mens Outfit 6.jpg',
+      '/images/attire/Mens Outfit 7.jpg',
+      '/images/attire/Mens Outfit 8.jpg',
+      '/images/attire/Mens Outfit 9.jpg',
     ],
     ladiesFallbacks: [
       'https://images.unsplash.com/photo-1594892415170-071a93e3d622?auto=format&fit=crop&q=80',

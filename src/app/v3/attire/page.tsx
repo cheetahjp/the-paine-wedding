@@ -66,7 +66,7 @@ export default async function V3AttirePage() {
           <V3RoomDivider roomNumber="Gallery A" title="For the Ladies" />
 
           <div className="grid md:grid-cols-2 gap-12 items-start mt-6">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {IMAGES.attire.ladies.map((src, i) => (
                 <div key={i}>
                   <V3Frame withLight matPadding={8} className="w-full">
@@ -80,7 +80,7 @@ export default async function V3AttirePage() {
                     </div>
                   </V3Frame>
                   <V3Plaque
-                    title={["Cocktail Dress", "Midi Dress", "Dressy Jumpsuit"][i]}
+                    title={`Inspiration ${i + 1}`}
                     medium="Reference"
                   />
                 </div>
@@ -142,7 +142,7 @@ export default async function V3AttirePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {IMAGES.attire.gents.map((src, i) => (
                 <div key={i}>
                   <V3Frame withLight matPadding={8} className="w-full">
@@ -156,7 +156,7 @@ export default async function V3AttirePage() {
                     </div>
                   </V3Frame>
                   <V3Plaque
-                    title={["Dress Pants", "Blazer & Tie", "Classic Suit"][i]}
+                    title={`Inspiration ${i + 1}`}
                     medium="Reference"
                   />
                 </div>

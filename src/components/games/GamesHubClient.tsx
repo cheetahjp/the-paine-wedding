@@ -62,19 +62,19 @@ function CountdownCard({
                     </p>
                 ) : (
                     <>
-                        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+                        <div className="mt-8 grid grid-cols-4 gap-2">
                             {[
                                 { label: "Days", value: remaining.days },
-                                { label: "Hours", value: remaining.hours },
+                                { label: "Hr", value: remaining.hours },
                                 { label: "Min", value: remaining.minutes },
                                 { label: "Sec", value: remaining.seconds },
                             ].map((item) => (
                                 <div
                                     key={item.label}
-                                    className="rounded-[1.25rem] border border-accent/30 bg-white px-4 py-4 text-center shadow-[0_8px_22px_rgba(20,42,68,0.05)]"
+                                    className="rounded-2xl border border-accent/30 bg-white px-2 py-3 text-center shadow-[0_8px_22px_rgba(20,42,68,0.05)] flex flex-col items-center justify-center min-w-0"
                                 >
-                                    <p className="font-heading text-3xl text-primary">{item.value}</p>
-                                    <p className="mt-1 text-xs uppercase tracking-[0.24em] text-text-secondary">{item.label}</p>
+                                    <p className="font-heading text-2xl lg:text-3xl text-primary">{item.value}</p>
+                                    <p className="mt-1 text-[9px] uppercase tracking-wider text-text-secondary truncate">{item.label}</p>
                                 </div>
                             ))}
                         </div>
