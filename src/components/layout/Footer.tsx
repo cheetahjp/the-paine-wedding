@@ -1,5 +1,6 @@
 import React from "react";
 import { WEDDING } from "@/lib/wedding-data";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function Footer() {
     return (
@@ -9,9 +10,12 @@ export default function Footer() {
                 <p className="text-text-secondary tracking-widest uppercase text-sm mb-8">
                     {WEDDING.date.display} &bull; {WEDDING.venue.cityDisplay}
                 </p>
-                <p className="text-xs text-text-secondary opacity-70">
+                <p className="text-xs text-text-secondary opacity-70 mb-6">
                     &copy; {new Date().getFullYear()} The {WEDDING.couple.lastName} Wedding. All Rights Reserved.
                 </p>
+                <div className="flex justify-center">
+                    <ThemeToggle />
+                </div>
             </div>
         </footer>
     );

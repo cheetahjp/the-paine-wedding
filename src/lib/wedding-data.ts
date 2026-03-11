@@ -380,7 +380,7 @@ export const WEDDING = {
 
 export const IMAGES = {
   hero: {
-    main: '/images/hero/JeffAshlyn-7977 2.jpg',
+    main: '/images/hero/JeffAshlyn-7977_2.jpg',
     fallback:
       'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80',
   },

@@ -54,6 +54,12 @@ The `h1–h6` global rule also references `var(--font-playfair)` directly at `fo
 - `Bodoni Moda` (serif, weights 700/800/900): All headings via `.font-heading` and `h1–h6` global rule.
 - `Montserrat` (sans-serif): Body text via `.font-body` and `body` global rule.
 
+## Dark Mode Implementation
+The site supports dark mode via the `dark` class added to the `<html>` root.
+- **Provider:** `<ThemeProvider>` wraps `layout.tsx`, handling system `prefers-color-scheme` checks. A raw synchronous script block in the layout prevents FOUC.
+- **Toggle:** The client component `src/components/ui/ThemeToggle.tsx` is placed inside the `Footer` across all pages. Users can toggle modes, which writes preference to `localStorage`.
+- **CSS:** Extended variables are in `globals.css` inside an `html.dark` ruleset mapping `--color-base` to navy, `--color-text-primary` to cream, etc.
+
 ---
 
 ## Content Source of Truth
@@ -206,7 +212,7 @@ The service role key is used server-side only (API routes) for admin writes that
 - **Tailwind v4 `@theme` cannot use `var()` references to runtime CSS variables.** Font utilities must be defined in `@layer utilities` directly. Colors and spacing are safe in `@theme`.
 - **Trivia questions live in Supabase**, not in the static `trivia-questions.ts` file. The static file (`src/lib/games/trivia-questions.ts`) is kept as a reference/seed but is no longer used by `CoupleTriviaGame.tsx` at runtime.
 - **Admin auth uses a simple session cookie** (`admin_session`) set on the server after password validation. No NextAuth or JWT.
-- **Hero image:** CSS `background-image` (not `next/image`), references `IMAGES.hero.main` with a Unsplash fallback.
+- **Hero image:** CSS `background-image` (not `next/image`), references `IMAGES.hero.main` with a Unsplash fallback. **NOTE:** The image path here must not contain spaces (e.g. use `Image_1.jpg` rather than `Image 1.jpg`) or else the CSS inline `url()` injection will silently fail.
 
 ---
 

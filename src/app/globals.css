@@ -25,7 +25,42 @@ body {
   font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
+
+/* ── Dark Mode ──────────────────────────────────────────────────────────── */
+/* Applied via html.dark class — toggled by ThemeToggle in footer.          */
+/* All Tailwind utilities that reference these custom props update           */
+/* automatically (e.g. bg-primary, text-text-secondary, bg-surface, etc.)   */
+html.dark {
+  /* Backgrounds */
+  --color-base:    #0d1a2e;   /* deep navy — main page background */
+  --color-surface: #152035;   /* slightly lighter navy — cards, sections */
+
+  /* Brand colors — brightened for dark-bg readability */
+  --color-primary:   #7ab3e8; /* lightened navy blue — headings, links */
+  --color-secondary: #cc4455; /* brighter burgundy — accents, buttons */
+  --color-accent:    #c9a07a; /* warm gold — unchanged, works on both */
+
+  /* Text */
+  --color-text-primary:   #ede5d8; /* warm off-white — body copy */
+  --color-text-secondary: #8faec5; /* muted blue-gray — secondary labels */
+  --color-text-light:     #ffffff;
+
+  /* Root shortcuts */
+  --background: #0d1a2e;
+  --foreground: #ede5d8;
+}
+
+/* Borders that use Tailwind's gray scale need explicit dark overrides */
+html.dark .border-gray-200 { border-color: #1e3a5a; }
+html.dark .border-gray-100 { border-color: #1a3050; }
+
+/* Card/surface overrides for components that hardcode white */
+html.dark .bg-white { background-color: #152035; }
+html.dark .text-gray-900 { color: #ede5d8; }
+html.dark .text-gray-600,
+html.dark .text-gray-500 { color: #8faec5; }
 
 /*
   Default heading weight is 600 (semi-bold).
