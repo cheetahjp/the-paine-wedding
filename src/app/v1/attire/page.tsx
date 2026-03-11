@@ -5,7 +5,7 @@ import Image from "next/image";
 export const metadata = { title: "Attire | Midnight Editorial" };
 
 export default async function V1AttirePage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div className="v1-theme">
@@ -105,7 +105,6 @@ export default async function V1AttirePage() {
                     alt={`Ladies attire reference ${i + 1}`}
                     fill
                     className="object-cover"
-                    onError={undefined}
                   />
                 </div>
               ))}

@@ -4,7 +4,7 @@ import Image from "next/image";
 export const metadata = { title: "Our Journey | Paper Atlas" };
 
 export default async function V2StoryPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   const stops = [
     {

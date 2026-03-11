@@ -3,7 +3,7 @@ import { getWeddingData } from "@/lib/site-settings";
 export const metadata = { title: "Getting There | Midnight Editorial" };
 
 export default async function V1TravelPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div className="v1-theme">

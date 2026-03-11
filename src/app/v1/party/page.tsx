@@ -4,7 +4,7 @@ import Image from "next/image";
 export const metadata = { title: "The Party | Midnight Editorial" };
 
 export default async function V1PartyPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
   const { bridesmaids, groomsmen } = wedding.bridalParty;
 
   const moh = bridesmaids[0];

@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function V2AttirePage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--v-bg)" }}>
@@ -116,7 +116,6 @@ export default async function V2AttirePage() {
                     alt={`Ladies attire inspiration ${i + 1}`}
                     fill
                     className="object-cover"
-                    onError={() => {}}
                   />
                 </div>
               ))}
@@ -152,7 +151,6 @@ export default async function V2AttirePage() {
                     alt={`Gents attire inspiration ${i + 1}`}
                     fill
                     className="object-cover"
-                    onError={() => {}}
                   />
                 </div>
               ))}

@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function V3PartyPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
   const { bridesmaids, groomsmen } = wedding.bridalParty;
 
   const moh = bridesmaids.find((b) => b.role === "Maid of Honor");
@@ -53,7 +53,6 @@ export default async function V3PartyPage() {
                         alt={person!.name}
                         fill
                         className="object-cover"
-                        onError={() => {}}
                       />
                     </div>
                   </V3Frame>
@@ -115,7 +114,6 @@ export default async function V3PartyPage() {
                       alt={person.name}
                       fill
                       className="object-cover"
-                      onError={() => {}}
                     />
                   </div>
                 </V3Frame>
@@ -142,7 +140,6 @@ export default async function V3PartyPage() {
                       alt={person.name}
                       fill
                       className="object-cover"
-                      onError={() => {}}
                     />
                   </div>
                 </V3Frame>

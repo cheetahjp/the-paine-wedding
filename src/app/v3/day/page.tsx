@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function V3DayPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div style={{ backgroundColor: "var(--v-bg)" }}>

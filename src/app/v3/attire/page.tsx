@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 export default async function V3AttirePage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div style={{ backgroundColor: "var(--v-bg)" }}>
@@ -76,7 +76,6 @@ export default async function V3AttirePage() {
                         alt={`Ladies attire ${i + 1}`}
                         fill
                         className="object-cover"
-                        onError={() => {}}
                       />
                     </div>
                   </V3Frame>
@@ -153,7 +152,6 @@ export default async function V3AttirePage() {
                         alt={`Gents attire ${i + 1}`}
                         fill
                         className="object-cover"
-                        onError={() => {}}
                       />
                     </div>
                   </V3Frame>

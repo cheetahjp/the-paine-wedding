@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 export default async function V3StoryPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
   const [meetStory, reunionStory, proposalStory] = wedding.story;
 
   return (
@@ -54,7 +54,6 @@ export default async function V3StoryPage() {
                 alt={meetStory.title}
                 fill
                 className="object-cover"
-                onError={() => {}}
               />
             </div>
           </V3Frame>
@@ -218,7 +217,6 @@ export default async function V3StoryPage() {
                   alt={reunionStory.title}
                   fill
                   className="object-cover"
-                  onError={() => {}}
                 />
               </div>
             </V3Frame>
@@ -261,7 +259,6 @@ export default async function V3StoryPage() {
                       alt="The Proposal"
                       fill
                       className="object-cover"
-                      onError={() => {}}
                     />
                   </div>
                 </V3Frame>

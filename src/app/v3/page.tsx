@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function V3HomePage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div style={{ backgroundColor: "var(--v-bg)" }}>
@@ -118,7 +118,6 @@ export default async function V3HomePage() {
                 fill
                 className="object-cover"
                 priority
-                onError={() => {}}
               />
             </div>
           </V3Frame>
@@ -245,7 +244,6 @@ export default async function V3HomePage() {
                     alt={chapter.title}
                     fill
                     className="object-cover"
-                    onError={() => {}}
                   />
                 </div>
               </V3Frame>

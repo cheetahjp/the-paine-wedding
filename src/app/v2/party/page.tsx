@@ -10,7 +10,7 @@ export const metadata = {
 const rotations = ["-1deg", "0.5deg", "-0.5deg", "1deg", "-0.8deg", "0.3deg"];
 
 export default async function V2PartyPage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
   const { bridesmaids, groomsmen } = wedding.bridalParty;
 
   const moh = bridesmaids.find((b) => b.role === "Maid of Honor");
@@ -77,7 +77,6 @@ export default async function V2PartyPage() {
                     alt={person!.name}
                     fill
                     className="object-cover"
-                    onError={() => {}}
                   />
                 </div>
 
@@ -138,7 +137,6 @@ export default async function V2PartyPage() {
                     alt={person.name}
                     fill
                     className="object-cover"
-                    onError={() => {}}
                   />
                 </div>
                 <h4 className="text-sm font-medium" style={{ fontFamily: "var(--font-playfair)", color: "var(--v-text)" }}>
@@ -180,7 +178,6 @@ export default async function V2PartyPage() {
                     alt={person.name}
                     fill
                     className="object-cover"
-                    onError={() => {}}
                   />
                 </div>
                 <h4 className="text-sm font-medium" style={{ fontFamily: "var(--font-playfair)", color: "var(--v-text)" }}>

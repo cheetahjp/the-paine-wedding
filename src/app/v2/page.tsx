@@ -1,3 +1,4 @@
+
 import { getWeddingData } from "@/lib/site-settings";
 import V2RouteMap from "@/components/v2/V2RouteMap";
 import Image from "next/image";
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function V2HomePage() {
-  const wedding = await getWeddingData();
+  const { wedding } = await getWeddingData();
 
   return (
     <div className="v2-theme">
@@ -121,14 +122,12 @@ export default async function V2HomePage() {
               <a
                 key={tab}
                 href={href}
-                className="block p-8 transition-all"
+                className="v2-route-card block p-8 transition-all"
                 style={{
                   textDecoration: "none",
                   borderRight: "1px solid var(--v-border)",
                   backgroundColor: "var(--v-surface)",
                 }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "var(--v-cream)")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "var(--v-surface)")}
               >
                 {/* Tab label */}
                 <div
