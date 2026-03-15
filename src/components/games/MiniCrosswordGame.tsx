@@ -349,81 +349,73 @@ export default function MiniCrosswordGame() {
     }
 
     return (
-        <div className="overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] p-6 shadow-[0_24px_80px_rgba(20,42,68,0.10)] md:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-primary/8 pb-5">
-                <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Mini Crossword</p>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">{PUZZLE.subtitle}</p>
+        <div className="overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] shadow-[0_24px_80px_rgba(20,42,68,0.10)]">
+
+            {/* ── Top bar: label · stats · action buttons ── */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-primary/8 px-5 py-3.5 md:px-6">
+                <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-text-secondary">Mini Crossword</p>
+                <div className="flex items-center gap-3 text-xs text-text-secondary">
+                    <span>{fillCount}&thinsp;/&thinsp;{totalFillableCells} filled</span>
+                    <span className="opacity-30">·</span>
+                    <span>{solvedCellCount} correct</span>
+                    <span className="opacity-30">·</span>
+                    <span className="font-semibold text-primary">{score} pts</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                    <div className="rounded-[1rem] border border-primary/10 bg-white/90 px-4 py-3">
-                        <p className="text-[10px] uppercase tracking-[0.22em] text-text-secondary">Filled</p>
-                        <p className="mt-1 text-base font-medium text-primary">{fillCount} / {totalFillableCells}</p>
-                    </div>
-                    <div className="rounded-[1rem] border border-primary/10 bg-white/90 px-4 py-3">
-                        <p className="text-[10px] uppercase tracking-[0.22em] text-text-secondary">Correct</p>
-                        <p className="mt-1 text-base font-medium text-primary">{solvedCellCount} / {totalFillableCells}</p>
-                    </div>
-                    <div className="rounded-[1rem] border border-primary/10 bg-white/90 px-4 py-3">
-                        <p className="text-[10px] uppercase tracking-[0.22em] text-text-secondary">Score</p>
-                        <p className="mt-1 text-base font-medium text-primary">{score}</p>
-                    </div>
+                <div className="ml-auto flex flex-wrap gap-1.5">
+                    <button
+                        type="button"
+                        onClick={handleCheckBoard}
+                        className="rounded-full border border-primary/12 bg-white px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-white"
+                    >
+                        Check
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleRevealEntry}
+                        disabled={!activeEntry || isSolved}
+                        className="rounded-full border border-accent/35 bg-accent/10 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        Reveal
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleClearEntry}
+                        disabled={!activeEntry}
+                        className="rounded-full border border-primary/12 bg-white px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        Clear
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleResetPuzzle}
+                        className="rounded-full border border-secondary/15 bg-secondary/6 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-secondary transition-colors hover:bg-secondary hover:text-white"
+                    >
+                        Reset
+                    </button>
                 </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                    type="button"
-                    onClick={handleCheckBoard}
-                    className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs uppercase tracking-[0.22em] text-primary transition-colors duration-200 hover:bg-primary hover:text-white"
-                >
-                    Check board
-                </button>
-                <button
-                    type="button"
-                    onClick={handleRevealEntry}
-                    disabled={!activeEntry || isSolved}
-                    className="rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs uppercase tracking-[0.22em] text-primary transition-colors duration-200 hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                    Reveal clue
-                </button>
-                <button
-                    type="button"
-                    onClick={handleClearEntry}
-                    disabled={!activeEntry}
-                    className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs uppercase tracking-[0.22em] text-primary transition-colors duration-200 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                    Clear clue
-                </button>
-                <button
-                    type="button"
-                    onClick={handleResetPuzzle}
-                    className="rounded-full border border-secondary/18 bg-secondary/6 px-4 py-2 text-xs uppercase tracking-[0.22em] text-secondary transition-colors duration-200 hover:bg-secondary hover:text-white"
-                >
-                    Reset puzzle
-                </button>
-            </div>
-
-            <div className="mt-5 rounded-[1.3rem] border border-primary/8 bg-white/85 px-4 py-4 text-sm text-text-secondary">
+            {/* ── Notice bar ── */}
+            <div className="border-b border-primary/6 bg-white/30 px-5 py-2 text-xs text-text-secondary md:px-6">
                 {notice}
             </div>
 
-            <div className="mt-8 grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
-                <div className="rounded-[1.9rem] border border-primary/10 bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-5 text-white shadow-[0_18px_48px_rgba(20,42,68,0.14)]">
-                    <div className="mb-4 flex items-center justify-between gap-4">
-                        <div>
-                            <p className="text-xs uppercase tracking-[0.24em] text-white/62">Board</p>
-                            <p className="mt-2 text-sm text-white/76">Tap a crossing square twice to switch direction.</p>
-                        </div>
-                        {activeEntry ? (
-                            <div className="rounded-full border border-white/14 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/85">
-                                {activeEntry.number} {activeEntry.direction}
-                            </div>
-                        ) : null}
+            {/* ── Main 2-col: grid left, clues right ── */}
+            <div className="grid items-stretch md:grid-cols-2">
+
+                {/* Left: grid panel */}
+                <div className="bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-4 md:p-5">
+                    {/* Active entry badge above the grid */}
+                    <div className="mb-2.5 flex items-center justify-between text-[11px]">
+                        <span className="uppercase tracking-[0.22em] text-white/55">
+                            {activeEntry ? `${activeEntry.number} ${activeEntry.direction}` : "tap a square"}
+                        </span>
+                        <span className="hidden text-white/35 sm:block">tap twice to switch direction</span>
                     </div>
 
+                    {/* Grid fills column width */}
                     <div
-                        className="grid gap-1.5"
+                        className="grid w-full gap-1.5"
                         style={{ gridTemplateColumns: `repeat(${PUZZLE.cols}, minmax(0, 1fr))` }}
                     >
                         {PUZZLE.cells.map((cell) => {
@@ -470,7 +462,7 @@ export default function MiniCrosswordGame() {
                                         autoCapitalize="characters"
                                         aria-label={`Crossword cell ${cell.row + 1}, ${cell.col + 1}`}
                                         disabled={isSolved}
-                                        className="h-full w-full bg-transparent px-0 pb-0 pt-3 text-center text-lg font-semibold uppercase tracking-[0.08em] text-primary outline-none md:text-xl"
+                                        className="h-full w-full bg-transparent px-0 pb-0 pt-3 text-center text-xl font-semibold uppercase tracking-[0.05em] text-primary outline-none"
                                     />
                                 </label>
                             );
@@ -478,93 +470,104 @@ export default function MiniCrosswordGame() {
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                        <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Active clue</p>
-                        <h3 className="mt-3 font-heading text-3xl text-primary">
-                            {activeEntry ? `${activeEntry.number} ${activeEntry.direction}` : "Select a clue"}
-                        </h3>
-                        <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                            {activeEntry?.clue ?? "Choose an across or down clue to focus the board."}
-                        </p>
-                        {activeEntry ? (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                <span className="rounded-full border border-primary/10 bg-[#fbf8f3] px-3 py-1 text-xs uppercase tracking-[0.22em] text-primary">
-                                    {activeEntry.answer.length} letters
-                                </span>
-                                <span className="rounded-full border border-primary/10 bg-[#fbf8f3] px-3 py-1 text-xs uppercase tracking-[0.22em] text-primary">
+                {/* Right: active clue + clue lists */}
+                <div className="flex flex-col divide-y divide-primary/8 bg-white/60">
+
+                    {/* Active clue */}
+                    <div className="px-5 py-5 md:px-6">
+                        <div className="flex items-baseline gap-2">
+                            <span className="font-heading text-4xl leading-none text-primary">
+                                {activeEntry ? activeEntry.number : "—"}
+                            </span>
+                            <span className="text-[11px] uppercase tracking-[0.24em] text-text-secondary">
+                                {activeEntry?.direction ?? ""}
+                            </span>
+                            {activeEntry ? (
+                                <span className={`ml-auto shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.18em] ${
+                                    revealedEntryIds.includes(activeEntry.id)
+                                        ? "border-secondary/25 text-secondary"
+                                        : "border-primary/10 text-text-secondary"
+                                }`}>
                                     {revealedEntryIds.includes(activeEntry.id) ? "Revealed" : "Hidden"}
                                 </span>
-                            </div>
-                        ) : null}
+                            ) : null}
+                        </div>
+                        <p className="mt-3 text-[15px] leading-snug text-primary">
+                            {activeEntry?.clue ?? "Select a clue or tap a square to begin."}
+                        </p>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                            <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Across</p>
-                            <div className="mt-5 space-y-3">
+                    {/* Across · Down side-by-side */}
+                    <div className="grid flex-1 grid-cols-2 divide-x divide-primary/8">
+                        <div className="px-4 py-4 md:px-5">
+                            <p className="mb-2.5 text-[10px] uppercase tracking-[0.28em] text-text-secondary">Across</p>
+                            <div className="space-y-1.5">
                                 {PUZZLE.across.map((entry) => (
                                     <button
                                         key={entry.id}
                                         type="button"
                                         onClick={() => selectEntry(entry)}
-                                        className={`w-full rounded-[1.2rem] border px-4 py-4 text-left transition-colors ${
+                                        className={`w-full rounded-xl border px-3 py-3 text-left text-sm leading-snug transition-colors ${
                                             activeEntryId === entry.id
                                                 ? "border-primary bg-primary text-white"
-                                                : "border-primary/10 bg-[#fbf8f3] text-primary hover:border-primary/30"
+                                                : "border-primary/8 bg-[#f9f6f1] text-primary hover:border-primary/22 hover:bg-white"
                                         }`}
                                     >
-                                        <p className="text-xs uppercase tracking-[0.22em] opacity-75">{entry.number}</p>
-                                        <p className="mt-2 text-sm leading-relaxed">{entry.clue}</p>
+                                        <span className={`mr-1.5 text-[10px] font-bold ${activeEntryId === entry.id ? "opacity-70" : "text-text-secondary"}`}>
+                                            {entry.number}
+                                        </span>
+                                        {entry.clue}
                                     </button>
                                 ))}
                             </div>
                         </div>
-
-                        <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
-                            <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Down</p>
-                            <div className="mt-5 space-y-3">
+                        <div className="px-4 py-4 md:px-5">
+                            <p className="mb-2.5 text-[10px] uppercase tracking-[0.28em] text-text-secondary">Down</p>
+                            <div className="space-y-1.5">
                                 {PUZZLE.down.map((entry) => (
                                     <button
                                         key={entry.id}
                                         type="button"
                                         onClick={() => selectEntry(entry)}
-                                        className={`w-full rounded-[1.2rem] border px-4 py-4 text-left transition-colors ${
+                                        className={`w-full rounded-xl border px-3 py-3 text-left text-sm leading-snug transition-colors ${
                                             activeEntryId === entry.id
                                                 ? "border-primary bg-primary text-white"
-                                                : "border-primary/10 bg-[#fbf8f3] text-primary hover:border-primary/30"
+                                                : "border-primary/8 bg-[#f9f6f1] text-primary hover:border-primary/22 hover:bg-white"
                                         }`}
                                     >
-                                        <p className="text-xs uppercase tracking-[0.22em] opacity-75">{entry.number}</p>
-                                        <p className="mt-2 text-sm leading-relaxed">{entry.clue}</p>
+                                        <span className={`mr-1.5 text-[10px] font-bold ${activeEntryId === entry.id ? "opacity-70" : "text-text-secondary"}`}>
+                                            {entry.number}
+                                        </span>
+                                        {entry.clue}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     </div>
 
+                    {/* Completion / score submission */}
                     {isSolved ? (
-                        scoreSubmitted ? (
-                            <div className="rounded-[1.85rem] border border-emerald-200/70 bg-[linear-gradient(160deg,#f2faf5_0%,#e8f5ed_100%)] p-6 shadow-[0_12px_34px_rgba(20,42,68,0.06)]">
-                                <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">Crossword Complete</p>
-                                <p className="mt-3 text-text-secondary">
-                                    Your score is locked in. You can still revisit the board from this browser.
-                                </p>
-                            </div>
-                        ) : (
-                            <ScoreSubmissionForm
-                                game="crossword"
-                                score={score}
-                                maxScore={100}
-                                attempts={checksUsed + revealedEntryIds.length}
-                                solved={true}
-                                puzzleKey={PUZZLE.id}
-                                metadata={metadata}
-                                buttonLabel="Submit Crossword Score"
-                                successMessage="Crossword score submitted."
-                                onSubmitted={() => setScoreSubmitted(true)}
-                            />
-                        )
+                        <div className="px-5 py-5 md:px-6">
+                            {scoreSubmitted ? (
+                                <div className="rounded-[1.5rem] border border-emerald-200/70 bg-[linear-gradient(160deg,#f2faf5_0%,#e8f5ed_100%)] px-5 py-4">
+                                    <p className="text-xs uppercase tracking-[0.3em] text-emerald-700">Crossword Complete</p>
+                                    <p className="mt-2 text-sm text-text-secondary">Score locked in. You can keep revisiting from this browser.</p>
+                                </div>
+                            ) : (
+                                <ScoreSubmissionForm
+                                    game="crossword"
+                                    score={score}
+                                    maxScore={100}
+                                    attempts={checksUsed + revealedEntryIds.length}
+                                    solved={true}
+                                    puzzleKey={PUZZLE.id}
+                                    metadata={metadata}
+                                    buttonLabel="Submit Crossword Score"
+                                    successMessage="Crossword score submitted."
+                                    onSubmitted={() => setScoreSubmitted(true)}
+                                />
+                            )}
+                        </div>
                     ) : null}
                 </div>
             </div>
