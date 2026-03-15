@@ -2,7 +2,7 @@
 
 import Section from "@/components/ui/Section";
 import PainedleGame from "@/components/games/PainedleGame";
-import LeaderboardPanel from "@/components/games/LeaderboardPanel";
+import CollapsibleLeaderboard from "@/components/games/CollapsibleLeaderboard";
 import GameAccountPanel from "@/components/games/GameAccountPanel";
 import { getTodayKey } from "@/lib/games/painedle";
 
@@ -15,15 +15,13 @@ export default function PainedlePage() {
                 <div className="mb-6">
                     <GameAccountPanel />
                 </div>
-                <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-                    <PainedleGame />
-                    <LeaderboardPanel
-                        game="painedle"
-                        title="Today's Painedle Leaders"
-                        subtitle="Best scores for the current daily puzzle."
-                        puzzleKey={todayKey}
-                    />
-                </div>
+                <PainedleGame />
+                <CollapsibleLeaderboard
+                    game="painedle"
+                    title="Today's Painedle Leaders"
+                    subtitle="Best scores for the current daily puzzle."
+                    puzzleKey={todayKey}
+                />
             </Section>
         </div>
     );

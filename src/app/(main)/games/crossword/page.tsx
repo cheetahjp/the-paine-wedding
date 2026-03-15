@@ -1,7 +1,7 @@
 import Section from "@/components/ui/Section";
 import CrosswordGate from "@/components/games/CrosswordGate";
 import GameAccountPanel from "@/components/games/GameAccountPanel";
-import LeaderboardPanel from "@/components/games/LeaderboardPanel";
+import CollapsibleLeaderboard from "@/components/games/CollapsibleLeaderboard";
 import MiniCrosswordGame from "@/components/games/MiniCrosswordGame";
 import { getDailyCrosswordPuzzle } from "@/lib/games/crossword";
 
@@ -20,17 +20,15 @@ export default function CrosswordPage() {
                 <div className="mb-6">
                     <GameAccountPanel />
                 </div>
-                <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-                    <CrosswordGate>
-                        <MiniCrosswordGame />
-                    </CrosswordGate>
-                    <LeaderboardPanel
-                        game="crossword"
-                        title="Crossword Leaders"
-                        subtitle="Fastest clean solves and fewer reveals rise to the top once the puzzle opens."
-                        puzzleKey={todayPuzzle.id}
-                    />
-                </div>
+                <CrosswordGate>
+                    <MiniCrosswordGame />
+                </CrosswordGate>
+                <CollapsibleLeaderboard
+                    game="crossword"
+                    title="Crossword Leaders"
+                    subtitle="Fastest clean solves and fewer reveals rise to the top."
+                    puzzleKey={todayPuzzle.id}
+                />
             </Section>
         </div>
     );

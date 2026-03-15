@@ -350,24 +350,23 @@ export default function MiniCrosswordGame() {
 
     return (
         <div className="overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] p-6 shadow-[0_24px_80px_rgba(20,42,68,0.10)] md:p-8">
-            <div className="flex flex-col gap-6 border-b border-primary/8 pb-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-primary/8 pb-5">
                 <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Mini Crossword</p>
-                    <h2 className="mt-4 font-heading text-4xl text-primary md:text-5xl">{PUZZLE.title}</h2>
-                    <p className="mt-4 max-w-3xl leading-relaxed text-text-secondary">{PUZZLE.subtitle}</p>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">{PUZZLE.subtitle}</p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-[1.2rem] border border-primary/10 bg-white/90 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Filled</p>
-                        <p className="mt-2 text-lg text-primary">{fillCount} / {totalFillableCells}</p>
+                <div className="flex flex-wrap gap-2">
+                    <div className="rounded-[1rem] border border-primary/10 bg-white/90 px-4 py-3">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-text-secondary">Filled</p>
+                        <p className="mt-1 text-base font-medium text-primary">{fillCount} / {totalFillableCells}</p>
                     </div>
-                    <div className="rounded-[1.2rem] border border-primary/10 bg-white/90 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Correct</p>
-                        <p className="mt-2 text-lg text-primary">{solvedCellCount} / {totalFillableCells}</p>
+                    <div className="rounded-[1rem] border border-primary/10 bg-white/90 px-4 py-3">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-text-secondary">Correct</p>
+                        <p className="mt-1 text-base font-medium text-primary">{solvedCellCount} / {totalFillableCells}</p>
                     </div>
-                    <div className="rounded-[1.2rem] border border-primary/10 bg-white/90 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">Projected Score</p>
-                        <p className="mt-2 text-lg text-primary">{score}</p>
+                    <div className="rounded-[1rem] border border-primary/10 bg-white/90 px-4 py-3">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-text-secondary">Score</p>
+                        <p className="mt-1 text-base font-medium text-primary">{score}</p>
                     </div>
                 </div>
             </div>
@@ -429,7 +428,7 @@ export default function MiniCrosswordGame() {
                     >
                         {PUZZLE.cells.map((cell) => {
                             if (!cell.answer) {
-                                return <div key={cell.key} className="aspect-square rounded-[0.72rem] bg-[#0f2033]" />;
+                                return <div key={cell.key} className="aspect-square rounded-[0.35rem] bg-[#0f2033]" />;
                             }
 
                             const isActive = activeCells.includes(cell.key);
@@ -439,7 +438,7 @@ export default function MiniCrosswordGame() {
                             return (
                                 <label
                                     key={cell.key}
-                                    className={`relative flex aspect-square items-stretch overflow-hidden rounded-[0.82rem] border ${
+                                    className={`relative flex aspect-square items-stretch overflow-hidden rounded-[0.4rem] border ${
                                         isIncorrect
                                             ? "border-secondary bg-secondary/15"
                                             : isActive
@@ -450,7 +449,7 @@ export default function MiniCrosswordGame() {
                                     } transition-colors`}
                                 >
                                     {cell.number ? (
-                                        <span className="pointer-events-none absolute left-1.5 top-1 text-[10px] font-medium text-primary/70">
+                                        <span className="pointer-events-none absolute left-0.5 top-0.5 text-[8px] font-semibold leading-none text-primary/65">
                                             {cell.number}
                                         </span>
                                     ) : null}
