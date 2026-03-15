@@ -2,7 +2,8 @@ import Section from "@/components/ui/Section";
 import CoupleTriviaGame from "@/components/games/CoupleTriviaGame";
 import GameAccountPanel from "@/components/games/GameAccountPanel";
 import TriviaGate from "@/components/games/TriviaGate";
-import LeaderboardPanel from "@/components/games/LeaderboardPanel";
+import CollapsibleLeaderboard from "@/components/games/CollapsibleLeaderboard";
+import GameSuggestions from "@/components/games/GameSuggestions";
 
 export default function TriviaPage() {
     return (
@@ -11,17 +12,16 @@ export default function TriviaPage() {
                 <div className="mb-6">
                     <GameAccountPanel />
                 </div>
-                <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-                    <TriviaGate>
-                        <CoupleTriviaGame />
-                    </TriviaGate>
-                    <LeaderboardPanel
-                        game="trivia"
-                        title="Trivia Leaders"
-                        subtitle="Highest scores rise to the top once trivia opens on wedding day."
-                        puzzleKey="wedding-day-trivia"
-                    />
-                </div>
+                <TriviaGate>
+                    <CoupleTriviaGame />
+                </TriviaGate>
+                <CollapsibleLeaderboard
+                    game="trivia"
+                    title="Trivia Leaders"
+                    subtitle="Highest scores rise to the top once trivia opens on wedding day."
+                    puzzleKey="wedding-day-trivia"
+                />
+                <GameSuggestions current="trivia" />
             </Section>
         </div>
     );

@@ -9,6 +9,7 @@ import {
     getTriviaUnlockDate,
     TRIVIA_UNLOCK_LABEL,
 } from "@/lib/games/schedule";
+import { useAdminSession } from "@/hooks/useAdminSession";
 
 function CountdownCard({
     eyebrow,
@@ -20,6 +21,7 @@ function CountdownCard({
     remaining,
     unlockLabel,
     muted = false,
+    forceUnlocked = false,
 }: {
     eyebrow: string;
     title: string;
@@ -30,31 +32,34 @@ function CountdownCard({
     remaining: ReturnType<typeof getTimeRemaining>;
     unlockLabel?: string;
     muted?: boolean;
+    forceUnlocked?: boolean;
 }) {
+    const isUnlocked = remaining.isUnlocked || forceUnlocked;
+
     const sharedContent = (
         <>
             <div className="relative">
                 <div className="flex items-center justify-between gap-4">
                     <p className="text-sm uppercase tracking-[0.3em] text-text-secondary/80">{eyebrow}</p>
                     <span className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${
-                        remaining.isUnlocked
+                        isUnlocked
                             ? "border-primary/15 bg-primary text-white"
                             : muted
                                 ? "border-secondary/20 bg-white/80 text-secondary"
                                 : "border-primary/12 bg-white/85 text-primary"
                     }`}>
-                        {status}
+                        {isUnlocked && !remaining.isUnlocked ? "Admin Preview" : status}
                     </span>
                 </div>
 
-                <h2 className={`mt-5 font-heading text-4xl md:text-5xl ${remaining.isUnlocked ? "text-primary" : muted ? "text-primary/68" : "text-primary/78"}`}>
+                <h2 className={`mt-5 font-heading text-4xl md:text-5xl ${isUnlocked ? "text-primary" : muted ? "text-primary/68" : "text-primary/78"}`}>
                     {title}
                 </h2>
-                <p className={`mt-4 max-w-xl leading-relaxed ${remaining.isUnlocked ? "text-text-secondary" : muted ? "text-text-secondary/72" : "text-text-secondary/82"}`}>
+                <p className={`mt-4 max-w-xl leading-relaxed ${isUnlocked ? "text-text-secondary" : muted ? "text-text-secondary/72" : "text-text-secondary/82"}`}>
                     {copy}
                 </p>
 
-                {remaining.isUnlocked ? (
+                {isUnlocked ? (
                     <p className="mt-8 text-sm uppercase tracking-[0.24em] text-primary">
                         {cta}
                     </p>
@@ -87,7 +92,7 @@ function CountdownCard({
         </>
     );
 
-    if (remaining.isUnlocked) {
+    if (isUnlocked) {
         return (
             <Link
                 href={href}
@@ -110,6 +115,7 @@ function CountdownCard({
 export default function GamesHubClient() {
     const [crosswordRemaining, setCrosswordRemaining] = useState(() => getTimeRemaining(getCrosswordUnlockDate()));
     const [triviaRemaining, setTriviaRemaining] = useState(() => getTimeRemaining(getTriviaUnlockDate()));
+    const { isAdmin } = useAdminSession();
 
     useEffect(() => {
         const interval = window.setInterval(() => {
@@ -154,6 +160,7 @@ export default function GamesHubClient() {
                 status={crosswordRemaining.isUnlocked ? "Live Now" : "Unlocks Soon"}
                 remaining={crosswordRemaining}
                 unlockLabel={CROSSWORD_UNLOCK_LABEL}
+                forceUnlocked={isAdmin}
             />
 
             <CountdownCard
@@ -165,8 +172,42 @@ export default function GamesHubClient() {
                 status={triviaRemaining.isUnlocked ? "Open" : "Locked"}
                 remaining={triviaRemaining}
                 unlockLabel={TRIVIA_UNLOCK_LABEL}
-                muted
+                muted={!isAdmin}
+                forceUnlocked={isAdmin}
             />
+
+            {/* Admin tools panel — only visible to admins */}
+            {isAdmin && (
+                <div className="relative overflow-hidden rounded-[2rem] border border-amber-300/30 bg-amber-50/80 p-6 shadow-[0_8px_30px_rgba(251,191,36,0.10)]">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-[10px] uppercase tracking-[0.3em] text-amber-700/70">Admin Mode</p>
+                            <h3 className="mt-2 font-heading text-2xl text-amber-900">Games Admin</h3>
+                            <p className="mt-2 text-sm leading-relaxed text-amber-800/70">
+                                All games are unlocked for preview. Crossword and Trivia show as live — guests still see the real gate.
+                            </p>
+                        </div>
+                        <span className="mt-1 shrink-0 rounded-full border border-amber-400/40 bg-amber-400/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-amber-700">
+                            ⚑ Master
+                        </span>
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                        <Link
+                            href="/admin/games"
+                            className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 transition-colors hover:bg-white hover:border-amber-400"
+                        >
+                            Games Dashboard →
+                        </Link>
+                        <Link
+                            href="/admin"
+                            className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-transparent px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-700/70 transition-colors hover:bg-amber-50 hover:text-amber-800"
+                        >
+                            Admin Home
+                        </Link>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

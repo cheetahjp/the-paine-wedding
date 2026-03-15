@@ -5,6 +5,7 @@ import PainedleGame from "@/components/games/PainedleGame";
 import CollapsibleLeaderboard from "@/components/games/CollapsibleLeaderboard";
 import GameAccountPanel from "@/components/games/GameAccountPanel";
 import { getTodayKey } from "@/lib/games/painedle";
+import GameSuggestions from "@/components/games/GameSuggestions";
 
 export default function PainedlePage() {
     const todayKey = getTodayKey();
@@ -22,6 +23,7 @@ export default function PainedlePage() {
                     subtitle="Best scores for the current daily puzzle."
                     puzzleKey={todayKey}
                 />
+                <GameSuggestions current="painedle" />
             </Section>
         </div>
     );

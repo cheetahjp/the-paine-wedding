@@ -4,6 +4,7 @@ import GameAccountPanel from "@/components/games/GameAccountPanel";
 import CollapsibleLeaderboard from "@/components/games/CollapsibleLeaderboard";
 import MiniCrosswordGame from "@/components/games/MiniCrosswordGame";
 import { getDailyCrosswordPuzzle } from "@/lib/games/crossword";
+import GameSuggestions from "@/components/games/GameSuggestions";
 
 function getTodayKey(): string {
     const d = new Date();
@@ -29,6 +30,7 @@ export default function CrosswordPage() {
                     subtitle="Fastest clean solves and fewer reveals rise to the top."
                     puzzleKey={todayPuzzle.id}
                 />
+                <GameSuggestions current="crossword" />
             </Section>
         </div>
     );

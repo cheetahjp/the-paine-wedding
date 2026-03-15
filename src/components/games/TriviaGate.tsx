@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getTimeRemaining, getTriviaUnlockDate, TRIVIA_UNLOCK_LABEL } from "@/lib/games/schedule";
+import { useAdminSession } from "@/hooks/useAdminSession";
 
 type TriviaGateProps = {
     children: React.ReactNode;
@@ -9,6 +10,7 @@ type TriviaGateProps = {
 
 export default function TriviaGate({ children }: TriviaGateProps) {
     const [remaining, setRemaining] = useState(() => getTimeRemaining(getTriviaUnlockDate()));
+    const { isAdmin } = useAdminSession();
 
     useEffect(() => {
         const interval = window.setInterval(() => {
@@ -18,7 +20,7 @@ export default function TriviaGate({ children }: TriviaGateProps) {
         return () => window.clearInterval(interval);
     }, []);
 
-    if (remaining.isUnlocked) {
+    if (remaining.isUnlocked || isAdmin) {
         return <>{children}</>;
     }
 

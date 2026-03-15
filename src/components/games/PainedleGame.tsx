@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useState } from "react";
 import ScoreSubmissionForm from "@/components/games/ScoreSubmissionForm";
+import { useAdminSession } from "@/hooks/useAdminSession";
 import {
     KEYBOARD_ROWS,
     MAX_GUESSES,
@@ -117,6 +118,99 @@ function createInitialState(dateKey: string): SavedGameState {
     }
 }
 
+// ─── Rules Modal ──────────────────────────────────────────────────────────────
+
+function HelpModal({ onClose }: { onClose: () => void }) {
+    useEffect(() => {
+        function handleKey(e: KeyboardEvent) {
+            if (e.key === "Escape") onClose();
+        }
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, [onClose]);
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            onClick={onClose}
+        >
+            {/* Scrim */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+            {/* Panel */}
+            <div
+                className="relative w-full max-w-sm overflow-hidden rounded-[2rem] border border-white/10 bg-[#0f2439] p-6 text-white shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-white/50">Daily Puzzle</p>
+                        <h3 className="mt-1 font-heading text-2xl text-white">How to Play</h3>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 transition-colors hover:bg-white/20 hover:text-white"
+                        aria-label="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                {/* Rules */}
+                <div className="mt-5 space-y-2 text-sm leading-relaxed text-white/75">
+                    <p>Guess the daily <strong className="font-semibold text-white">5-letter wedding word</strong> in six tries.</p>
+                    <p>Type any valid word and press <strong className="font-semibold text-white">Enter</strong> to submit.</p>
+                    <p>Tiles reveal how close you were after each guess.</p>
+                </div>
+
+                {/* Color legend */}
+                <div className="mt-6 space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-white/40">Tile Colors</p>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.7rem] border border-emerald-400 bg-emerald-500 text-base font-bold text-white">
+                            A
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-white">Correct</p>
+                            <p className="text-xs text-white/55">Right letter, right position.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.7rem] border border-[#d6b073] bg-[#c69a72] text-base font-bold text-slate-950">
+                            B
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-white">Wrong Spot</p>
+                            <p className="text-xs text-white/55">In the word, but wrong position.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.7rem] border border-[#4e6782] bg-[#28415d] text-base font-bold text-white">
+                            C
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-white">Not in Word</p>
+                            <p className="text-xs text-white/55">This letter is not in today&apos;s word.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tip */}
+                <p className="mt-6 rounded-[1rem] border border-white/8 bg-white/5 px-4 py-3 text-xs leading-relaxed text-white/60">
+                    All words are wedding-themed — think venues, roles, vows, and celebration.
+                </p>
+            </div>
+        </div>
+    );
+}
+
+// ─── Board ────────────────────────────────────────────────────────────────────
+
 function PainedleBoard({ dateKey }: { dateKey: string }) {
     const [guesses, setGuesses] = useState<string[]>(() => createInitialState(dateKey).guesses);
     const [currentGuess, setCurrentGuess] = useState(() => createInitialState(dateKey).currentGuess);
@@ -125,6 +219,10 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     const [flippingRow, setFlippingRow] = useState<number | null>(null);
     const [shakingRow, setShakingRow] = useState<number | null>(null);
     const [isCheckingGuess, setIsCheckingGuess] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
+    const [showAdminAnswer, setShowAdminAnswer] = useState(false);
+
+    const { isAdmin } = useAdminSession();
 
     const solution = getDailyWord(dateKey);
     const storageKey = getStorageKey(dateKey);
@@ -218,6 +316,8 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     }
 
     const handlePhysicalKeyInput = useEffectEvent((key: string) => {
+        if (showHelp) return;
+
         if (key === "Enter" || key === "Backspace") {
             handleKeyInput(key);
             return;
@@ -250,105 +350,146 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     }, []);
 
     return (
-        <div className="relative overflow-hidden rounded-[2.3rem] border border-white/18 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_12px_0_rgba(12,24,39,0.22),0_28px_90px_rgba(20,42,68,0.20)] md:p-10">
-            <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-accent/16 blur-3xl" />
-            <div className="pointer-events-none absolute -left-10 bottom-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
+        <>
+            {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
-            <div>
-                <p className="relative text-sm uppercase tracking-[0.3em] text-white/60">Daily Puzzle</p>
-                <h2 className="relative mt-4 font-heading text-4xl text-white">Painedle</h2>
-                <p className="relative mt-4 max-w-2xl leading-relaxed text-white/78">
-                    Guess the daily wedding word in six tries. Progress saves in your browser.
-                </p>
-            </div>
+            <div className="relative overflow-hidden rounded-[2.3rem] border border-white/18 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_12px_0_rgba(12,24,39,0.22),0_28px_90px_rgba(20,42,68,0.20)] md:p-10">
+                <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-accent/16 blur-3xl" />
+                <div className="pointer-events-none absolute -left-10 bottom-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
 
-            <div className="relative mt-8">
-                <div className="inline-flex rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm text-white/80 backdrop-blur-sm">
-                    {message}
-                </div>
-            </div>
-
-            <div className="relative mt-8 flex flex-col items-center gap-3">
-                {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => {
-                    const submittedGuess = guesses[rowIndex];
-                    const activeGuess = rowIndex === guesses.length ? currentGuess : "";
-                    const letters = (submittedGuess ?? activeGuess).padEnd(WORD_LENGTH).split("");
-                    const statuses = submittedGuess ? evaluateGuess(submittedGuess, solution) : [];
-
-                    return (
-                        <div
-                            key={`row-${rowIndex + 1}`}
-                            className={`flex gap-2 ${shakingRow === rowIndex ? "animate-painedle-shake" : ""}`}
-                        >
-                            {letters.map((letter, columnIndex) => (
-                                <div
-                                    key={`tile-${rowIndex + 1}-${columnIndex + 1}`}
-                                    className={`flex h-14 w-14 items-center justify-center rounded-[1rem] border text-xl font-semibold uppercase tracking-[0.12em] transition-all duration-300 md:h-16 md:w-16 md:text-2xl ${tileClasses(statuses[columnIndex], Boolean(letter.trim()))} ${flippingRow === rowIndex && submittedGuess ? "animate-painedle-flip" : ""}`}
-                                    style={{
-                                        animationDelay: flippingRow === rowIndex && submittedGuess ? `${columnIndex * 120}ms` : undefined,
-                                    }}
-                                >
-                                    {letter.trim()}
-                                </div>
-                            ))}
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="relative mt-8 space-y-3">
-                {KEYBOARD_ROWS.map((row) => (
-                    <div key={row.join("")} className="flex justify-center gap-2">
-                        {row.map((key) => {
-                            const keyStatus = key.length === 1 ? keyboardStatuses[key.toLowerCase()] : undefined;
-                            const statusClass = key.length === 1
-                                ? keyboardKeyClasses(keyStatus)
-                                : "border-primary bg-primary text-white hover:bg-[#1e4566]";
-                            const sizeClass = key === "ENTER" ? "min-w-20 px-4" : key === "BACK" ? "min-w-20 px-4" : "w-10 md:w-12";
-
-                            return (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    onClick={() => {
-                                        void handleKeyInput(key === "BACK" ? "Backspace" : key);
-                                    }}
-                                    className={`flex h-12 items-center justify-center rounded-[0.9rem] border text-sm font-medium uppercase tracking-[0.12em] transition-colors duration-200 ${sizeClass} ${statusClass}`}
-                                >
-                                    {key === "BACK" ? "Back" : key}
-                                </button>
-                            );
-                        })}
+                {/* Header */}
+                <div className="relative flex items-start justify-between gap-4">
+                    <div>
+                        <p className="text-sm uppercase tracking-[0.3em] text-white/60">Daily Puzzle</p>
+                        <h2 className="mt-4 font-heading text-4xl text-white">Painedle</h2>
+                        <p className="mt-4 max-w-2xl leading-relaxed text-white/78">
+                            Guess the daily wedding word in six tries. Progress saves in your browser.
+                        </p>
                     </div>
-                ))}
-            </div>
 
-            {status !== "playing" ? (
-                <div className="relative mt-10">
-                    {status === "won" ? (
-                        <ScoreSubmissionForm
-                            game="painedle"
-                            score={score}
-                            maxScore={MAX_GUESSES}
-                            attempts={guesses.length}
-                            solved
-                            puzzleKey={dateKey}
-                            metadata={{ solution, word_length: WORD_LENGTH }}
-                            buttonLabel="Submit Painedle Score"
-                            successMessage="Painedle score submitted."
-                        />
-                    ) : (
-                        <div className="rounded-[1.75rem] border border-white/12 bg-white/8 p-6">
-                            <p className="text-sm uppercase tracking-[0.3em] text-white/60">Round Complete</p>
-                            <p className="mt-3 text-white/78">
-                                Only solved games go on the leaderboard. Come back tomorrow for the next word, or
-                                reset today and practice locally.
-                            </p>
-                        </div>
-                    )}
+                    {/* Help / rules button */}
+                    <button
+                        type="button"
+                        onClick={() => setShowHelp(true)}
+                        className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-sm font-semibold text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+                        aria-label="How to play"
+                    >
+                        ?
+                    </button>
                 </div>
-            ) : null}
-        </div>
+
+                {/* Admin answer reveal */}
+                {isAdmin && (
+                    <div className="relative mt-4 flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setShowAdminAnswer((v) => !v)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-amber-300 transition-colors hover:bg-amber-400/25"
+                        >
+                            ⚑ {showAdminAnswer ? "Hide Answer" : "Show Answer"}
+                        </button>
+                        {showAdminAnswer && (
+                            <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-1.5 font-heading text-lg uppercase tracking-[0.22em] text-amber-300">
+                                {solution}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                {/* Message */}
+                <div className="relative mt-6">
+                    <div className="inline-flex rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm text-white/80 backdrop-blur-sm">
+                        {message}
+                    </div>
+                </div>
+
+                {/* Tile grid */}
+                <div className="relative mt-8 flex flex-col items-center gap-3">
+                    {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => {
+                        const submittedGuess = guesses[rowIndex];
+                        const activeGuess = rowIndex === guesses.length ? currentGuess : "";
+                        const letters = (submittedGuess ?? activeGuess).padEnd(WORD_LENGTH).split("");
+                        const statuses = submittedGuess ? evaluateGuess(submittedGuess, solution) : [];
+
+                        return (
+                            <div
+                                key={`row-${rowIndex + 1}`}
+                                className={`flex gap-2 ${shakingRow === rowIndex ? "animate-painedle-shake" : ""}`}
+                            >
+                                {letters.map((letter, columnIndex) => (
+                                    <div
+                                        key={`tile-${rowIndex + 1}-${columnIndex + 1}`}
+                                        className={`flex h-14 w-14 items-center justify-center rounded-[1rem] border text-xl font-semibold uppercase tracking-[0.12em] transition-all duration-300 md:h-16 md:w-16 md:text-2xl ${tileClasses(statuses[columnIndex], Boolean(letter.trim()))} ${flippingRow === rowIndex && submittedGuess ? "animate-painedle-flip" : ""}`}
+                                        style={{
+                                            animationDelay: flippingRow === rowIndex && submittedGuess ? `${columnIndex * 120}ms` : undefined,
+                                        }}
+                                    >
+                                        {letter.trim()}
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Keyboard */}
+                <div className="relative mt-8 space-y-2.5">
+                    {KEYBOARD_ROWS.map((row) => (
+                        <div key={row.join("")} className="flex justify-center gap-1.5 md:gap-2">
+                            {row.map((key) => {
+                                const isAction = key === "ENTER" || key === "BACK";
+                                const keyStatus = !isAction ? keyboardStatuses[key.toLowerCase()] : undefined;
+                                const statusClass = isAction
+                                    ? "border-primary bg-primary text-white hover:bg-[#1e4566]"
+                                    : keyboardKeyClasses(keyStatus);
+                                const sizeClass = isAction
+                                    ? "min-w-[4rem] px-2 md:min-w-[5.5rem] md:px-4"
+                                    : "w-9 md:w-[3.1rem]";
+
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => {
+                                            void handleKeyInput(key === "BACK" ? "Backspace" : key);
+                                        }}
+                                        className={`flex h-12 items-center justify-center rounded-[0.9rem] border text-xs font-semibold uppercase tracking-[0.1em] transition-colors duration-200 md:h-14 md:text-sm ${sizeClass} ${statusClass}`}
+                                    >
+                                        {key === "BACK" ? "←" : key}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Post-game */}
+                {status !== "playing" ? (
+                    <div className="relative mt-10">
+                        {status === "won" ? (
+                            <ScoreSubmissionForm
+                                game="painedle"
+                                score={score}
+                                maxScore={MAX_GUESSES}
+                                attempts={guesses.length}
+                                solved
+                                puzzleKey={dateKey}
+                                metadata={{ solution, word_length: WORD_LENGTH }}
+                                buttonLabel="Submit Painedle Score"
+                                successMessage="Painedle score submitted."
+                            />
+                        ) : (
+                            <div className="rounded-[1.75rem] border border-white/12 bg-white/8 p-6">
+                                <p className="text-sm uppercase tracking-[0.3em] text-white/60">Round Complete</p>
+                                <p className="mt-3 text-white/78">
+                                    Only solved games go on the leaderboard. Come back tomorrow for the next word.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                ) : null}
+            </div>
+        </>
     );
 }
 
