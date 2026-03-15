@@ -109,9 +109,6 @@ export default function GameAccountPanel() {
                 <h3 className="mt-3 font-heading text-3xl text-primary">
                     {savedPlayer ? "Account Settings" : "Save your profile"}
                 </h3>
-                <p className="mt-2 text-sm text-text-secondary">
-                    One name and email keeps your scores consistent on the leaderboard.
-                </p>
             </div>
 
             <form className="mt-6 grid gap-4 md:grid-cols-[1fr_1fr_auto]" onSubmit={handleSave}>

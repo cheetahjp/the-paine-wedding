@@ -1289,3 +1289,39 @@ Three indexes: `guest_id`, `household_id`, `recorded_at DESC`.
 - Games section is the main focus next — Ashlyn will be reviewing the full site and giving feedback
 - Games section has: Painedle (live), Mini Crossword (unlocks ~1 week before), Couple Trivia (unlocks day-of)
 - Consider: leaderboard display improvements, game intro copy, mobile feel
+
+---
+
+## Session 21 — Games infrastructure + polish
+
+### Changes shipped
+
+**`supabase/migrations/20260315020000_trivia_questions.sql`** — NEW
+- Creates `trivia_questions` table (id, prompt, answer_a/b/c/d, correct_index, fun_fact, sort_order, archived, created_at, updated_at)
+- Auto-updating `updated_at` via a Postgres trigger
+- Seeds all 10 questions from the static `trivia-questions.ts` file
+- **⚠️ Jeff must run this in Supabase Dashboard SQL editor** — trivia game shows an error until this is applied
+
+**`supabase/migrations/20260315030000_rsvp_history.sql`** — NEW
+- Creates `rsvp_history` table (id, guest_id → guests, household_id → households, recorded_at, attending, food_allergies, song_request, advice)
+- Indexed on guest_id, household_id, recorded_at DESC
+- **⚠️ Jeff must run this in Supabase Dashboard SQL editor** — the fire-and-forget history insert in the RSVP page will silently fail until this exists
+
+**`src/components/games/GameAccountPanel.tsx`**
+- Removed the explanatory paragraph ("One name and email keeps your scores consistent on the leaderboard.") from the setup/edit form — cleaner, less verbose
+
+**`src/lib/games/word-list.ts`**
+- Added runtime validation: throws if any word in `PAINEDLE_WORD_LIST` is not exactly 5 letters
+- All 80 current words pass — this is a guard for future edits to the word list
+
+### Pending Jeff actions (Supabase migrations to apply)
+Run these in the Supabase SQL editor in order:
+1. `supabase/migrations/20260315020000_trivia_questions.sql` — trivia_questions table + 10 seed questions
+2. `supabase/migrations/20260315030000_rsvp_history.sql` — rsvp_history audit log table
+
+### Completed plan items
+- Phase 2 (Games UX): GameAccountPanel explanatory text removed ✓
+- Phase 2 (Games UX): PainedleGame — no reset button or date pill (already clean) ✓
+- Phase 2 (Games UX): word-list.ts — all 5-letter, runtime guard added ✓
+- Phase 2 (Games UX): CoupleTriviaGame — no welcome stat cards or in-game reset (already clean) ✓
+- Phase 3 (Admin Trivia CRUD): Migration + admin API routes + admin panel UI all complete — just needed the DB table ✓

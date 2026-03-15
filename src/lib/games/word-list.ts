@@ -20,4 +20,9 @@ if (PAINEDLE_WORD_LIST.length < 50) {
     throw new Error("PAINEDLE_WORD_LIST must contain at least 50 words.");
 }
 
+const invalidWords = PAINEDLE_WORD_LIST.filter((w) => w.length !== 5);
+if (invalidWords.length > 0) {
+    throw new Error(`PAINEDLE_WORD_LIST contains non-5-letter words: ${invalidWords.join(", ")}`);
+}
+
 export const PAINEDLE_WORDS = PAINEDLE_WORD_LIST;
