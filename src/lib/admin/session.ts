@@ -3,6 +3,21 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const ADMIN_SESSION_COOKIE = "wedding_admin_session";
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 14;
 
+export function getAdminSessionCookieDomain() {
+    if (process.env.NODE_ENV !== "production") return undefined;
+    return "thepainewedding.com";
+}
+
+export function getAdminSessionCookieBaseOptions() {
+    return {
+        name: ADMIN_SESSION_COOKIE,
+        httpOnly: true,
+        sameSite: "lax" as const,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+    };
+}
+
 function getSessionSecret() {
     return (
         process.env.ADMIN_SESSION_SECRET ||

@@ -9,7 +9,7 @@ export default async function OurStory() {
     return (
         <div className="pt-20">
             {/* Page header */}
-            <Section className="text-center pb-8">
+            <Section background="surface" className="text-center pb-10 pt-12 md:pb-12 md:pt-16">
                 <div className="flex items-center justify-center gap-4 mb-5">
                     <span className="h-px w-12 bg-accent" />
                     <span className="uppercase tracking-[0.3em] text-xs text-accent font-medium">

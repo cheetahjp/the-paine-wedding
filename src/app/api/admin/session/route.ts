@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin/session";
+import {
+    ADMIN_SESSION_COOKIE,
+    getAdminSessionCookieBaseOptions,
+    getAdminSessionCookieDomain,
+    verifyAdminSessionToken,
+} from "@/lib/admin/session";
 
 export async function GET() {
     const cookieStore = await cookies();
@@ -30,12 +35,14 @@ export async function GET() {
 export async function DELETE() {
     const response = NextResponse.json({ ok: true }, { status: 200 });
     response.cookies.set({
-        name: ADMIN_SESSION_COOKIE,
+        ...getAdminSessionCookieBaseOptions(),
         value: "",
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
+        domain: getAdminSessionCookieDomain(),
+        maxAge: 0,
+    });
+    response.cookies.set({
+        ...getAdminSessionCookieBaseOptions(),
+        value: "",
         maxAge: 0,
     });
 

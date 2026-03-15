@@ -1,14 +1,17 @@
 import React from "react";
 import Section from "@/components/ui/Section";
+import ScheduleTimelineItem from "@/components/ui/ScheduleTimelineItem";
 import { getWeddingData } from "@/lib/site-settings";
+import { requirePageVisible } from "@/lib/page-visibility";
 
 export default async function Schedule() {
+    await requirePageVisible("schedule");
     const { wedding } = await getWeddingData();
     const hasSchedule = wedding.schedule.length > 0;
 
     return (
         <div>
-            <Section className="text-center pb-12">
+            <Section background="surface" className="text-center pb-14 pt-12 md:pb-16 md:pt-16">
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">Schedule of Events</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide">
                     A timeline of our wedding day. We can&apos;t wait to share these moments with you.
@@ -20,40 +23,42 @@ export default async function Schedule() {
                     {hasSchedule ? (
                         <div className="relative border-l border-primary/20 pl-8 ml-4 md:pl-12 md:ml-12 space-y-16">
                             {wedding.schedule.map((item, index) => (
-                                <div key={index} className="relative">
-                                    {/* Timeline Dot */}
-                                    <div className="absolute -left-[41px] md:-left-[57px] top-1.5 w-4 h-4 rounded-full bg-primary ring-4 ring-surface" />
+                                <ScheduleTimelineItem key={index}>
+                                    <div className="relative">
+                                        {/* Timeline Dot */}
+                                        <div className="absolute -left-[41px] md:-left-[57px] top-1.5 w-4 h-4 rounded-full bg-primary ring-4 ring-surface" />
 
-                                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-2">
-                                        <h2
-                                            className="font-heading text-2xl text-primary"
-                                            data-admin-key={`schedule.${index}.title`}
-                                            data-admin-type="text"
-                                            data-admin-current-text={item.title}
-                                            data-admin-label={`Schedule #${index + 1} — Title`}
+                                        <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-2">
+                                            <h2
+                                                className="font-heading text-2xl text-primary"
+                                                data-admin-key={`schedule.${index}.title`}
+                                                data-admin-type="text"
+                                                data-admin-current-text={item.title}
+                                                data-admin-label={`Schedule #${index + 1} — Title`}
+                                            >
+                                                {item.title}
+                                            </h2>
+                                            <span
+                                                className="text-sm font-medium tracking-[0.2em] text-accent mt-2 md:mt-0 uppercase"
+                                                data-admin-key={`schedule.${index}.time`}
+                                                data-admin-type="text"
+                                                data-admin-current-text={item.time}
+                                                data-admin-label={`Schedule #${index + 1} — Time`}
+                                            >
+                                                {item.time}
+                                            </span>
+                                        </div>
+                                        <p
+                                            className="text-text-secondary leading-relaxed"
+                                            data-admin-key={`schedule.${index}.description`}
+                                            data-admin-type="rich-text"
+                                            data-admin-current-text={item.description}
+                                            data-admin-label={`Schedule #${index + 1} — Description`}
                                         >
-                                            {item.title}
-                                        </h2>
-                                        <span
-                                            className="text-sm font-medium tracking-[0.2em] text-accent mt-2 md:mt-0 uppercase"
-                                            data-admin-key={`schedule.${index}.time`}
-                                            data-admin-type="text"
-                                            data-admin-current-text={item.time}
-                                            data-admin-label={`Schedule #${index + 1} — Time`}
-                                        >
-                                            {item.time}
-                                        </span>
+                                            {item.description}
+                                        </p>
                                     </div>
-                                    <p
-                                        className="text-text-secondary leading-relaxed"
-                                        data-admin-key={`schedule.${index}.description`}
-                                        data-admin-type="rich-text"
-                                        data-admin-current-text={item.description}
-                                        data-admin-label={`Schedule #${index + 1} — Description`}
-                                    >
-                                        {item.description}
-                                    </p>
-                                </div>
+                                </ScheduleTimelineItem>
                             ))}
                         </div>
                     ) : (

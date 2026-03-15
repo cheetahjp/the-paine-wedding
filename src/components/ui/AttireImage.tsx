@@ -9,6 +9,8 @@ export function AttireImage({
     adminKey,
     overlayColor,
     overlayOpacity,
+    className = "",
+    imageClassName = "",
 }: {
     src: string;
     fallback: string;
@@ -16,6 +18,8 @@ export function AttireImage({
     adminKey: string;
     overlayColor?: string;
     overlayOpacity?: number;
+    className?: string;
+    imageClassName?: string;
 }) {
     // Allow local paths (starting with /) as well as absolute https URLs.
     // Fall back to Unsplash only if src is empty or an unrecognised format.
@@ -24,7 +28,7 @@ export function AttireImage({
 
     return (
         <div
-            className="break-inside-avoid relative hover:opacity-90 transition-opacity"
+            className={`break-inside-avoid relative mb-4 overflow-hidden rounded-[1.7rem] border border-primary/10 bg-white/70 shadow-[0_20px_44px_rgba(20,42,68,0.09)] transition-transform duration-300 hover:-translate-y-0.5 ${className}`}
             data-admin-key={adminKey}
             data-admin-type="image-indexed"
             data-admin-current-url={safeSrc}
@@ -35,18 +39,17 @@ export function AttireImage({
                 alt={alt}
                 width={600}
                 height={800}
-                className="w-full rounded-sm shadow-sm"
+                className={`h-auto w-full object-contain ${imageClassName}`}
                 onError={(e) => {
                     (e.target as HTMLImageElement).src = fallback;
                 }}
             />
             {overlayColor && overlayOpacity && overlayOpacity > 0 && (
                 <div
-                    className="absolute inset-0 rounded-sm pointer-events-none"
+                    className="absolute inset-0 pointer-events-none"
                     style={{ backgroundColor: overlayColor, opacity: overlayOpacity }}
                 />
             )}
         </div>
     );
 }
-

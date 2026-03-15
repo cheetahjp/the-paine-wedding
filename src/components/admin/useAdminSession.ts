@@ -2,10 +2,21 @@
 
 import { startTransition, useEffect, useState } from "react";
 
+export const ADMIN_SESSION_EVENT = "admin-session-changed";
+
+type AdminSessionEventDetail = {
+    role: string;
+    status: "authenticated" | "unauthenticated";
+};
+
 type LoginResult = {
     ok: boolean;
     error?: string;
 };
+
+export function emitAdminSessionChange(detail: AdminSessionEventDetail) {
+    window.dispatchEvent(new CustomEvent<AdminSessionEventDetail>(ADMIN_SESSION_EVENT, { detail }));
+}
 
 export function useAdminSession() {
     const [status, setStatus] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
@@ -16,6 +27,7 @@ export function useAdminSession() {
             const response = await fetch("/api/admin/session", {
                 method: "GET",
                 cache: "no-store",
+                credentials: "same-origin",
             });
 
             if (!response.ok) {
@@ -23,20 +35,24 @@ export function useAdminSession() {
                     setRole("");
                     setStatus("unauthenticated");
                 });
+                emitAdminSessionChange({ role: "", status: "unauthenticated" });
                 return;
             }
 
             const data = await response.json() as { role?: string };
+            const nextRole = data.role ?? "";
 
             startTransition(() => {
-                setRole(data.role ?? "");
+                setRole(nextRole);
                 setStatus("authenticated");
             });
+            emitAdminSessionChange({ role: nextRole, status: "authenticated" });
         } catch {
             startTransition(() => {
                 setRole("");
                 setStatus("unauthenticated");
             });
+            emitAdminSessionChange({ role: "", status: "unauthenticated" });
         }
     }
 
@@ -46,6 +62,7 @@ export function useAdminSession() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ password }),
+                credentials: "same-origin",
             });
 
             const data = await response.json() as { role?: string; error?: string };
@@ -58,6 +75,7 @@ export function useAdminSession() {
                 setRole(data.role ?? "");
                 setStatus("authenticated");
             });
+            emitAdminSessionChange({ role: data.role ?? "", status: "authenticated" });
 
             return { ok: true };
         } catch {
@@ -68,12 +86,14 @@ export function useAdminSession() {
     async function logout() {
         await fetch("/api/admin/session", {
             method: "DELETE",
+            credentials: "same-origin",
         });
 
         startTransition(() => {
             setRole("");
             setStatus("unauthenticated");
         });
+        emitAdminSessionChange({ role: "", status: "unauthenticated" });
     }
 
     useEffect(() => {

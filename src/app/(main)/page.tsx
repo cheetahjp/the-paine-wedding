@@ -17,8 +17,8 @@ export default async function Home() {
         data-admin-label="Hero Photo"
       >
         <div
-          className="absolute inset-0 bg-primary/20 bg-cover bg-center pointer-events-none"
-          style={{ backgroundImage: `url('${images.hero.main}'), url('${images.hero.fallback}')` }}
+          className="absolute inset-0 bg-primary/20 bg-cover pointer-events-none"
+          style={{ backgroundImage: `url('${images.hero.main}'), url('${images.hero.fallback}')`, backgroundPosition: 'center 25%' }}
         />
         <div className="absolute inset-0 bg-text-primary/30 pointer-events-none" />
         {overlays.hero && (
@@ -33,7 +33,9 @@ export default async function Home() {
 
         <div className="relative z-10 text-center text-white space-y-8 animate-fade-in-up px-6 pt-20">
           <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight drop-shadow-lg">
-            {wedding.couple.names}
+            {wedding.couple.names.split(" & ")[0]}{" "}
+            <span className="font-amp normal-case">&amp;</span>{" "}
+            {wedding.couple.names.split(" & ")[1]}
           </h1>
           <div className="space-y-2 uppercase tracking-[0.3em] text-sm md:text-base font-light text-white/90 drop-shadow-md">
             <p>{wedding.date.dayOfWeek}, {wedding.date.display}</p>

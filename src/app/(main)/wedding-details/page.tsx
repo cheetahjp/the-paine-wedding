@@ -1,10 +1,12 @@
 import React from "react";
 import Section from "@/components/ui/Section";
-import { MapPin, Shirt, CalendarHeart, Info } from "lucide-react";
+import { MapPin, Shirt, CalendarHeart, Info, UtensilsCrossed } from "lucide-react";
 import { getWeddingData } from "@/lib/site-settings";
 import Link from "next/link";
+import { requirePageVisible } from "@/lib/page-visibility";
 
 export default async function WeddingDetails() {
+    await requirePageVisible("wedding-details");
     const { wedding } = await getWeddingData();
 
     const details = [
@@ -127,6 +129,35 @@ export default async function WeddingDetails() {
             ),
         },
         {
+            title: "Food & Drinks",
+            icon: UtensilsCrossed,
+            content: (
+                <>
+                    <p className="font-medium text-lg mb-2">Catered by Urban Crust</p>
+                    <p className="text-sm mb-3">
+                        Dinner will be wood-fired pizza from{" "}
+                        <a
+                            href="https://www.urbancrust.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-4 text-primary/70 hover:text-primary transition-colors"
+                        >
+                            Urban Crust
+                        </a>
+                        , one of DFW&apos;s favorite artisan pizzerias.
+                    </p>
+                    {/* Pizza options will be listed here — coming soon */}
+                    <div className="mt-3 space-y-1.5 text-sm text-left">
+                        <p className="text-xs uppercase tracking-widest text-text-secondary mb-2">Pizza Selection</p>
+                        <p className="text-text-secondary italic text-xs">Details coming soon — stay tuned!</p>
+                    </div>
+                    <p className="mt-4 text-sm">
+                        We&apos;ll also have a beer &amp; wine open bar. Please do not bring outside alcohol per our venue&apos;s policy.
+                    </p>
+                </>
+            ),
+        },
+        {
             title: "Day Of",
             icon: Info,
             content: (
@@ -167,7 +198,7 @@ export default async function WeddingDetails() {
             </Section>
 
             <Section background="base" className="pt-0 -mt-24">
-                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {details.map((detail, idx) => {
                         const Icon = detail.icon;
                         return (

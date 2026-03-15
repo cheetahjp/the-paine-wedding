@@ -17,6 +17,14 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "The Paine Wedding",
   description: "Ashlyn & Jeffrey — September 26, 2026",
+  icons: {
+    icon: [
+      { url: "/A&J_Box.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: ["/A&J_Box.svg"],
+    apple: ["/A&J_Box.svg"],
+  },
 };
 
 export default function RootLayout({

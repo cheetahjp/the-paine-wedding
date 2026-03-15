@@ -34,7 +34,7 @@ export function PersonPortrait({
     return (
         <div className="group text-center">
             <div
-                className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-sm shadow-sm"
+                className="relative aspect-[3/4] w-full mb-6 overflow-hidden rounded-[1.7rem] border border-primary/10 shadow-[0_20px_44px_rgba(20,42,68,0.09)]"
                 data-admin-key={adminKey}
                 data-admin-type="image"
                 data-admin-current-url={safeSrc}

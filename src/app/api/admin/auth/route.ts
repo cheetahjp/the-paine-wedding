@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import {
-    ADMIN_SESSION_COOKIE,
     ADMIN_SESSION_MAX_AGE,
     createAdminSessionToken,
+    getAdminSessionCookieBaseOptions,
+    getAdminSessionCookieDomain,
 } from "@/lib/admin/session";
 
 // Passwords are stored server-side in environment variables.
@@ -45,12 +46,14 @@ export async function POST(request: NextRequest) {
 
         const response = NextResponse.json({ role }, { status: 200 });
         response.cookies.set({
-            name: ADMIN_SESSION_COOKIE,
+            ...getAdminSessionCookieBaseOptions(),
+            value: "",
+            maxAge: 0,
+        });
+        response.cookies.set({
+            ...getAdminSessionCookieBaseOptions(),
             value: createAdminSessionToken(role),
-            httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-            path: "/",
+            domain: getAdminSessionCookieDomain(),
             maxAge: ADMIN_SESSION_MAX_AGE,
         });
 

@@ -3,10 +3,20 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ADMIN_SESSION_EVENT, emitAdminSessionChange } from "@/components/admin/useAdminSession";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type EditableType = "image" | "text" | "rich-text" | "image-indexed";
+
+type RectSnapshot = {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    right: number;
+    bottom: number;
+};
 
 type ImageOverlay = {
     color: string;
@@ -136,7 +146,28 @@ const EDIT_CSS = `
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  html.admin-edit-active [data-admin-selected="true"] {
+    outline: 3px solid rgba(251, 191, 36, 1) !important;
+    outline-offset: 4px !important;
+    box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.18) !important;
+  }
 `;
+
+function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function snapshotRect(element: HTMLElement): RectSnapshot {
+    const rect = element.getBoundingClientRect();
+    return {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        right: rect.right,
+        bottom: rect.bottom,
+    };
+}
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
@@ -226,35 +257,6 @@ async function apiUploadImage(file: File | Blob, filename?: string): Promise<str
     }
     const { url } = (await r.json()) as { url: string };
     return url;
-}
-
-// ─── Canvas-based crop helper ────────────────────────────────────────────────
-
-async function cropImageBlob(
-    sourceUrl: string,
-    cropPct: { x: number; y: number; w: number; h: number }
-): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => {
-            const sx = Math.round(img.naturalWidth * cropPct.x);
-            const sy = Math.round(img.naturalHeight * cropPct.y);
-            const sw = Math.round(img.naturalWidth * cropPct.w);
-            const sh = Math.round(img.naturalHeight * cropPct.h);
-            const canvas = document.createElement("canvas");
-            canvas.width = sw;
-            canvas.height = sh;
-            const ctx = canvas.getContext("2d")!;
-            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-            canvas.toBlob((blob) => {
-                if (blob) resolve(blob);
-                else reject(new Error("Canvas toBlob failed"));
-            }, "image/jpeg", 0.92);
-        };
-        img.onerror = () => reject(new Error("Image load failed — try a direct URL or upload the image first"));
-        img.src = sourceUrl;
-    });
 }
 
 // ─── SmartCropTool ─────────────────────────────────────────────────────────────
@@ -467,14 +469,14 @@ function SmartCropTool({
 
 // ─── RichTextToolbar ──────────────────────────────────────────────────────────
 
-
 function RichTextToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElement | null> }) {
     const exec = (cmd: string, value?: string) => {
         editorRef.current?.focus();
         document.execCommand(cmd, false, value);
     };
+
     return (
-        <div className="flex flex-wrap gap-1 p-1.5 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex flex-wrap gap-1.5 rounded-2xl border border-primary/10 bg-[#f8f4ec] p-2">
             {[
                 { label: "B", title: "Bold", cmd: "bold", style: "font-bold" },
                 { label: "I", title: "Italic", cmd: "italic", style: "italic" },
@@ -484,18 +486,17 @@ function RichTextToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElem
                     key={cmd}
                     title={title}
                     onMouseDown={(e) => { e.preventDefault(); exec(cmd); }}
-                    className={`px-2.5 py-1 rounded text-xs ${style} bg-white hover:bg-gray-100 border border-gray-200 transition-colors`}
+                    className={`rounded-full border border-primary/10 bg-white px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/5 ${style}`}
                 >
                     {label}
                 </button>
             ))}
-            <div className="w-px bg-gray-200 mx-0.5" />
             <button
                 title="Bulleted List"
                 onMouseDown={(e) => { e.preventDefault(); exec("insertUnorderedList"); }}
-                className="px-2.5 py-1 rounded text-xs bg-white hover:bg-gray-100 border border-gray-200 transition-colors"
+                className="rounded-full border border-primary/10 bg-white px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/5"
             >
-                ≡
+                List
             </button>
             <button
                 title="Link"
@@ -504,37 +505,73 @@ function RichTextToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElem
                     const url = window.prompt("Enter URL:", "https://");
                     if (url) exec("createLink", url);
                 }}
-                className="px-2.5 py-1 rounded text-xs bg-white hover:bg-gray-100 border border-gray-200 transition-colors"
+                className="rounded-full border border-primary/10 bg-white px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/5"
             >
-                🔗
+                Link
             </button>
             <button
                 title="Clear Formatting"
                 onMouseDown={(e) => { e.preventDefault(); exec("removeFormat"); }}
-                className="px-2.5 py-1 rounded text-xs bg-white hover:bg-gray-100 border border-gray-200 transition-colors"
+                className="rounded-full border border-primary/10 bg-white px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/5"
             >
-                ✕
+                Clear
             </button>
         </div>
     );
 }
 
-// ─── ImageEditPanel ───────────────────────────────────────────────────────────
+function SelectionShell({
+    rect,
+    mode,
+    children,
+}: {
+    rect: RectSnapshot;
+    mode: "text" | "image";
+    children: React.ReactNode;
+}) {
+    const isText = mode === "text";
+    const width = isText
+        ? clamp(Math.max(rect.width, 360), 360, Math.min(window.innerWidth - 32, 860))
+        : clamp(Math.max(rect.width, 460), 460, Math.min(window.innerWidth - 32, 760));
+    const maxHeight = isText ? window.innerHeight - 110 : window.innerHeight - 120;
+    const left = clamp(isText ? rect.left - 8 : rect.left + rect.width / 2 - width / 2, 16, window.innerWidth - width - 16);
+    const estimatedHeight = isText ? Math.min(Math.max(rect.height + 38, 220), maxHeight) : Math.min(520, maxHeight);
+    const preferBelow = !isText && rect.bottom + estimatedHeight + 20 < window.innerHeight;
+    const top = isText
+        ? clamp(rect.top - 8, 72, Math.max(72, window.innerHeight - estimatedHeight - 16))
+        : preferBelow
+            ? rect.bottom + 14
+            : clamp(rect.top - estimatedHeight - 14, 72, Math.max(72, window.innerHeight - estimatedHeight - 16));
+
+    return (
+        <div
+            className="fixed z-[9999] rounded-[1.75rem] border border-primary/12 bg-[linear-gradient(180deg,#fffdfa_0%,#f7f1e8_100%)] shadow-[0_28px_80px_rgba(20,42,68,0.24)]"
+            style={{
+                left,
+                top,
+                width,
+                maxHeight,
+            }}
+        >
+            {children}
+        </div>
+    );
+}
 
 function ImageEditPanel({
     state,
+    rect,
     settings,
     onClose,
 }: {
     state: ImagePanelState;
+    rect: RectSnapshot;
     settings: Record<string, unknown>;
     onClose: () => void;
 }) {
     const [url, setUrl] = useState(state.currentUrl);
     const [hasOverlay, setHasOverlay] = useState(!!state.currentOverlay);
-    const [overlay, setOverlay] = useState<ImageOverlay>(
-        state.currentOverlay ?? { color: "#0f2439", opacity: 0.2 }
-    );
+    const [overlay, setOverlay] = useState<ImageOverlay>(state.currentOverlay ?? { color: "#0f2439", opacity: 0.2 });
     const [uploading, setUploading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -577,13 +614,8 @@ function ImageEditPanel({
             const key = state.key;
             if (key === "images.hero") {
                 const current = (settings[key] as ImageSettingValue) ?? {};
-                await apiSaveSetting(key, {
-                    ...current,
-                    main: url,
-                    overlay: hasOverlay ? overlay : null,
-                });
+                await apiSaveSetting(key, { ...current, main: url, overlay: hasOverlay ? overlay : null });
             } else if (key.startsWith("images.attire.")) {
-                // indexed attire image key
                 await apiSaveSetting(key, { src: url, overlay: hasOverlay ? overlay : null });
             } else if (key.startsWith("story.item.") && key.endsWith(".image")) {
                 const current = (settings[key] as ImageSettingValue) ?? {};
@@ -601,7 +633,7 @@ function ImageEditPanel({
     };
 
     const handleRestore = async () => {
-        if (!confirm("Restore the original image for this section? Your uploaded version will be removed.")) return;
+        if (!confirm("Restore the original image for this section?")) return;
         setSaving(true);
         setError(null);
         try {
@@ -614,160 +646,160 @@ function ImageEditPanel({
     };
 
     if (showCrop && croppingUrl) {
-        return <SmartCropTool imageUrl={croppingUrl} adminKey={state.key} onCrop={handleCrop} onCancel={() => setShowCrop(false)} />;
+        return (
+            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-primary/35 p-6 backdrop-blur-sm">
+                <div className="w-full max-w-[420px] rounded-[1.75rem] border border-primary/12 bg-white p-5 shadow-[0_28px_80px_rgba(20,42,68,0.28)]">
+                    <SmartCropTool imageUrl={croppingUrl} adminKey={state.key} onCrop={handleCrop} onCancel={() => setShowCrop(false)} />
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="space-y-5">
-            {/* Preview */}
-            <div className="relative rounded-lg overflow-hidden bg-gray-100 aspect-video">
-                {url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                        No image
+        <SelectionShell rect={rect} mode="image">
+            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-5">
+                <div className="mb-4 flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-accent">Image Editor</p>
+                        <h2 className="mt-2 text-base font-semibold text-primary">{state.label}</h2>
+                        <p className="mt-1 text-[11px] font-mono text-text-secondary">{state.key}</p>
                     </div>
-                )}
-                {hasOverlay && overlay.opacity > 0 && (
-                    <div
-                        className="absolute inset-0 pointer-events-none rounded-lg"
-                        style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
-                    />
-                )}
-            </div>
+                    <button
+                        onClick={onClose}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-white text-lg leading-none text-text-secondary transition-colors hover:bg-primary/5 hover:text-primary"
+                    >
+                        ×
+                    </button>
+                </div>
 
-            {/* Action buttons */}
-            <div className="grid grid-cols-2 gap-2">
-                <button
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="py-2.5 px-3 bg-amber-400 hover:bg-amber-500 disabled:opacity-50 text-gray-900 rounded-lg text-xs font-semibold transition-colors"
-                >
-                    {uploading ? "Uploading…" : "↑ Upload Photo"}
-                </button>
-                <button
-                    onClick={() => { setCroppingUrl(url); setShowCrop(true); }}
-                    disabled={!url || uploading}
-                    className="py-2.5 px-3 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-colors"
-                >
-                    ✂ Crop Image
-                </button>
-            </div>
-            <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void handleFile(f);
-                }}
-            />
+                <div className="relative overflow-hidden rounded-[1.25rem] border border-primary/10 bg-[#eef2f6]" style={{ minHeight: Math.max(220, Math.min(rect.height * 1.1, 320)) }}>
+                    {url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={url} alt="Preview" className="h-full w-full object-cover" />
+                    ) : (
+                        <div className="flex h-full min-h-[220px] items-center justify-center text-sm text-text-secondary">
+                            No image selected
+                        </div>
+                    )}
+                    {hasOverlay && overlay.opacity > 0 ? (
+                        <div
+                            className="pointer-events-none absolute inset-0"
+                            style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
+                        />
+                    ) : null}
+                </div>
 
-            {/* URL override */}
-            <div>
-                <label className="block text-xs text-gray-500 mb-1">Or paste an image URL</label>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <button
+                        onClick={() => fileRef.current?.click()}
+                        disabled={uploading}
+                        className="rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-accent/85 disabled:opacity-50"
+                    >
+                        {uploading ? "Uploading…" : "Upload"}
+                    </button>
+                    <button
+                        onClick={() => { setCroppingUrl(url); setShowCrop(true); }}
+                        disabled={!url || uploading}
+                        className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/5 disabled:opacity-40"
+                    >
+                        Crop
+                    </button>
+                    <button
+                        onClick={() => void handleRestore()}
+                        disabled={saving}
+                        className="rounded-full border border-secondary/20 bg-secondary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-secondary transition-colors hover:bg-secondary/10 disabled:opacity-40"
+                    >
+                        Restore Default
+                    </button>
+                </div>
+
                 <input
-                    type="url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                    placeholder="https://..."
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleFile(file);
+                    }}
                 />
-            </div>
 
-            {/* Overlay controls */}
-            <div className="space-y-3 border-t border-gray-100 pt-4">
-                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-gray-700">
-                    <input
-                        type="checkbox"
-                        checked={hasOverlay}
-                        onChange={(e) => setHasOverlay(e.target.checked)}
-                        className="w-4 h-4 rounded accent-amber-400"
-                    />
-                    Color Overlay
-                </label>
-                {hasOverlay && (
-                    <div className="pl-6 space-y-3">
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-500 w-14">Color</span>
-                            <input
-                                type="color"
-                                value={overlay.color}
-                                onChange={(e) =>
-                                    setOverlay((o) => ({ ...o, color: e.target.value }))
-                                }
-                                className="h-8 w-12 rounded cursor-pointer border border-gray-200"
-                            />
-                            <span className="text-xs font-mono text-gray-400">{overlay.color}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-500 w-14">Opacity</span>
-                            <input
-                                type="range"
-                                min={0}
-                                max={1}
-                                step={0.05}
-                                value={overlay.opacity}
-                                onChange={(e) =>
-                                    setOverlay((o) => ({ ...o, opacity: +e.target.value }))
-                                }
-                                className="flex-1 accent-amber-400"
-                            />
-                            <span className="text-xs text-gray-400 w-8 text-right">
-                                {Math.round(overlay.opacity * 100)}%
-                            </span>
-                        </div>
-                        {/* Live preview swatch */}
-                        <div className="flex items-center gap-2">
-                            <div
-                                className="h-6 flex-1 rounded"
-                                style={{ background: overlay.color, opacity: overlay.opacity }}
-                            />
-                            <span className="text-xs text-gray-400">Preview tint</span>
-                        </div>
+                <div className="mt-4 space-y-4 rounded-[1.25rem] border border-primary/10 bg-white/80 p-4">
+                    <div>
+                        <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-text-secondary">Image URL</label>
+                        <input
+                            type="url"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            placeholder="https://..."
+                            className="w-full rounded-xl border border-primary/12 bg-white px-3 py-2.5 text-xs font-mono text-primary outline-none transition-colors focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
+                        />
                     </div>
-                )}
-            </div>
 
-            {error && (
-                <p className="text-xs text-red-600 bg-red-50 rounded-lg p-2">{error}</p>
-            )}
+                    <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-primary">
+                            <input
+                                type="checkbox"
+                                checked={hasOverlay}
+                                onChange={(e) => setHasOverlay(e.target.checked)}
+                                className="h-4 w-4 rounded accent-accent"
+                            />
+                            Overlay controls
+                        </label>
+                        {hasOverlay ? (
+                            <div className="grid gap-3 md:grid-cols-[auto_1fr_auto] md:items-center">
+                                <input
+                                    type="color"
+                                    value={overlay.color}
+                                    onChange={(e) => setOverlay((current) => ({ ...current, color: e.target.value }))}
+                                    className="h-10 w-14 rounded-lg border border-primary/12 bg-white"
+                                />
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={1}
+                                    step={0.05}
+                                    value={overlay.opacity}
+                                    onChange={(e) => setOverlay((current) => ({ ...current, opacity: +e.target.value }))}
+                                    className="w-full accent-accent"
+                                />
+                                <span className="text-xs text-text-secondary">{Math.round(overlay.opacity * 100)}%</span>
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
 
-            <div className="flex gap-2 pt-1 flex-wrap">
-                <button
-                    onClick={onClose}
-                    className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={() => void handleSave()}
-                    disabled={saving || uploading}
-                    className="flex-1 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
-                >
-                    {saving ? "Saving…" : "Save Changes"}
-                </button>
+                {error ? (
+                    <p className="mt-4 rounded-xl bg-secondary/8 px-3 py-2 text-xs text-secondary">{error}</p>
+                ) : null}
+
+                <div className="mt-5 flex flex-wrap gap-3 border-t border-primary/10 pt-4">
+                    <button
+                        onClick={onClose}
+                        className="rounded-full border border-primary/12 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/5"
+                    >
+                        Close
+                    </button>
+                    <button
+                        onClick={() => void handleSave()}
+                        disabled={saving || uploading}
+                        className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+                    >
+                        {saving ? "Saving…" : "Save Changes"}
+                    </button>
+                </div>
             </div>
-            <button
-                onClick={() => void handleRestore()}
-                disabled={saving}
-                className="w-full py-1.5 rounded-lg text-xs text-gray-400 hover:text-red-500 transition-colors"
-            >
-                ↺ Restore original
-            </button>
-        </div>
+        </SelectionShell>
     );
 }
 
-// ─── TextEditPanel ────────────────────────────────────────────────────────────
-
 function TextEditPanel({
     state,
+    rect,
     onClose,
 }: {
     state: TextPanelState;
+    rect: RectSnapshot;
     onClose: () => void;
 }) {
     const [richMode, setRichMode] = useState(state.richText);
@@ -776,7 +808,13 @@ function TextEditPanel({
     const [error, setError] = useState<string | null>(null);
     const editorRef = useRef<HTMLDivElement | null>(null);
 
-    // Sync plain text ↔ rich content
+    useEffect(() => {
+        if (richMode && editorRef.current) {
+            editorRef.current.innerHTML = state.currentText;
+            editorRef.current.focus();
+        }
+    }, [richMode, state.currentText]);
+
     const getRichContent = () => editorRef.current?.innerHTML ?? text;
 
     const handleSave = async () => {
@@ -795,6 +833,7 @@ function TextEditPanel({
     const handleRestore = async () => {
         if (!confirm("Restore the original text for this field?")) return;
         setSaving(true);
+        setError(null);
         try {
             await apiDeleteSetting(state.key);
             window.location.reload();
@@ -805,140 +844,90 @@ function TextEditPanel({
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-400 leading-relaxed">
-                    Edit the text below and save.
-                </p>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-500">
-                    <input
-                        type="checkbox"
-                        checked={richMode}
-                        onChange={(e) => {
-                            if (e.target.checked && editorRef.current) {
-                                editorRef.current.innerHTML = text;
-                            } else if (!e.target.checked && editorRef.current) {
-                                setText(editorRef.current.innerText);
-                            }
-                            setRichMode(e.target.checked);
-                        }}
-                        className="w-3.5 h-3.5 accent-amber-400"
-                    />
-                    Rich text
-                </label>
-            </div>
-
-            {richMode ? (
-                <div className="space-y-1">
-                    <RichTextToolbar editorRef={editorRef} />
-                    <div
-                        ref={editorRef}
-                        contentEditable
-                        suppressContentEditableWarning
-                        // eslint-disable-next-line jsx-a11y/no-autofocus
-                        autoFocus
-                        dangerouslySetInnerHTML={{ __html: state.currentText }}
-                        className="w-full min-h-[140px] border border-gray-200 rounded-lg p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent overflow-y-auto"
-                        style={{ maxHeight: 260 }}
-                    />
-                </div>
-            ) : (
-                <textarea
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    rows={8}
-                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                    autoFocus
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                />
-            )}
-
-            {error && (
-                <p className="text-xs text-red-600 bg-red-50 rounded-lg p-2">{error}</p>
-            )}
-            <div className="flex gap-2">
-                <button
-                    onClick={onClose}
-                    className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={() => void handleSave()}
-                    disabled={saving}
-                    className="flex-1 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
-                >
-                    {saving ? "Saving…" : "Save Changes"}
-                </button>
-            </div>
-            <button
-                onClick={() => void handleRestore()}
-                disabled={saving}
-                className="w-full py-1.5 rounded-lg text-xs text-gray-400 hover:text-red-500 transition-colors"
-            >
-                ↺ Restore original
-            </button>
-        </div>
-    );
-}
-
-// ─── EditDrawer (right-side slide panel) ─────────────────────────────────────
-
-function EditDrawer({
-    panel,
-    settings,
-    onClose,
-}: {
-    panel: Exclude<PanelState, { mode: "closed" }>;
-    settings: Record<string, unknown>;
-    onClose: () => void;
-}) {
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose();
-        };
-        document.addEventListener("keydown", handler);
-        return () => document.removeEventListener("keydown", handler);
-    }, [onClose]);
-
-    const title = panel.mode === "image" ? "Edit Image" : "Edit Text";
-    const label = (panel as ImagePanelState | TextPanelState).label ?? panel.key;
-
-    return (
-        <>
-            {/* Scrim */}
-            <div
-                className="fixed inset-0 bg-black/20 z-[9998]"
-                onClick={onClose}
-            />
-            {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-[340px] bg-white shadow-2xl z-[9999] flex flex-col">
-                {/* Header */}
-                <div className="flex items-start justify-between p-5 border-b border-gray-100 shrink-0">
+        <SelectionShell rect={rect} mode="text">
+            <div className="flex max-h-[calc(100vh-7rem)] flex-col p-4">
+                <div className="mb-3 flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-                        <p className="text-xs text-amber-600 font-medium mt-0.5 truncate">{label}</p>
-                        <p className="text-[10px] font-mono text-gray-300 mt-0.5 truncate">{panel.key}</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-accent">Inline Text Editor</p>
+                        <h2 className="mt-2 text-base font-semibold text-primary">{state.label}</h2>
+                        <p className="mt-1 text-[11px] font-mono text-text-secondary">{state.key}</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="ml-3 shrink-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-lg leading-none transition-colors"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-white text-lg leading-none text-text-secondary transition-colors hover:bg-primary/5 hover:text-primary"
                     >
                         ×
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-5">
-                    {panel.mode === "image" && (
-                        <ImageEditPanel state={panel} settings={settings} onClose={onClose} />
-                    )}
-                    {panel.mode === "text" && (
-                        <TextEditPanel state={panel} onClose={onClose} />
+                <div className="mb-3 flex items-center justify-between gap-4">
+                    <p className="text-xs text-text-secondary">
+                        Editing directly over the selected content instead of using the side drawer.
+                    </p>
+                    <label className="flex items-center gap-2 text-xs text-text-secondary">
+                        <input
+                            type="checkbox"
+                            checked={richMode}
+                            onChange={(e) => {
+                                if (!e.target.checked && editorRef.current) {
+                                    setText(editorRef.current.innerText);
+                                }
+                                setRichMode(e.target.checked);
+                            }}
+                            className="h-4 w-4 accent-accent"
+                        />
+                        Rich text
+                    </label>
+                </div>
+
+                {richMode ? <RichTextToolbar editorRef={editorRef} /> : null}
+
+                <div className="mt-3 flex-1 overflow-hidden">
+                    {richMode ? (
+                        <div
+                            ref={editorRef}
+                            contentEditable
+                            suppressContentEditableWarning
+                            className="h-full min-h-[200px] overflow-y-auto rounded-[1.35rem] border border-primary/12 bg-white px-4 py-4 text-sm leading-relaxed text-primary outline-none focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
+                            dangerouslySetInnerHTML={{ __html: state.currentText }}
+                        />
+                    ) : (
+                        <textarea
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            className="h-full min-h-[200px] w-full resize-none rounded-[1.35rem] border border-primary/12 bg-white px-4 py-4 text-sm leading-relaxed text-primary outline-none focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
+                        />
                     )}
                 </div>
+
+                {error ? (
+                    <p className="mt-3 rounded-xl bg-secondary/8 px-3 py-2 text-xs text-secondary">{error}</p>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-3 border-t border-primary/10 pt-4">
+                    <button
+                        onClick={onClose}
+                        className="rounded-full border border-primary/12 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/5"
+                    >
+                        Close
+                    </button>
+                    <button
+                        onClick={() => void handleRestore()}
+                        disabled={saving}
+                        className="rounded-full border border-secondary/20 bg-secondary/5 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-secondary transition-colors hover:bg-secondary/10 disabled:opacity-50"
+                    >
+                        Restore Default
+                    </button>
+                    <button
+                        onClick={() => void handleSave()}
+                        disabled={saving}
+                        className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+                    >
+                        {saving ? "Saving…" : "Save Changes"}
+                    </button>
+                </div>
             </div>
-        </>
+        </SelectionShell>
     );
 }
 
@@ -1002,34 +991,77 @@ export default function AdminEditBar() {
     const [role, setRole] = useState<string | null>(null);
     const [sessionLoading, setSessionLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
     const [panel, setPanel] = useState<PanelState>({ mode: "closed" });
     const [settings, setSettings] = useState<Record<string, unknown>>({});
+    const [selectionRect, setSelectionRect] = useState<RectSnapshot | null>(null);
+    const selectedElementRef = useRef<HTMLElement | null>(null);
+    const editorRef = useRef<HTMLDivElement | null>(null);
+    const toolbarRef = useRef<HTMLDivElement | null>(null);
 
     const pathname = usePathname();
+
+    const syncSession = useCallback(async () => {
+        try {
+            const response = await fetch("/api/admin/session", {
+                method: "GET",
+                cache: "no-store",
+                credentials: "same-origin",
+            });
+
+            if (!response.ok) {
+                setRole(null);
+                setEditMode(false);
+                return;
+            }
+
+            const data = (await response.json()) as { role?: string };
+            setRole(data.role ?? null);
+        } catch {
+            setRole(null);
+            setEditMode(false);
+        } finally {
+            setSessionLoading(false);
+        }
+    }, []);
 
     // Re-check session whenever the route changes.
     // usePathname() from next/navigation updates correctly on every soft navigation
     // without MutationObserver hacks or stale closures.
     useEffect(() => {
         let cancelled = false;
-        setSessionLoading(true);
 
-        fetch("/api/admin/session", { cache: "no-store" })
-            .then(async (r) => {
+        void (async () => {
+            try {
+                const response = await fetch("/api/admin/session", {
+                    cache: "no-store",
+                    credentials: "same-origin",
+                });
+
                 if (cancelled) return;
-                if (r.ok) {
-                    const data = (await r.json()) as { role?: string };
-                    if (!cancelled) { setRole(data.role ?? null); }
-                } else {
-                    if (!cancelled) { setRole(null); setEditMode(false); }
+
+                if (response.ok) {
+                    const data = (await response.json()) as { role?: string };
+                    if (!cancelled) {
+                        setRole(data.role ?? null);
+                    }
+                } else if (!cancelled) {
+                    setRole(null);
+                    setEditMode(false);
                 }
-            })
-            .catch(() => { if (!cancelled) { setRole(null); setEditMode(false); } })
-            .finally(() => { if (!cancelled) setSessionLoading(false); });
+            } catch {
+                if (!cancelled) {
+                    setRole(null);
+                    setEditMode(false);
+                }
+            } finally {
+                if (!cancelled) setSessionLoading(false);
+            }
+        })();
 
         return () => { cancelled = true; };
     }, [pathname]);
-
 
     // 2. Inject edit-mode CSS once
     useEffect(() => {
@@ -1049,7 +1081,6 @@ export default function AdminEditBar() {
             void apiGetSettings().then(setSettings);
         } else {
             document.documentElement.classList.remove("admin-edit-active");
-            setPanel({ mode: "closed" });
         }
         return () => {
             document.documentElement.classList.remove("admin-edit-active");
@@ -1066,6 +1097,69 @@ export default function AdminEditBar() {
         return () => { document.body.style.paddingTop = ""; };
     }, [editMode]);
 
+    const clearSelectedElement = useCallback(() => {
+        if (selectedElementRef.current) {
+            delete selectedElementRef.current.dataset.adminSelected;
+        }
+        selectedElementRef.current = null;
+        setSelectionRect(null);
+    }, []);
+
+    const refreshSelectionRect = useCallback(() => {
+        if (!selectedElementRef.current) return;
+        setSelectionRect(snapshotRect(selectedElementRef.current));
+    }, []);
+
+    const closeAdminChrome = useCallback(() => {
+        setSettingsOpen(false);
+        setEditMode(false);
+        setPanel({ mode: "closed" });
+        clearSelectedElement();
+    }, [clearSelectedElement]);
+
+    useEffect(() => {
+        const handleSessionChange = (event: Event) => {
+            const customEvent = event as CustomEvent<{ role: string; status: "authenticated" | "unauthenticated" }>;
+            if (customEvent.detail.status === "authenticated") {
+                setRole(customEvent.detail.role || null);
+                setSessionLoading(false);
+                return;
+            }
+
+            closeAdminChrome();
+            setRole(null);
+            setSessionLoading(false);
+        };
+
+        const handleWindowFocus = () => {
+            void syncSession();
+        };
+
+        window.addEventListener(ADMIN_SESSION_EVENT, handleSessionChange as EventListener);
+        window.addEventListener("focus", handleWindowFocus);
+
+        return () => {
+            window.removeEventListener(ADMIN_SESSION_EVENT, handleSessionChange as EventListener);
+            window.removeEventListener("focus", handleWindowFocus);
+        };
+    }, [closeAdminChrome, syncSession]);
+
+    const handleLogout = useCallback(async () => {
+        setLoggingOut(true);
+        try {
+            await fetch("/api/admin/session", {
+                method: "DELETE",
+                credentials: "same-origin",
+            });
+        } finally {
+            closeAdminChrome();
+            setRole(null);
+            setSessionLoading(false);
+            emitAdminSessionChange({ role: "", status: "unauthenticated" });
+            setLoggingOut(false);
+        }
+    }, [closeAdminChrome]);
+
     // 5. Capture-phase click handler — intercepts clicks on [data-admin-key] elements
     const handleClick = useCallback((e: MouseEvent) => {
         const target = e.target as HTMLElement;
@@ -1078,6 +1172,12 @@ export default function AdminEditBar() {
         const key = editable.dataset.adminKey!;
         const type = (editable.dataset.adminType as EditableType) ?? "text";
         const label = labelForKey(key);
+        if (selectedElementRef.current && selectedElementRef.current !== editable) {
+            delete selectedElementRef.current.dataset.adminSelected;
+        }
+        editable.dataset.adminSelected = "true";
+        selectedElementRef.current = editable;
+        setSelectionRect(snapshotRect(editable));
 
         if (type === "image" || type === "image-indexed") {
             const currentUrl =
@@ -1106,6 +1206,66 @@ export default function AdminEditBar() {
         return () => document.removeEventListener("click", handleClick, true);
     }, [editMode, handleClick]);
 
+    useEffect(() => {
+        if (!editMode || panel.mode === "closed") return;
+
+        const onWindowChange = () => refreshSelectionRect();
+        const onPointerDown = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (target.closest("[data-admin-key]")) return;
+            if (editorRef.current?.contains(target)) return;
+            setPanel({ mode: "closed" });
+            clearSelectedElement();
+        };
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            setPanel({ mode: "closed" });
+            clearSelectedElement();
+        };
+
+        window.addEventListener("scroll", onWindowChange, true);
+        window.addEventListener("resize", onWindowChange);
+        document.addEventListener("mousedown", onPointerDown, true);
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            window.removeEventListener("scroll", onWindowChange, true);
+            window.removeEventListener("resize", onWindowChange);
+            document.removeEventListener("mousedown", onPointerDown, true);
+            document.removeEventListener("keydown", onKeyDown);
+        };
+    }, [clearSelectedElement, editMode, panel.mode, refreshSelectionRect]);
+
+    useEffect(() => {
+        const frame = window.requestAnimationFrame(() => {
+            clearSelectedElement();
+            setPanel({ mode: "closed" });
+        });
+        return () => window.cancelAnimationFrame(frame);
+    }, [clearSelectedElement, pathname]);
+
+    useEffect(() => {
+        if (!settingsOpen) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (toolbarRef.current?.contains(target)) return;
+            setSettingsOpen(false);
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setSettingsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown, true);
+        document.addEventListener("keydown", handleEscape);
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown, true);
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [settingsOpen]);
+
     // Don't render anything until session confirmed, and only for Master role
     if (sessionLoading || role !== "Master") return null;
 
@@ -1116,6 +1276,7 @@ export default function AdminEditBar() {
 
             {/* ── Floating admin toolbar ── */}
             <div
+                ref={toolbarRef}
                 className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9997] flex items-center gap-3 rounded-full px-5 py-2.5 shadow-2xl select-none pointer-events-auto"
                 style={{
                     background: "rgba(10,10,15,0.92)",
@@ -1142,7 +1303,16 @@ export default function AdminEditBar() {
 
                 {/* Edit mode toggle */}
                 <button
-                    onClick={() => setEditMode((v) => !v)}
+                    onClick={() => {
+                        setEditMode((current) => {
+                            const next = !current;
+                            if (!next) {
+                                clearSelectedElement();
+                                setPanel({ mode: "closed" });
+                            }
+                            return next;
+                        });
+                    }}
                     style={{
                         padding: "4px 14px",
                         borderRadius: "20px",
@@ -1174,16 +1344,113 @@ export default function AdminEditBar() {
                         </a>
                     </>
                 )}
+
+                <span style={{ width: 1, height: 16, background: "#374151", display: "inline-block" }} />
+
+                <button
+                    onClick={() => setSettingsOpen((current) => !current)}
+                    style={{
+                        padding: "4px 12px",
+                        borderRadius: "20px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        cursor: "pointer",
+                        transition: "background 0.15s, color 0.15s, border-color 0.15s",
+                        background: settingsOpen ? "#1f2937" : "transparent",
+                        color: "#d1d5db",
+                    }}
+                >
+                    Settings
+                </button>
+
+                {settingsOpen ? (
+                    <div
+                        className="absolute bottom-[calc(100%+12px)] right-0 min-w-[220px] rounded-3xl p-3 shadow-2xl"
+                        style={{
+                            background: "rgba(10,10,15,0.96)",
+                            backdropFilter: "blur(16px)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                    >
+                        <div style={{ padding: "6px 8px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                            <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", color: "#f9fafb", textTransform: "uppercase" }}>
+                                Admin Settings
+                            </div>
+                            <div style={{ marginTop: 4, fontSize: "11px", lineHeight: 1.45, color: "#9ca3af" }}>
+                                Turn editing off or sign out of admin mode from any page.
+                            </div>
+                        </div>
+
+                        <div style={{ display: "grid", gap: 8, paddingTop: 10 }}>
+                            <button
+                                onClick={() => {
+                                    closeAdminChrome();
+                                    setSettingsOpen(false);
+                                }}
+                                style={{
+                                    width: "100%",
+                                    borderRadius: 16,
+                                    border: "1px solid rgba(255,255,255,0.08)",
+                                    background: "#111827",
+                                    color: "#f3f4f6",
+                                    padding: "10px 12px",
+                                    textAlign: "left",
+                                    cursor: "pointer",
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Exit editing on this page
+                            </button>
+
+                            <button
+                                onClick={() => void handleLogout()}
+                                disabled={loggingOut}
+                                style={{
+                                    width: "100%",
+                                    borderRadius: 16,
+                                    border: "1px solid rgba(248,113,113,0.25)",
+                                    background: loggingOut ? "#3f3f46" : "#7f1d1d",
+                                    color: "#fef2f2",
+                                    padding: "10px 12px",
+                                    textAlign: "left",
+                                    cursor: loggingOut ? "wait" : "pointer",
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {loggingOut ? "Signing out..." : "Log out of admin mode"}
+                            </button>
+                        </div>
+                    </div>
+                ) : null}
             </div>
 
-            {/* ── Edit drawer ── */}
-            {panel.mode !== "closed" && (
-                <EditDrawer
-                    panel={panel}
-                    settings={settings}
-                    onClose={() => setPanel({ mode: "closed" })}
-                />
-            )}
+            {panel.mode !== "closed" && selectionRect ? (
+                <div ref={editorRef}>
+                    {panel.mode === "image" ? (
+                        <ImageEditPanel
+                            state={panel}
+                            rect={selectionRect}
+                            settings={settings}
+                            onClose={() => {
+                                setPanel({ mode: "closed" });
+                                clearSelectedElement();
+                            }}
+                        />
+                    ) : (
+                        <TextEditPanel
+                            state={panel}
+                            rect={selectionRect}
+                            onClose={() => {
+                                setPanel({ mode: "closed" });
+                                clearSelectedElement();
+                            }}
+                        />
+                    )}
+                </div>
+            ) : null}
         </>
     );
 }

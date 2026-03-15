@@ -95,9 +95,9 @@ export const WEDDING = {
     summary:
       'Both the ceremony and reception are indoors. Come dressed up and ready to celebrate — see the Attire page for full guidance.',
     ladies:
-      'Think cocktail dresses, midi dresses, or a dressy jumpsuit — any color is welcome. The ceremony and reception are both indoors, but late September in Texas can still be warm, so lighter fabrics are a great choice. Please avoid casual or beachwear. Jeans are okay if they have no holes and you pair them with something polished!',
+      'The inspiration leans polished and feminine: satin slip dresses, soft florals, elevated midi lengths, sculptural necklines, and heels or refined flats. Color is welcome, especially warm neutrals, dusty blues, sage, and rich floral tones. Aim for dressy and tailored rather than casual.',
     gentlemen:
-      'Dress pants with a button-down or blazer are perfect. A suit and tie is absolutely welcome but not required — just leave the shorts and casual wear at home. Come dressed up and ready to hit the dance floor!',
+      'The gentlemen’s mood is clean and tailored: classic suits, navy or charcoal separates, crisp dress shirts, ties optional, and polished shoes or dress boots. Think sharp reception-ready dressing — elevated, fitted, and comfortable enough for a long night on the dance floor.',
   },
 
   bridalParty: {
@@ -198,24 +198,88 @@ export const WEDDING = {
   // Example entry: { value: 'beef', label: 'Beef Tenderloin' }
   mealOptions: [] as Array<{ value: string; label: string }>,
 
-  // TODO: Replace with real hotels near Davis & Grey Farms / Celeste TX area
-  hotels: [] as Array<{
+  hotels: [
+    {
+      name: 'Holiday Inn Express & Suites Greenville',
+      distance: '~13 mi · ~19 min from venue',
+      description: 'Our top pick in Greenville — free hot breakfast, outdoor pool, fitness center, and free parking. Pet-friendly ($30/night fee). Standard kings from ~$104/night.',
+      address: '2901 Mustang Crossing, Greenville, TX 75402',
+      phone: '1-903-454-8680',
+      bookingUrl: 'https://www.ihg.com/holidayinnexpress/hotels/us/en/greenville/gvtxx/hoteldetail',
+      hub: 'Greenville',
+      badge: 'Closest & Recommended',
+    },
+    {
+      name: 'Hampton Inn & Suites Greenville',
+      distance: '~13 mi · ~19 min from venue',
+      description: 'Reliable Hilton brand in the Greenville hotel corridor. Free hot breakfast, free parking, pool, and Wi-Fi. Pet fee $75 (1–4 nights). Rates vary by date.',
+      address: '3001 Kari Lane, Greenville, TX 75402',
+      phone: '+1 903-457-9200',
+      bookingUrl: 'https://www.hilton.com/en/hotels/gevtxhx-hampton-suites-greenville/',
+      hub: 'Greenville',
+      badge: '',
+    },
+    {
+      name: 'Best Western Plus Monica Royale Inn & Suites',
+      distance: '~13 mi · ~19 min from venue',
+      description: 'Great value in Greenville with free breakfast, pool, hot tub, and fitness center. No pets allowed. Standard rooms from ~$97/night.',
+      address: '3001 Mustang Crossing Annex, Greenville, TX 75402',
+      phone: '(903) 454-3700',
+      bookingUrl: 'https://www.bestwestern.com/en_US/book/hotels-in-greenville/best-western-plus-monica-royale-inn-suites/propertyCode.44632.html',
+      hub: 'Greenville',
+      badge: '',
+    },
+    {
+      name: 'Sheraton McKinney Hotel',
+      distance: '~38 mi · ~51 min from venue',
+      description: 'Full-service hotel near McKinney\'s historic downtown. Outdoor pool, on-site dining, and complimentary parking. Pet-friendly (dogs/cats ≤50 lbs, $75 fee). Rooms from ~$103/night.',
+      address: '1900 Gateway Boulevard, McKinney, TX 75070',
+      phone: '+1 972-549-4000',
+      bookingUrl: 'https://www.marriott.com/en-us/hotels/dalks-sheraton-mckinney-hotel/overview/',
+      hub: 'McKinney',
+      badge: '',
+    },
+    {
+      name: 'The Neathery Estate Bed & Breakfast',
+      distance: '~38 mi · ~51 min from venue',
+      description: 'A charming boutique B&B in McKinney\'s historic downtown with 4 suites sleeping up to 13 guests. Perfect for VIPs or the wedding party who want a special stay together.',
+      address: '215 N Waddill St, McKinney, TX 75069',
+      phone: '(469) 343-8471',
+      bookingUrl: 'https://www.neatheryestate.com/',
+      hub: 'McKinney',
+      badge: 'Boutique Pick',
+    },
+    {
+      name: 'CottageKat — Farmersville Airbnb',
+      distance: '~10 mi · ~15 min from venue',
+      description: 'Entire cottage in historic Farmersville — the closest private rental to the venue. 2 bedrooms, 2 baths, sleeps up to 3 guests. Self check-in. Exact address provided after booking.',
+      address: 'Farmersville, TX (exact address after booking)',
+      phone: '',
+      bookingUrl: 'https://www.airbnb.com/rooms/36040258',
+      hub: 'Farmersville',
+      badge: 'Closest to Venue',
+    },
+  ] as Array<{
     name: string;
     distance: string;
     description: string;
+    address: string;
+    phone: string;
     bookingUrl: string;
+    hub: string;
+    badge: string;
   }>,
   registry: [
     {
       name: 'Amazon',
       description: 'Our full registry for the home.',
-      url: 'TODO', // TODO: paste Amazon registry URL here
+      url: 'https://www.amazon.com/wedding/share/ThePaineWedding',
       icon: 'gift' as const,
     },
     {
       name: 'Target',
       description: 'Our Target registry for home essentials.',
-      url: 'TODO', // TODO: paste Target registry URL here
+      url: 'https://www.target.com/gift-registry/gift/ThePaineWedding',
       icon: 'gift' as const,
     },
   ],
@@ -281,7 +345,7 @@ export const WEDDING = {
     },
     {
       year: 'October 2024',
-      title: 'Beach & Lake Days',
+      title: 'Days by the Water',
       description:
         'The last year and a half has been long distance, but Ashlyn lives thirty minutes from Galveston — which means plenty of beach days and trips to the lake in Dallas. Any excuse to be outside in the sun, they took it.',
       image: '/images/story/Lake.jpg',
@@ -290,7 +354,7 @@ export const WEDDING = {
     },
     {
       year: '2024',
-      title: 'New York City',
+      title: 'Their First Trip to New York',
       description:
         'They love to travel and experience new places together. Their first big trip was New York City — Ashlyn had never been. Jeffrey has traveled his whole life, but he says experiencing places with Ashlyn for the first time makes it feel brand new again.',
       image: '/images/story/NYC.jpg',
@@ -299,7 +363,7 @@ export const WEDDING = {
     },
     {
       year: '2025',
-      title: 'Hammocking',
+      title: 'Quiet Weekends Together',
       description:
         'Any weekend without plans, they head to the park with their hammocks. They read, talk about life, or just enjoy being outside together. It is one of their favorite simple things.',
       image: '/images/story/Hammock.jpg',
@@ -308,7 +372,7 @@ export const WEDDING = {
     },
     {
       year: '2025',
-      title: 'Photography',
+      title: 'Creating Together',
       description:
         'Jeffrey has done photography and videography for years, and Ashlyn shot photos in high school. They started getting asked to shoot proposals and weddings and discovered they make a great team — Jeffrey behind the camera, Ashlyn directing and posing clients. It has become a fun way to spend time together and be part of their friends\' biggest moments.',
       image: '/images/story/Photographers.jpg',
@@ -317,7 +381,7 @@ export const WEDDING = {
     },
     {
       year: '2025',
-      title: 'San Antonio',
+      title: 'An Anniversary Weekend',
       description:
         'To celebrate one year of dating, they headed to San Antonio for the weekend. They strolled the River Walk, tried new restaurants, and ended with a celebratory dinner at what Google called "the most romantic restaurant in Texas." They spent the evening reflecting on the year and talking through their favorite memories together.',
       image: '/images/story/San Antonio.jpg',
@@ -326,7 +390,7 @@ export const WEDDING = {
     },
     {
       year: '2025',
-      title: 'Fredericksburg',
+      title: 'A Hill Country Escape',
       description:
         'A first for both of them — they went on wine tours, learned how the wine is made, and explored the Hill Country together. Another trip, another set of memories.',
       image: '/images/story/Fredricksburg.jpg',
@@ -469,7 +533,7 @@ type WeddingConfig = {
     groomsmen: Array<{ name: string; role: string; relationship: string; image: string }>;
   };
   mealOptions: Array<{ value: string; label: string }>;
-  hotels: Array<{ name: string; distance: string; description: string; bookingUrl: string }>;
+  hotels: Array<{ name: string; distance: string; description: string; address: string; phone: string; bookingUrl: string; hub: string; badge: string }>;
   registry: Array<{ name: string; description: string; url: string; icon: 'gift' | 'heart' }>;
   faq: Array<{ q: string; a: string }>;
   story: Array<{

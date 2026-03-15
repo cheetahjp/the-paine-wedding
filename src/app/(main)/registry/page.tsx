@@ -1,6 +1,6 @@
 import React from "react";
 import Section from "@/components/ui/Section";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
 import { Gift, Heart } from "lucide-react";
 import { getWeddingData } from "@/lib/site-settings";
 
@@ -14,7 +14,7 @@ export default async function Registry() {
 
     return (
         <div>
-            <Section className="text-center pb-12">
+            <Section background="surface" className="text-center pb-14 pt-12 md:pb-16 md:pt-16">
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">Registry</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide leading-relaxed">
                     Your presence at our wedding is the greatest gift of all. However, if you wish to honor us
@@ -26,13 +26,15 @@ export default async function Registry() {
                 <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-8">
                     {wedding.registry.map((registry, idx) => {
                         const Icon = iconMap[registry.icon as keyof typeof iconMap] ?? Gift;
-                        const isReady = registry.url !== "TODO";
                         return (
-                            <div
+                            <Link
                                 key={idx}
-                                className="bg-surface p-10 text-center rounded-sm transition-transform duration-300 hover:-translate-y-1"
+                                href={registry.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="surface-panel group block p-10 text-center transition-transform duration-300 hover:-translate-y-1"
                             >
-                                <div className="w-12 h-12 mx-auto mb-6 flex items-center justify-center text-primary">
+                                <div className="surface-inset mx-auto mb-6 flex h-14 w-14 items-center justify-center text-primary">
                                     <Icon size={32} strokeWidth={1} />
                                 </div>
                                 <h2 className="font-heading text-xl mb-3">{registry.name}</h2>
@@ -45,27 +47,10 @@ export default async function Registry() {
                                 >
                                     {registry.description}
                                 </p>
-                                {isReady ? (
-                                    <Button variant="outline" className="w-full text-xs" href={registry.url}>
-                                        View Registry
-                                    </Button>
-                                ) : (
-                                    <div className="space-y-2">
-                                        <span className="block w-full text-center text-xs tracking-widest uppercase text-text-secondary/50 py-2 border border-dashed border-gray-300 rounded-full">
-                                            Coming Soon
-                                        </span>
-                                        <p
-                                            className="text-xs text-text-secondary/40 italic"
-                                            data-admin-key={`registry.${idx}.url`}
-                                            data-admin-type="text"
-                                            data-admin-current-text={registry.url}
-                                            data-admin-label={`Registry #${idx + 1} — URL`}
-                                        >
-                                            Click to add URL ✎
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
+                                <span className="inline-flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-xs font-medium uppercase tracking-[0.2em] text-white shadow-[0_18px_38px_rgba(20,42,68,0.14)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_24px_48px_rgba(20,42,68,0.18)]">
+                                    View Registry
+                                </span>
+                            </Link>
                         );
                     })}
                 </div>

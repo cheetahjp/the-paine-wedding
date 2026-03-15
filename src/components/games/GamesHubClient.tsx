@@ -33,8 +33,6 @@ function CountdownCard({
 }) {
     const sharedContent = (
         <>
-            <div className="pointer-events-none absolute inset-0 bg-white/35" />
-            <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-accent/18 blur-3xl" />
             <div className="relative">
                 <div className="flex items-center justify-between gap-4">
                     <p className="text-sm uppercase tracking-[0.3em] text-text-secondary/80">{eyebrow}</p>
@@ -71,7 +69,7 @@ function CountdownCard({
                             ].map((item) => (
                                 <div
                                     key={item.label}
-                                    className="rounded-2xl border border-accent/30 bg-white px-2 py-3 text-center shadow-[0_8px_22px_rgba(20,42,68,0.05)] flex flex-col items-center justify-center min-w-0"
+                                    className="surface-inset flex min-w-0 flex-col items-center justify-center px-2 py-3 text-center"
                                 >
                                     <p className="font-heading text-2xl lg:text-3xl text-primary">{item.value}</p>
                                     <p className="mt-1 text-[9px] uppercase tracking-wider text-text-secondary truncate">{item.label}</p>
@@ -93,7 +91,7 @@ function CountdownCard({
         return (
             <Link
                 href={href}
-                className="group relative overflow-hidden rounded-[2.1rem] border border-primary/16 bg-[linear-gradient(145deg,#fffdfa_0%,#f4eee4_62%,#ece5d9_100%)] p-8 shadow-[0_10px_0_rgba(20,42,68,0.06),0_24px_70px_rgba(20,42,68,0.10)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_0_rgba(20,42,68,0.08),0_28px_80px_rgba(20,42,68,0.14)] md:p-9"
+                className="surface-panel group relative block overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1 md:p-9"
             >
                 {sharedContent}
             </Link>
@@ -102,11 +100,7 @@ function CountdownCard({
 
     return (
         <div
-            className={`relative overflow-hidden rounded-[2.1rem] border border-primary/12 ${
-                muted
-                    ? "bg-[linear-gradient(145deg,#f0ede7_0%,#e7e2d9_100%)]"
-                    : "bg-[linear-gradient(145deg,#f8f4ee_0%,#ede7de_100%)]"
-            } p-8 shadow-[0_10px_0_rgba(20,42,68,0.05),0_24px_70px_rgba(20,42,68,0.08)] md:p-9`}
+            className={`surface-panel relative overflow-hidden p-8 md:p-9 ${muted ? "opacity-80" : ""}`}
         >
             {sharedContent}
         </div>
@@ -127,14 +121,11 @@ export default function GamesHubClient() {
     }, []);
 
     return (
-        <div className="grid gap-8 xl:grid-cols-3">
+        <div className="mx-auto flex max-w-3xl flex-col gap-8">
             <Link
                 href="/games/painedle"
-                className="group relative overflow-hidden rounded-[2.25rem] border border-primary/16 bg-[linear-gradient(145deg,#fffdfa_0%,#f4eee4_62%,#ece5d9_100%)] p-8 shadow-[0_10px_0_rgba(20,42,68,0.06),0_24px_70px_rgba(20,42,68,0.10)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_0_rgba(20,42,68,0.08),0_28px_80px_rgba(20,42,68,0.14)] md:p-10"
+                className="surface-panel group relative block overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1 md:p-10"
             >
-                <div className="pointer-events-none absolute -left-10 top-4 h-44 w-44 rounded-full bg-accent/18 blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-0 h-52 w-52 translate-x-10 translate-y-10 rounded-full bg-primary/8 blur-3xl" />
-
                 <div className="relative">
                     <div className="flex items-center justify-between gap-4">
                         <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Game One</p>
@@ -147,23 +138,6 @@ export default function GamesHubClient() {
                         Crack the daily wedding word in six guesses. Every board saves in your browser, and every
                         solved round can land on the leaderboard.
                     </p>
-
-                    <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                        {[
-                            { label: "Play Style", value: "Daily puzzle" },
-                            { label: "Progress", value: "Saved locally" },
-                            { label: "Leaderboard", value: "Daily ranks" },
-                            { label: "Feel", value: "Wedding words" },
-                        ].map((item) => (
-                            <div
-                                key={item.label}
-                                className="rounded-[1.2rem] border border-primary/10 bg-white/85 px-4 py-4 shadow-[0_8px_22px_rgba(20,42,68,0.05)]"
-                            >
-                                <p className="text-xs uppercase tracking-[0.24em] text-text-secondary">{item.label}</p>
-                                <p className="mt-2 text-lg text-primary">{item.value}</p>
-                            </div>
-                        ))}
-                    </div>
 
                     <p className="mt-8 text-sm uppercase tracking-[0.24em] text-primary transition-transform duration-300 group-hover:translate-x-1">
                         Play Painedle

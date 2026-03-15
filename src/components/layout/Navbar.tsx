@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { WEDDING } from "@/lib/wedding-data";
 
 const navLinks = [
     { name: "Our Story", href: "/our-story" },
     { name: "Bridal Party", href: "/bridal-party" },
-    { name: "Details", href: "/wedding-details" },
-    { name: "Schedule", href: "/schedule" },
     { name: "Travel", href: "/travel" },
     { name: "Attire", href: "/attire" },
     { name: "Registry", href: "/registry" },
@@ -19,6 +19,7 @@ const navLinks = [
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
+    const pathname = usePathname();
 
     // Close on outside click
     useEffect(() => {
@@ -49,14 +50,28 @@ export default function Navbar() {
 
     return (
         <>
-            <header className="sticky top-0 z-50 w-full bg-base/90 backdrop-blur-md border-b border-surface">
+            <header className="sticky top-0 z-[60] w-full bg-base/90 backdrop-blur-md border-b border-surface">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link
                         href="/"
-                        className="font-heading text-xl tracking-wide uppercase"
+                        className="flex items-center"
                         onClick={() => setMenuOpen(false)}
                     >
-                        {WEDDING.couple.names}
+                        <span className="font-heading text-xl tracking-wide uppercase hidden md:inline">
+                            {WEDDING.couple.names.split(" & ")[0]}{" "}
+                            <span className="font-amp normal-case">&amp;</span>{" "}
+                            {WEDDING.couple.names.split(" & ")[1]}
+                        </span>
+                        <span className="md:hidden flex items-center">
+                            <Image
+                                src="/A&J.svg"
+                                alt={WEDDING.couple.names}
+                                width={110}
+                                height={36}
+                                priority
+                                className="h-8 w-auto"
+                            />
+                        </span>
                     </Link>
 
                     {/* Desktop nav */}
@@ -65,7 +80,11 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-sm uppercase tracking-widest text-text-secondary hover:text-primary transition-colors duration-300"
+                                className={`border-b-2 pb-1 text-sm uppercase tracking-widest transition-all duration-200 ${
+                                    pathname === link.href || pathname.startsWith(`${link.href}/`)
+                                        ? "border-primary/45 text-primary font-semibold"
+                                        : "border-transparent text-text-secondary hover:border-primary/30 hover:text-primary hover:font-semibold"
+                                }`}
                             >
                                 {link.name}
                             </Link>
@@ -74,7 +93,7 @@ export default function Navbar() {
 
                     {/* Mobile hamburger */}
                     <button
-                        className="md:hidden text-text-primary p-1 -mr-1"
+                        className="relative z-[61] md:hidden text-text-primary p-1 -mr-1"
                         onClick={() => setMenuOpen((prev) => !prev)}
                         aria-label={menuOpen ? "Close menu" : "Open menu"}
                         aria-expanded={menuOpen}
@@ -96,7 +115,7 @@ export default function Navbar() {
 
             {/* Mobile drawer overlay */}
             <div
-                className={`fixed inset-0 bg-text-primary/40 z-40 md:hidden transition-opacity duration-300 ${
+                className={`fixed top-[80px] inset-x-0 bottom-0 bg-text-primary/40 z-[54] md:hidden transition-opacity duration-300 ${
                     menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                 }`}
                 aria-hidden="true"
@@ -105,7 +124,7 @@ export default function Navbar() {
             {/* Mobile drawer panel */}
             <div
                 ref={drawerRef}
-                className={`fixed top-20 left-0 right-0 z-50 md:hidden bg-base border-b border-surface shadow-lg transition-all duration-300 ease-in-out ${
+                className={`fixed top-20 left-0 right-0 z-[55] md:hidden bg-base border-b border-surface shadow-lg transition-all duration-300 ease-in-out ${
                     menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"
                 }`}
             >
@@ -115,7 +134,11 @@ export default function Navbar() {
                             key={link.name}
                             href={link.href}
                             onClick={() => setMenuOpen(false)}
-                            className="text-sm uppercase tracking-widest text-text-secondary hover:text-primary py-3 border-b border-surface/60 last:border-0 transition-colors duration-200"
+                            className={`border-b border-surface/60 py-3 text-sm uppercase tracking-widest transition-colors duration-200 last:border-0 ${
+                                pathname === link.href || pathname.startsWith(`${link.href}/`)
+                                    ? "text-primary font-semibold"
+                                    : "text-text-secondary hover:text-primary"
+                            }`}
                         >
                             {link.name}
                         </Link>

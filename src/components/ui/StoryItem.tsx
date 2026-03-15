@@ -66,7 +66,7 @@ export default function StoryItem({ item, index, adminImageKey, adminTitleKey, a
                       }
                     : {})}
             >
-                <div className="relative aspect-[4/5] w-full overflow-hidden shadow-[0_24px_64px_rgba(26,63,111,0.13)]">
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.7rem] border border-primary/10 shadow-[0_24px_64px_rgba(26,63,111,0.13)]">
                     <Image
                         src={item.image}
                         alt={item.title}

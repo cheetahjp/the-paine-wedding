@@ -1,10 +1,197 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 import Section from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 import { WEDDING } from "@/lib/wedding-data";
+
+// ── Fuzzy name matching helpers ───────────────────────────────────────────
+function levenshtein(a: string, b: string): number {
+    const m = a.length, n = b.length;
+    const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+        Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+    );
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            dp[i][j] = a[i - 1] === b[j - 1]
+                ? dp[i - 1][j - 1]
+                : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+        }
+    }
+    return dp[m][n];
+}
+
+function nameSimilarity(input: string, candidate: string): number {
+    const a = input.toLowerCase().trim();
+    const b = candidate.toLowerCase().trim();
+    if (a === b) return 1.0;
+    if (b.includes(a) || a.includes(b)) return 0.9;
+    const dist = levenshtein(a, b);
+    const maxLen = Math.max(a.length, b.length);
+    return maxLen === 0 ? 1.0 : 1 - dist / maxLen;
+}
+
+const RSVP_GALLERY_IMAGES = [
+    "/images/rsvp/JeffAshlyn-7611.jpg",
+    "/images/rsvp/JeffAshlyn-7615.jpg",
+    "/images/rsvp/JeffAshlyn-7617.jpg",
+    "/images/rsvp/JeffAshlyn-7620.jpg",
+    "/images/rsvp/JeffAshlyn-7625.jpg",
+    "/images/rsvp/JeffAshlyn-7626.jpg",
+    "/images/rsvp/JeffAshlyn-7631.jpg",
+    "/images/rsvp/JeffAshlyn-7636.jpg",
+    "/images/rsvp/JeffAshlyn-7640.jpg",
+    "/images/rsvp/JeffAshlyn-7644.jpg",
+    "/images/rsvp/JeffAshlyn-7650.jpg",
+    "/images/rsvp/JeffAshlyn-7653.jpg",
+    "/images/rsvp/JeffAshlyn-7654.jpg",
+    "/images/rsvp/JeffAshlyn-7658.jpg",
+    "/images/rsvp/JeffAshlyn-7663.jpg",
+    "/images/rsvp/JeffAshlyn-7682.jpg",
+    "/images/rsvp/JeffAshlyn-7697.jpg",
+    "/images/rsvp/JeffAshlyn-7704.jpg",
+    "/images/rsvp/JeffAshlyn-7708.jpg",
+    "/images/rsvp/JeffAshlyn-7711.jpg",
+    "/images/rsvp/JeffAshlyn-7714.jpg",
+    "/images/rsvp/JeffAshlyn-7716.jpg",
+    "/images/rsvp/JeffAshlyn-7718.jpg",
+    "/images/rsvp/JeffAshlyn-7720.jpg",
+    "/images/rsvp/JeffAshlyn-7723.jpg",
+    "/images/rsvp/JeffAshlyn-7726.jpg",
+    "/images/rsvp/JeffAshlyn-7733.jpg",
+    "/images/rsvp/JeffAshlyn-7754.jpg",
+    "/images/rsvp/JeffAshlyn-7757.jpg",
+    "/images/rsvp/JeffAshlyn-7759.jpg",
+    "/images/rsvp/JeffAshlyn-7764.jpg",
+    "/images/rsvp/JeffAshlyn-7768.jpg",
+    "/images/rsvp/JeffAshlyn-7775.jpg",
+    "/images/rsvp/JeffAshlyn-7777.jpg",
+    "/images/rsvp/JeffAshlyn-7791.jpg",
+    "/images/rsvp/JeffAshlyn-7795.jpg",
+    "/images/rsvp/JeffAshlyn-7796.jpg",
+    "/images/rsvp/JeffAshlyn-7802.jpg",
+    "/images/rsvp/JeffAshlyn-7808.jpg",
+    "/images/rsvp/JeffAshlyn-7814.jpg",
+    "/images/rsvp/JeffAshlyn-7818.jpg",
+    "/images/rsvp/JeffAshlyn-7820.jpg",
+    "/images/rsvp/JeffAshlyn-7840.jpg",
+    "/images/rsvp/JeffAshlyn-7844.jpg",
+    "/images/rsvp/JeffAshlyn-7847.jpg",
+    "/images/rsvp/JeffAshlyn-7860.jpg",
+    "/images/rsvp/JeffAshlyn-7863.jpg",
+    "/images/rsvp/JeffAshlyn-7864.jpg",
+    "/images/rsvp/JeffAshlyn-7869.jpg",
+    "/images/rsvp/JeffAshlyn-7882.jpg",
+    "/images/rsvp/JeffAshlyn-7887.jpg",
+    "/images/rsvp/JeffAshlyn-7889.jpg",
+    "/images/rsvp/JeffAshlyn-7892.jpg",
+    "/images/rsvp/JeffAshlyn-7925.jpg",
+    "/images/rsvp/JeffAshlyn-7942.jpg",
+    "/images/rsvp/JeffAshlyn-7961.jpg",
+    "/images/rsvp/JeffAshlyn-7964.jpg",
+    "/images/rsvp/JeffAshlyn-7966.jpg",
+    "/images/rsvp/JeffAshlyn-7967.jpg",
+    "/images/rsvp/JeffAshlyn-7970.jpg",
+    "/images/rsvp/JeffAshlyn-7975.jpg",
+    "/images/rsvp/JeffAshlyn-7977.jpg",
+    "/images/rsvp/JeffAshlyn-7979.jpg",
+    "/images/rsvp/JeffAshlyn-7991.jpg",
+    "/images/rsvp/JeffAshlyn-7994.jpg",
+    "/images/rsvp/JeffAshlyn-7995.jpg",
+    "/images/rsvp/JeffAshlyn-8001.jpg",
+    "/images/rsvp/JeffAshlyn-8008.jpg",
+    "/images/rsvp/JeffAshlyn-8016.jpg",
+    "/images/rsvp/JeffAshlyn-8028.jpg",
+    "/images/rsvp/JeffAshlyn-8032.jpg",
+    "/images/rsvp/JeffAshlyn-8033.jpg",
+    "/images/rsvp/JeffAshlyn-8046.jpg",
+    "/images/rsvp/JeffAshlyn-8069.jpg",
+    "/images/rsvp/JeffAshlyn-8080.jpg",
+    "/images/rsvp/JeffAshlyn-8087.jpg",
+    "/images/rsvp/JeffAshlyn-8093.jpg",
+    "/images/rsvp/JeffAshlyn-8095.jpg",
+    "/images/rsvp/JeffAshlyn-8100.jpg",
+    "/images/rsvp/JeffAshlyn-8104.jpg",
+    "/images/rsvp/JeffAshlyn-8106.jpg",
+    "/images/rsvp/JeffAshlyn-8113.jpg",
+    "/images/rsvp/JeffAshlyn-8117.jpg",
+    "/images/rsvp/JeffAshlyn-8120.jpg",
+    "/images/rsvp/JeffAshlyn-8129.jpg",
+    "/images/rsvp/JeffAshlyn-8147.jpg",
+    "/images/rsvp/JeffAshlyn-8152.jpg",
+    "/images/rsvp/JeffAshlyn-8156.jpg",
+    "/images/rsvp/JeffAshlyn-8157.jpg",
+    "/images/rsvp/JeffAshlyn-8160.jpg",
+    "/images/rsvp/JeffAshlyn-8166.jpg",
+    "/images/rsvp/JeffAshlyn-8173.jpg",
+    "/images/rsvp/JeffAshlyn-8174.jpg",
+    "/images/rsvp/JeffAshlyn-8175.jpg",
+    "/images/rsvp/JeffAshlyn-8176.jpg",
+] as const;
+
+const RSVP_MASONRY_COLUMNS = 5;
+const RSVP_TILE_ASPECTS = [
+    "aspect-[3/4]",
+    "aspect-square",
+    "aspect-[4/5]",
+    "aspect-[5/4]",
+    "aspect-[2/3]",
+] as const;
+
+function RSVPBackdrop() {
+    const columns = Array.from({ length: RSVP_MASONRY_COLUMNS }, (_, columnIndex) =>
+        RSVP_GALLERY_IMAGES.filter((_, imageIndex) => imageIndex % RSVP_MASONRY_COLUMNS === columnIndex)
+    );
+
+    return (
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 bg-[#f6f2ea]" />
+
+            <div className="absolute inset-0 flex scale-110 gap-3 px-3 py-6 md:gap-4 md:px-6 md:py-8">
+                {columns.map((images, columnIndex) => {
+                    const animationClass = columnIndex % 2 === 0 ? "animate-rsvp-scroll-up" : "animate-rsvp-scroll-down";
+                    const duration = `${264 + columnIndex * 42}s`;
+
+                    return (
+                        <div
+                            key={`rsvp-column-${columnIndex}`}
+                            className={`min-w-0 flex-1 overflow-hidden ${columnIndex > 2 ? "hidden lg:block" : ""}`}
+                        >
+                            <div
+                                className={`flex flex-col gap-3 md:gap-4 will-change-transform ${animationClass}`}
+                                style={{ animationDuration: duration }}
+                            >
+                                {[...images, ...images].map((src, imageIndex) => {
+                                    const aspectClass = RSVP_TILE_ASPECTS[(imageIndex + columnIndex) % RSVP_TILE_ASPECTS.length];
+
+                                    return (
+                                        <div
+                                            key={`${src}-${imageIndex}`}
+                                            className={`overflow-hidden rounded-[1.4rem] border border-white/35 bg-white/25 shadow-[0_10px_28px_rgba(15,23,32,0.14)] ${aspectClass}`}
+                                        >
+                                            <Image
+                                                src={src}
+                                                alt=""
+                                                width={600}
+                                                height={800}
+                                                sizes="(max-width: 1024px) 33vw, 20vw"
+                                                className="h-full w-full object-cover opacity-95"
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="absolute inset-0 bg-[rgba(9,18,30,0.58)]" />
+        </div>
+    );
+}
 
 /** Strip trailing number from household names for guest-facing display.
  *  "The Paine Family 1" → "The Paine Family"
@@ -22,6 +209,10 @@ type Guest = {
     nicknames: string | null;
     attending: boolean | null;
     meal_choice: string | null;
+    dietary_restrictions: string | null;
+    food_allergies: string | null;
+    song_request: string | null;
+    advice: string | null;
     household_id: string;
 };
 
@@ -40,14 +231,13 @@ export default function RSVP() {
     const [step, setStep] = useState<"search" | "respond" | "success">("search");
     const [household, setHousehold] = useState<Household | null>(null);
     const [responses, setResponses] = useState<{
-        [guestId: string]: { attending: boolean | null; meal_choice: string };
+        [guestId: string]: { attending: boolean | null; dietary_restrictions: string };
     }>({});
 
     // Household-level extra fields
-    const [hasFoodAllergy, setHasFoodAllergy] = useState(false);
-    const [foodAllergyDetails, setFoodAllergyDetails] = useState("");
     const [songRequest, setSongRequest] = useState("");
     const [advice, setAdvice] = useState("");
+    const [guestEmail, setGuestEmail] = useState("");
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,10 +262,10 @@ export default function RSVP() {
             return;
         }
 
-        const { data: searchGuests, error: searchError } = await supabase
+        // Fetch all guests and score by fuzzy first + last name similarity
+        const { data: allGuests, error: searchError } = await supabase
             .from("guests")
-            .select("household_id, first_name, last_name, nicknames")
-            .ilike("last_name", `%${cleanLastName}%`);
+            .select("household_id, first_name, last_name, nicknames");
 
         if (searchError) {
             setError("There was an error communicating with the database. Please try again.");
@@ -83,30 +273,48 @@ export default function RSVP() {
             return;
         }
 
-        if (!searchGuests || searchGuests.length === 0) {
-            setError("We couldn't find an invitation under that last name. Please check your spelling.");
+        if (!allGuests || allGuests.length === 0) {
+            setError("We couldn't find any guests in the database.");
             setLoading(false);
             return;
         }
 
-        const exactMatch = searchGuests.find((g) => {
-            const first = g.first_name.toLowerCase();
-            const nicks = (g.nicknames || "").toLowerCase();
-            const input = cleanFirstName.toLowerCase();
-            return first.includes(input) || input.includes(first) || nicks.includes(input);
+        // Score each guest by how well both names match
+        const scored = allGuests.map((g) => {
+            const nickScores = (g.nicknames || "")
+                .split(/[,;\/]/)
+                .map((n: string) => nameSimilarity(cleanFirstName, n.trim()));
+            const firstScore = Math.max(nameSimilarity(cleanFirstName, g.first_name), ...nickScores);
+            const lastScore = nameSimilarity(cleanLastName, g.last_name);
+            const combinedScore = firstScore * lastScore;
+            return { guest: g, firstScore, lastScore, combinedScore };
         });
 
-        if (!exactMatch) {
-            const uniqueSuggestions = Array.from(
-                new Set(searchGuests.map((g) => `${g.first_name} ${g.last_name}`))
-            );
-            const suggestions = uniqueSuggestions.slice(0, 3).join(", or ");
-            setError(`We couldn't find "${cleanFirstName} ${cleanLastName}". Did you mean ${suggestions}?`);
+        scored.sort((a, b) => b.combinedScore - a.combinedScore);
+
+        const THRESHOLD = 0.35;       // minimum to be considered a candidate
+        const EXACT_THRESHOLD = 0.72; // high enough to auto-match
+
+        const topMatch = scored[0];
+
+        if (!topMatch || topMatch.combinedScore < THRESHOLD) {
+            setError(`We couldn't find "${cleanFirstName} ${cleanLastName}" on the guest list. Please double-check your spelling.`);
             setLoading(false);
             return;
         }
 
-        const householdId = exactMatch.household_id;
+        if (topMatch.combinedScore < EXACT_THRESHOLD) {
+            const suggestions = scored
+                .filter((s) => s.combinedScore >= THRESHOLD)
+                .slice(0, 3)
+                .map((s) => `${s.guest.first_name} ${s.guest.last_name}`)
+                .join(", or ");
+            setError(`We couldn't find "${cleanFirstName} ${cleanLastName}". Did you mean: ${suggestions}?`);
+            setLoading(false);
+            return;
+        }
+
+        const householdId = topMatch.guest.household_id;
 
         const { data: householdData, error: hhError } = await supabase
             .from("households")
@@ -131,13 +339,12 @@ export default function RSVP() {
             return;
         }
 
-        // Initialize with null for unselected guests so neither button appears highlighted.
-        // If a guest has already RSVPed (true/false), preserve that value.
-        const initialResponses: Record<string, { attending: boolean | null; meal_choice: string }> = {};
+        // Initialize responses — preserve any existing attending/dietary values
+        const initialResponses: Record<string, { attending: boolean | null; dietary_restrictions: string }> = {};
         allHouseholdGuests.forEach((g: Guest) => {
             initialResponses[g.id] = {
                 attending: g.attending ?? null,
-                meal_choice: g.meal_choice || "",
+                dietary_restrictions: g.dietary_restrictions || g.food_allergies || "",
             };
         });
 
@@ -175,24 +382,41 @@ export default function RSVP() {
         setLoading(true);
 
         try {
-            const foodAllergiesValue = hasFoodAllergy ? foodAllergyDetails || "Yes" : null;
-
             const updates = household.guests.map((g) => ({
                 id: g.id,
                 first_name: g.first_name,
                 last_name: g.last_name,
                 household_id: g.household_id,
                 attending: responses[g.id].attending,
-                meal_choice:
-                    responses[g.id].meal_choice === "" ? null : responses[g.id].meal_choice,
-                food_allergies: foodAllergiesValue,
+                meal_choice: null,
+                dietary_restrictions: responses[g.id].dietary_restrictions?.trim() || null,
                 song_request: songRequest.trim() || null,
                 advice: advice.trim() || null,
             }));
 
             const { error: updateError } = await supabase.from("guests").upsert(updates);
-
             if (updateError) throw updateError;
+
+            // Send email notifications (fire-and-forget — never blocks the RSVP)
+            try {
+                await fetch("/api/rsvp/notify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        household: household.name,
+                        guests: household.guests.map((g) => ({
+                            name: `${g.first_name} ${g.last_name}`,
+                            attending: responses[g.id].attending,
+                            dietary_restrictions: responses[g.id].dietary_restrictions?.trim() || null,
+                        })),
+                        songRequest: songRequest.trim() || null,
+                        advice: advice.trim() || null,
+                        guestEmail: guestEmail.trim() || null,
+                    }),
+                });
+            } catch (emailErr) {
+                console.error("Email notification failed (non-blocking):", emailErr);
+            }
 
             setStep("success");
         } catch (err) {
@@ -209,11 +433,17 @@ export default function RSVP() {
         : false;
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <Section className="text-center pb-12 flex-grow flex flex-col justify-center">
-                <h1 className="font-heading text-5xl md:text-6xl mb-6">RSVP</h1>
+        <div className="relative min-h-screen overflow-hidden">
+            <RSVPBackdrop />
 
-                <div className="max-w-md mx-auto w-full mt-12 bg-white p-10 shadow-[0_20px_50px_rgba(20,42,68,0.05)] border border-surface rounded-sm">
+            <Section className="relative z-10 flex min-h-screen flex-col justify-center bg-transparent py-20 text-center md:py-28">
+                <div className="surface-panel mx-auto w-full max-w-[min(92vw,52rem)] p-6 shadow-[0_32px_90px_rgba(8,16,28,0.24)] sm:p-8 lg:p-12">
+                    <div className="mb-8 text-center md:mb-10">
+                        <h1 className="font-heading text-5xl md:text-6xl">RSVP</h1>
+                        <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-primary/72 md:text-lg">
+                            Please RSVP by <strong>{WEDDING.date.rsvpDeadline}</strong>. Enter your first and last name to find your invitation.
+                        </p>
+                    </div>
                     {envError && (
                         <div className="mb-8 p-6 bg-red-50 text-red-900 border border-red-200 shadow-sm rounded-sm text-left">
                             <h3 className="font-heading text-xl mb-2 text-red-800">
@@ -237,13 +467,8 @@ export default function RSVP() {
                     {/* Step 1: Search */}
                     {step === "search" && !envError && (
                         <form onSubmit={handleSearch} className="space-y-6 text-left">
-                            <p className="text-text-secondary text-center mb-8">
-                                Please RSVP by <strong>{WEDDING.date.rsvpDeadline}</strong>. Enter
-                                your first and last name to find your invitation.
-                            </p>
-
-                            <div className="flex flex-col md:flex-row gap-6">
-                                <div className="space-y-2 flex-1">
+                            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                                <div className="space-y-2 min-w-0">
                                     <label className="block text-xs uppercase tracking-widest text-text-secondary">
                                         First Name
                                     </label>
@@ -252,12 +477,12 @@ export default function RSVP() {
                                         required
                                         value={firstName}
                                         onChange={(e) => setFirstName(e.target.value)}
-                                        className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent"
+                                        className="w-full min-w-0 border-b border-primary/18 py-3 text-text-primary placeholder:text-text-secondary/70 focus:outline-none focus:border-primary transition-colors bg-transparent"
                                         placeholder="Enter your first name"
                                     />
                                 </div>
 
-                                <div className="space-y-2 flex-1">
+                                <div className="space-y-2 min-w-0">
                                     <label className="block text-xs uppercase tracking-widest text-text-secondary">
                                         Last Name
                                     </label>
@@ -266,7 +491,7 @@ export default function RSVP() {
                                         required
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
-                                        className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-primary transition-colors bg-transparent"
+                                        className="w-full min-w-0 border-b border-primary/18 py-3 text-text-primary placeholder:text-text-secondary/70 focus:outline-none focus:border-primary transition-colors bg-transparent"
                                         placeholder="Enter your last name"
                                     />
                                 </div>
@@ -336,30 +561,24 @@ export default function RSVP() {
                                             </div>
                                         </div>
 
-                                        {isAttending === true && WEDDING.mealOptions.length > 0 && (
+                                        {isAttending === true && (
                                             <div className="space-y-2 pt-2 animate-fade-in-up">
                                                 <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                                    Meal Preference
+                                                    Dietary Restrictions
                                                 </label>
-                                                <select
-                                                    value={responses[guest.id]?.meal_choice || ""}
+                                                <input
+                                                    type="text"
+                                                    value={responses[guest.id]?.dietary_restrictions || ""}
                                                     onChange={(e) =>
                                                         handleResponseChange(
                                                             guest.id,
-                                                            "meal_choice",
+                                                            "dietary_restrictions",
                                                             e.target.value
                                                         )
                                                     }
-                                                    required
-                                                    className="w-full border border-gray-200 p-3 text-sm rounded-sm focus:outline-none focus:border-primary bg-white"
-                                                >
-                                                    <option value="">Select a meal</option>
-                                                    {WEDDING.mealOptions.map((opt) => (
-                                                        <option key={opt.value} value={opt.value}>
-                                                            {opt.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                    placeholder="Any allergies or dietary restrictions? (Optional)"
+                                                    className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -373,32 +592,21 @@ export default function RSVP() {
                                         A Few More Things
                                     </p>
 
-                                    {/* Food Allergies */}
-                                    <div className="space-y-3">
-                                        <label className="flex items-start gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={hasFoodAllergy}
-                                                onChange={(e) => {
-                                                    setHasFoodAllergy(e.target.checked);
-                                                    if (!e.target.checked) setFoodAllergyDetails("");
-                                                }}
-                                                className="mt-0.5 w-4 h-4 accent-primary border-gray-300 rounded cursor-pointer flex-shrink-0"
-                                            />
-                                            <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors leading-snug">
-                                                I have a food allergy or dietary restriction
+                                    {/* Confirmation Email */}
+                                    <div className="space-y-2">
+                                        <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                            Your Email{" "}
+                                            <span className="normal-case tracking-normal text-text-secondary/60 text-[10px]">
+                                                (optional — for a confirmation)
                                             </span>
                                         </label>
-
-                                        {hasFoodAllergy && (
-                                            <input
-                                                type="text"
-                                                value={foodAllergyDetails}
-                                                onChange={(e) => setFoodAllergyDetails(e.target.value)}
-                                                placeholder="Please describe your allergy or restriction"
-                                                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400 animate-fade-in-up"
-                                            />
-                                        )}
+                                        <input
+                                            type="email"
+                                            value={guestEmail}
+                                            onChange={(e) => setGuestEmail(e.target.value)}
+                                            placeholder="your@email.com"
+                                            className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
+                                        />
                                     </div>
 
                                     {/* Song Request */}
