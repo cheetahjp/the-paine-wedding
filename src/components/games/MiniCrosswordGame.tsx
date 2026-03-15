@@ -4,14 +4,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ScoreSubmissionForm from "@/components/games/ScoreSubmissionForm";
 import {
     computeCrosswordScore,
-    CROSSWORD_PUZZLE,
-    CROSSWORD_PUZZLE_KEY,
-    CROSSWORD_STORAGE_KEY,
+    getDailyCrosswordPuzzle,
+    getCrosswordStorageKey,
     type CrosswordCell,
     type CrosswordDirection,
     type CrosswordMetadata,
     type CrosswordNumberedEntry,
 } from "@/lib/games/crossword";
+
+function getTodayKey(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const TODAY_KEY = getTodayKey();
+const PUZZLE = getDailyCrosswordPuzzle(TODAY_KEY);
+const STORAGE_KEY = getCrosswordStorageKey(PUZZLE.id, TODAY_KEY);
 
 type SavedCrosswordState = {
     letters: Record<string, string>;
@@ -23,23 +31,23 @@ type SavedCrosswordState = {
     scoreSubmitted: boolean;
 };
 
-const ENTRY_MAP = new Map(CROSSWORD_PUZZLE.entries.map((entry) => [entry.id, entry]));
+const ENTRY_MAP = new Map<string, CrosswordNumberedEntry>(PUZZLE.entries.map((entry) => [entry.id, entry]));
 const ENTRY_IDS_BY_CELL = new Map<string, string[]>(
-    CROSSWORD_PUZZLE.cells
+    PUZZLE.cells
         .filter((cell) => cell.answer)
         .map((cell) => [cell.key, cell.entryIds])
 );
 
 function getEmptyLetters() {
     return Object.fromEntries(
-        CROSSWORD_PUZZLE.cells.filter((cell) => cell.answer).map((cell) => [cell.key, ""])
+        PUZZLE.cells.filter((cell) => cell.answer).map((cell) => [cell.key, ""])
     ) as Record<string, string>;
 }
 
 function getDefaultState(): SavedCrosswordState {
     return {
         letters: getEmptyLetters(),
-        activeEntryId: CROSSWORD_PUZZLE.entries[0]?.id ?? "",
+        activeEntryId: PUZZLE.entries[0]?.id ?? "",
         checksUsed: 0,
         revealedEntryIds: [],
         startedAt: new Date().toISOString(),
@@ -54,7 +62,7 @@ function getInitialState(): SavedCrosswordState {
     }
 
     try {
-        const rawValue = window.localStorage.getItem(CROSSWORD_STORAGE_KEY);
+        const rawValue = window.localStorage.getItem(STORAGE_KEY);
         if (!rawValue) return getDefaultState();
 
         const parsed = JSON.parse(rawValue) as Partial<SavedCrosswordState>;
@@ -62,7 +70,7 @@ function getInitialState(): SavedCrosswordState {
             letters: parsed.letters ? { ...getEmptyLetters(), ...parsed.letters } : getEmptyLetters(),
             activeEntryId: parsed.activeEntryId && ENTRY_MAP.has(parsed.activeEntryId)
                 ? parsed.activeEntryId
-                : (CROSSWORD_PUZZLE.entries[0]?.id ?? ""),
+                : (PUZZLE.entries[0]?.id ?? ""),
             checksUsed: typeof parsed.checksUsed === "number" ? parsed.checksUsed : 0,
             revealedEntryIds: Array.isArray(parsed.revealedEntryIds)
                 ? parsed.revealedEntryIds.filter((id) => ENTRY_MAP.has(id))
@@ -72,13 +80,13 @@ function getInitialState(): SavedCrosswordState {
             scoreSubmitted: typeof parsed.scoreSubmitted === "boolean" ? parsed.scoreSubmitted : false,
         };
     } catch {
-        window.localStorage.removeItem(CROSSWORD_STORAGE_KEY);
+        window.localStorage.removeItem(STORAGE_KEY);
         return getDefaultState();
     }
 }
 
 function isSolvedLetters(letters: Record<string, string>) {
-    return CROSSWORD_PUZZLE.cells.every((cell) => !cell.answer || letters[cell.key] === cell.answer);
+    return PUZZLE.cells.every((cell) => !cell.answer || letters[cell.key] === cell.answer);
 }
 
 function getEntryById(entryId: string | null) {
@@ -116,7 +124,7 @@ export default function MiniCrosswordGame() {
             scoreSubmitted,
         };
 
-        window.localStorage.setItem(CROSSWORD_STORAGE_KEY, JSON.stringify(payload));
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }, [letters, activeEntryId, checksUsed, revealedEntryIds, startedAt, completedAt, scoreSubmitted]);
 
     const activeEntry = getEntryById(activeEntryId);
@@ -124,7 +132,7 @@ export default function MiniCrosswordGame() {
 
     const solvedCellCount = useMemo(
         () =>
-            CROSSWORD_PUZZLE.cells.filter((cell) => cell.answer && letters[cell.key] === cell.answer).length,
+            PUZZLE.cells.filter((cell) => cell.answer && letters[cell.key] === cell.answer).length,
         [letters]
     );
     const fillCount = useMemo(
@@ -133,7 +141,7 @@ export default function MiniCrosswordGame() {
     );
     const totalFillableCells = Object.keys(getEmptyLetters()).length;
     const isSolved = useMemo(
-        () => CROSSWORD_PUZZLE.cells.every((cell) => !cell.answer || letters[cell.key] === cell.answer),
+        () => PUZZLE.cells.every((cell) => !cell.answer || letters[cell.key] === cell.answer),
         [letters]
     );
 
@@ -223,7 +231,7 @@ export default function MiniCrosswordGame() {
     }
 
     function handleCheckBoard() {
-        const incorrect = CROSSWORD_PUZZLE.cells
+        const incorrect = PUZZLE.cells
             .filter((cell) => cell.answer && letters[cell.key] && letters[cell.key] !== cell.answer)
             .map((cell) => cell.key);
 
@@ -276,14 +284,14 @@ export default function MiniCrosswordGame() {
 
         const freshLetters = getEmptyLetters();
         setLetters(freshLetters);
-        setActiveEntryId(CROSSWORD_PUZZLE.entries[0]?.id ?? "");
+        setActiveEntryId(PUZZLE.entries[0]?.id ?? "");
         setChecksUsed(0);
         setRevealedEntryIds([]);
         setStartedAt(new Date().toISOString());
         setCompletedAt(null);
         setScoreSubmitted(false);
         setNotice("Puzzle reset. Start with any clue.");
-        window.localStorage.removeItem(CROSSWORD_STORAGE_KEY);
+        window.localStorage.removeItem(STORAGE_KEY);
     }
 
     function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>, cell: CrosswordCell) {
@@ -345,8 +353,8 @@ export default function MiniCrosswordGame() {
             <div className="flex flex-col gap-6 border-b border-primary/8 pb-6 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Mini Crossword</p>
-                    <h2 className="mt-4 font-heading text-4xl text-primary md:text-5xl">{CROSSWORD_PUZZLE.title}</h2>
-                    <p className="mt-4 max-w-3xl leading-relaxed text-text-secondary">{CROSSWORD_PUZZLE.subtitle}</p>
+                    <h2 className="mt-4 font-heading text-4xl text-primary md:text-5xl">{PUZZLE.title}</h2>
+                    <p className="mt-4 max-w-3xl leading-relaxed text-text-secondary">{PUZZLE.subtitle}</p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                     <div className="rounded-[1.2rem] border border-primary/10 bg-white/90 px-4 py-4">
@@ -417,9 +425,9 @@ export default function MiniCrosswordGame() {
 
                     <div
                         className="grid gap-1.5"
-                        style={{ gridTemplateColumns: `repeat(${CROSSWORD_PUZZLE.cols}, minmax(0, 1fr))` }}
+                        style={{ gridTemplateColumns: `repeat(${PUZZLE.cols}, minmax(0, 1fr))` }}
                     >
-                        {CROSSWORD_PUZZLE.cells.map((cell) => {
+                        {PUZZLE.cells.map((cell) => {
                             if (!cell.answer) {
                                 return <div key={cell.key} className="aspect-square rounded-[0.72rem] bg-[#0f2033]" />;
                             }
@@ -496,7 +504,7 @@ export default function MiniCrosswordGame() {
                         <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
                             <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Across</p>
                             <div className="mt-5 space-y-3">
-                                {CROSSWORD_PUZZLE.across.map((entry) => (
+                                {PUZZLE.across.map((entry) => (
                                     <button
                                         key={entry.id}
                                         type="button"
@@ -517,7 +525,7 @@ export default function MiniCrosswordGame() {
                         <div className="rounded-[1.9rem] border border-primary/10 bg-white p-6 shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
                             <p className="text-xs uppercase tracking-[0.26em] text-text-secondary">Down</p>
                             <div className="mt-5 space-y-3">
-                                {CROSSWORD_PUZZLE.down.map((entry) => (
+                                {PUZZLE.down.map((entry) => (
                                     <button
                                         key={entry.id}
                                         type="button"
@@ -551,7 +559,7 @@ export default function MiniCrosswordGame() {
                                 maxScore={100}
                                 attempts={checksUsed + revealedEntryIds.length}
                                 solved={true}
-                                puzzleKey={CROSSWORD_PUZZLE_KEY}
+                                puzzleKey={PUZZLE.id}
                                 metadata={metadata}
                                 buttonLabel="Submit Crossword Score"
                                 successMessage="Crossword score submitted."

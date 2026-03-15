@@ -3,12 +3,9 @@ import { WEDDING } from "@/lib/wedding-data";
 const WEDDING_DAY_AT = `${WEDDING.date.iso}T00:00:00-05:00`;
 export const TRIVIA_UNLOCK_AT = WEDDING_DAY_AT;
 export const TRIVIA_UNLOCK_LABEL = WEDDING.date.display;
-export const CROSSWORD_UNLOCK_AT = getDateDaysBeforeWedding(7).toISOString();
-export const CROSSWORD_UNLOCK_LABEL = getDateDaysBeforeWedding(7).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-});
+// Crossword unlocks March 15, 2026 — 200 daily puzzles rotating through the pool.
+export const CROSSWORD_UNLOCK_AT = "2026-03-15T00:00:00-05:00";
+export const CROSSWORD_UNLOCK_LABEL = "March 15, 2026";
 
 export function getTriviaUnlockDate() {
     return new Date(TRIVIA_UNLOCK_AT);

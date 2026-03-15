@@ -746,7 +746,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         <OverviewMetric
                             label="Unlock"
                             value={crosswordRemaining.isUnlocked ? "Live" : CROSSWORD_UNLOCK_LABEL}
-                            note="The mini crossword opens one week before the wedding."
+                            note="The mini crossword runs 200 daily puzzles starting March 15, 2026."
                         />
                         <OverviewMetric
                             label="Puzzle Key"
