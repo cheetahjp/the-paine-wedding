@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Section from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
@@ -316,6 +316,53 @@ export default function RSVP() {
 
     const [songRequest, setSongRequest] = useState("");
     const [advice, setAdvice] = useState("");
+
+    // ── Leave / refresh guard ─────────────────────────────────────────────────
+    // Active once the user has started filling out the form (step > 1 or confirming shown)
+    const guardActive = (step > 1 || !!confirming) && step !== 4;
+    const pushedHistoryEntry = useRef(false);
+
+    // Push a history entry the first time the guard becomes active so the
+    // browser "back" button triggers popstate instead of a hard navigation.
+    useEffect(() => {
+        if (guardActive && !pushedHistoryEntry.current) {
+            pushedHistoryEntry.current = true;
+            window.history.pushState({ rsvpGuard: true }, "");
+        }
+    }, [guardActive]);
+
+    useEffect(() => {
+        if (!guardActive) return;
+
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            // Modern browsers ignore custom messages — they show their own text.
+            // Setting returnValue triggers the native dialog.
+            e.returnValue = "";
+        };
+
+        const handlePopState = () => {
+            const leave = window.confirm(
+                "Leave site?\n\nChanges you made may not be saved."
+            );
+            if (leave) {
+                // User confirmed — remove guards and go back for real
+                window.removeEventListener("beforeunload", handleBeforeUnload);
+                window.removeEventListener("popstate", handlePopState);
+                window.history.back();
+            } else {
+                // User stayed — re-push so the next back press still triggers this
+                window.history.pushState({ rsvpGuard: true }, "");
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        window.addEventListener("popstate", handlePopState);
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, [guardActive]);
 
     // ── Navigation helpers ────────────────────────────────────────────────────
 
