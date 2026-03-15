@@ -46,19 +46,20 @@ export default async function Home() {
               RSVP
             </Button>
             <Button
-              href="/wedding-details"
+              href="/our-story"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-primary"
             >
-              Wedding Details
+              Our Story
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Intro Section */}
+      {/* Registry Section */}
       <Section background="surface" className="text-center">
-        <h2 className="font-heading text-4xl mb-6">Join Us in Celebration</h2>
+        <p className="text-xs uppercase tracking-[0.25em] text-primary/55 mb-3 font-medium">Wishlist</p>
+        <h2 className="font-heading text-4xl mb-6">Registry</h2>
         <p
           className="max-w-2xl mx-auto text-text-secondary leading-relaxed"
           data-admin-key="home.intro"
@@ -66,11 +67,11 @@ export default async function Home() {
           data-admin-current-text={content.homeIntro}
           data-admin-label="Home Intro Text"
         >
-          {content.homeIntro}
+          Your presence at our wedding is the greatest gift of all. If you&apos;d like to celebrate us with something for the home, we&apos;ve registered at Amazon and Target.
         </p>
-        <div className="mt-12">
-          <Button href="/our-story" variant="secondary">
-            Read Our Story
+        <div className="mt-10">
+          <Button href="/registry" variant="secondary">
+            View Registry
           </Button>
         </div>
       </Section>
@@ -78,7 +79,9 @@ export default async function Home() {
       {/* Quick Details Grid */}
       <Section background="base">
         <div className="grid md:grid-cols-3 gap-12 text-center">
-          <div className="space-y-4">
+
+          {/* When → Games */}
+          <div className="space-y-4 flex flex-col items-center">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">When</h3>
             <p
               className="font-heading text-2xl"
@@ -89,8 +92,16 @@ export default async function Home() {
             >
               {wedding.date.dayOfWeek}, {wedding.date.display}
             </p>
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+              Can&apos;t wait for the big day? Us either — so we made some games to pass the time.
+            </p>
+            <Button href="/games" variant="outline" className="mt-2">
+              Play the Games
+            </Button>
           </div>
-          <div className="space-y-4 md:border-l md:border-r border-surface px-4">
+
+          {/* Where → Travel */}
+          <div className="space-y-4 flex flex-col items-center md:border-l md:border-r border-surface px-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">Where</h3>
             <p
               className="font-heading text-2xl"
@@ -101,8 +112,16 @@ export default async function Home() {
               {wedding.venue.name}
             </p>
             <p className="text-sm text-text-secondary">{wedding.venue.cityDisplay}</p>
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+              Live outside DFW? We&apos;ve rounded up hotels, tips, and things to do while you&apos;re in town.
+            </p>
+            <Button href="/travel" variant="outline" className="mt-2">
+              Plan Your Trip
+            </Button>
           </div>
-          <div className="space-y-4">
+
+          {/* Dress Code → Attire */}
+          <div className="space-y-4 flex flex-col items-center">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">Dress Code</h3>
             <p
               className="font-heading text-2xl"
@@ -112,7 +131,14 @@ export default async function Home() {
             >
               {wedding.dresscode.short === "TBD" ? "Details Coming Soon" : wedding.dresscode.short}
             </p>
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+              Not sure what to wear? Check out our attire guide so you fit right in.
+            </p>
+            <Button href="/attire" variant="outline" className="mt-2">
+              View Dress Code
+            </Button>
           </div>
+
         </div>
       </Section>
     </>

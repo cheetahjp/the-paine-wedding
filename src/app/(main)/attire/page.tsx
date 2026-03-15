@@ -33,7 +33,7 @@ export default async function Attire() {
                 </p>
             </Section>
 
-            <Section background="surface" className="py-24">
+            <Section background="white" className="pt-10 md:pt-14 pb-24 md:pb-32">
                 <div className="mx-auto max-w-6xl">
                     <AttireTabs
                         ladiesText={

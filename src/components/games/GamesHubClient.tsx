@@ -55,7 +55,7 @@ function CountdownCard({
                 </p>
 
                 {remaining.isUnlocked ? (
-                    <p className="mt-8 text-sm uppercase tracking-[0.24em] text-primary transition-transform duration-300 group-hover:translate-x-1">
+                    <p className="mt-8 text-sm uppercase tracking-[0.24em] text-primary">
                         {cta}
                     </p>
                 ) : (
@@ -139,7 +139,7 @@ export default function GamesHubClient() {
                         solved round can land on the leaderboard.
                     </p>
 
-                    <p className="mt-8 text-sm uppercase tracking-[0.24em] text-primary transition-transform duration-300 group-hover:translate-x-1">
+                    <p className="mt-8 text-sm uppercase tracking-[0.24em] text-primary">
                         Play Painedle
                     </p>
                 </div>

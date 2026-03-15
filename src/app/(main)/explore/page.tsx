@@ -13,17 +13,9 @@ export default function Explore() {
                     You&apos;re in for a treat — DFW has something for everyone. Here are our
                     favorite picks to help you make the most of your trip.
                 </p>
-                <div className="mt-6">
-                    <Link
-                        href="/travel"
-                        className="text-sm text-primary/60 hover:text-primary transition-colors underline underline-offset-4"
-                    >
-                        ← Back to Travel &amp; Stay
-                    </Link>
-                </div>
             </Section>
 
-            <Section background="base" className="py-20">
+            <Section background="base" className="pt-10 md:pt-12 pb-20">
                 <div className="max-w-5xl mx-auto">
 
                     {/* State Fair callout */}
