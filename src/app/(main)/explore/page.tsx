@@ -8,7 +8,7 @@ export default function Explore() {
         <div>
             {/* Hero */}
             <Section background="surface" className="text-center pb-14 pt-12 md:pb-16 md:pt-16">
-                <h1 className="font-heading text-5xl md:text-6xl mb-6">Explore Dallas &amp; DFW</h1>
+                <h1 className="font-heading text-5xl md:text-6xl mb-6">Explore</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide leading-relaxed">
                     You&apos;re in for a treat — DFW has something for everyone. Here are our
                     favorite picks to help you make the most of your trip.

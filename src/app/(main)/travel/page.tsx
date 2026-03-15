@@ -2,7 +2,6 @@ import React from "react";
 import Section from "@/components/ui/Section";
 import { getWeddingData } from "@/lib/site-settings";
 import { MapPin, Plane, Car, ExternalLink, Phone } from "lucide-react";
-import Link from "next/link";
 
 export default async function Travel() {
     const { wedding } = await getWeddingData();
@@ -20,14 +19,6 @@ export default async function Travel() {
                     Everything you need to get here and settle in. The venue is located in the
                     northeast Texas countryside — about an hour from Dallas.
                 </p>
-                <div className="mt-8">
-                    <Link
-                        href="/explore"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-primary/25 text-sm font-medium text-primary hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 uppercase tracking-widest"
-                    >
-                        Explore Dallas &amp; DFW →
-                    </Link>
-                </div>
             </Section>
 
             {/* Map + Venue Info */}
@@ -251,7 +242,7 @@ export default async function Travel() {
                                 <div className="w-12 h-12 mx-auto mb-4 bg-primary/8 rounded-full flex items-center justify-center text-primary">
                                     <Icon size={22} className="text-primary" />
                                 </div>
-                                <h3 className="font-medium text-base mb-2">{title}</h3>
+                                <h3 className="font-medium text-base mb-2 text-text-primary">{title}</h3>
                                 <p className="text-sm text-text-secondary leading-relaxed">{description}</p>
                             </div>
                         ))}

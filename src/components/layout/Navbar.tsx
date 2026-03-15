@@ -10,6 +10,7 @@ const navLinks = [
     { name: "Our Story", href: "/our-story" },
     { name: "Bridal Party", href: "/bridal-party" },
     { name: "Travel", href: "/travel" },
+    { name: "Explore", href: "/explore" },
     { name: "Attire", href: "/attire" },
     { name: "Registry", href: "/registry" },
     { name: "Games", href: "/games" },
