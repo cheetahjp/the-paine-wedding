@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScoreSubmissionForm from "@/components/games/ScoreSubmissionForm";
+import { useAdminSession } from "@/hooks/useAdminSession";
 import {
     computeCrosswordScore,
     getDailyCrosswordPuzzle,
@@ -24,7 +25,6 @@ const STORAGE_KEY = getCrosswordStorageKey(PUZZLE.id, TODAY_KEY);
 type SavedCrosswordState = {
     letters: Record<string, string>;
     activeEntryId: string;
-    checksUsed: number;
     revealedEntryIds: string[];
     startedAt: string;
     completedAt: string | null;
@@ -48,7 +48,6 @@ function getDefaultState(): SavedCrosswordState {
     return {
         letters: getEmptyLetters(),
         activeEntryId: PUZZLE.entries[0]?.id ?? "",
-        checksUsed: 0,
         revealedEntryIds: [],
         startedAt: new Date().toISOString(),
         completedAt: null,
@@ -71,7 +70,6 @@ function getInitialState(): SavedCrosswordState {
             activeEntryId: parsed.activeEntryId && ENTRY_MAP.has(parsed.activeEntryId)
                 ? parsed.activeEntryId
                 : (PUZZLE.entries[0]?.id ?? ""),
-            checksUsed: typeof parsed.checksUsed === "number" ? parsed.checksUsed : 0,
             revealedEntryIds: Array.isArray(parsed.revealedEntryIds)
                 ? parsed.revealedEntryIds.filter((id) => ENTRY_MAP.has(id))
                 : [],
@@ -96,7 +94,6 @@ function getEntryById(entryId: string | null) {
 function focusInput(inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>, cellKey: string) {
     const input = inputRefs.current[cellKey];
     input?.focus();
-    input?.select();
 }
 
 export default function MiniCrosswordGame() {
@@ -104,20 +101,29 @@ export default function MiniCrosswordGame() {
     const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
     const [letters, setLetters] = useState<Record<string, string>>(initialState.letters);
     const [activeEntryId, setActiveEntryId] = useState<string>(initialState.activeEntryId);
-    const [checksUsed, setChecksUsed] = useState(initialState.checksUsed);
     const [revealedEntryIds, setRevealedEntryIds] = useState<string[]>(initialState.revealedEntryIds);
     const [startedAt, setStartedAt] = useState(initialState.startedAt);
     const [completedAt, setCompletedAt] = useState<string | null>(initialState.completedAt);
     const [scoreSubmitted, setScoreSubmitted] = useState(initialState.scoreSubmitted);
     const [notice, setNotice] = useState("Tap a clue or a square to start filling the board.");
-    const [incorrectKeys, setIncorrectKeys] = useState<string[]>([]);
+    const [focusedCellKey, setFocusedCellKey] = useState<string | null>(null);
     const [durationSeconds, setDurationSeconds] = useState(1);
+
+    const { isAdmin } = useAdminSession();
+
+    // Auto-check: cells are incorrect if they have a letter that doesn't match the answer
+    const incorrectKeys = useMemo(
+        () =>
+            PUZZLE.cells
+                .filter((cell) => cell.answer && letters[cell.key] && letters[cell.key] !== cell.answer)
+                .map((cell) => cell.key),
+        [letters]
+    );
 
     useEffect(() => {
         const payload: SavedCrosswordState = {
             letters,
             activeEntryId,
-            checksUsed,
             revealedEntryIds,
             startedAt,
             completedAt,
@@ -125,16 +131,11 @@ export default function MiniCrosswordGame() {
         };
 
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    }, [letters, activeEntryId, checksUsed, revealedEntryIds, startedAt, completedAt, scoreSubmitted]);
+    }, [letters, activeEntryId, revealedEntryIds, startedAt, completedAt, scoreSubmitted]);
 
     const activeEntry = getEntryById(activeEntryId);
     const activeCells = activeEntry?.cells ?? [];
 
-    const solvedCellCount = useMemo(
-        () =>
-            PUZZLE.cells.filter((cell) => cell.answer && letters[cell.key] === cell.answer).length,
-        [letters]
-    );
     const fillCount = useMemo(
         () => Object.values(letters).filter(Boolean).length,
         [letters]
@@ -159,10 +160,10 @@ export default function MiniCrosswordGame() {
         return () => window.clearInterval(interval);
     }, [completedAt, startedAt]);
 
-    const score = computeCrosswordScore(durationSeconds, checksUsed, revealedEntryIds.length);
+    const score = computeCrosswordScore(durationSeconds, 0, revealedEntryIds.length);
     const metadata: CrosswordMetadata = {
         duration_seconds: durationSeconds,
-        checks_used: checksUsed,
+        checks_used: 0,
         reveals_used: revealedEntryIds.length,
         completed_at: completedAt ?? startedAt,
     };
@@ -171,8 +172,10 @@ export default function MiniCrosswordGame() {
         setActiveEntryId(entry.id);
         const firstOpenCell = entry.cells.find((cellKey) => !letters[cellKey]) ?? entry.cells[0];
 
-        if (focus) {
-            window.requestAnimationFrame(() => focusInput(inputRefs, firstOpenCell));
+        if (focus && firstOpenCell) {
+            window.requestAnimationFrame(() => {
+                focusInput(inputRefs, firstOpenCell);
+            });
         }
     }
 
@@ -230,23 +233,6 @@ export default function MiniCrosswordGame() {
         if (entry) setActiveEntryId(entry.id);
     }
 
-    function handleCheckBoard() {
-        const incorrect = PUZZLE.cells
-            .filter((cell) => cell.answer && letters[cell.key] && letters[cell.key] !== cell.answer)
-            .map((cell) => cell.key);
-
-        setChecksUsed((current) => current + 1);
-        setIncorrectKeys(incorrect);
-        window.setTimeout(() => setIncorrectKeys([]), 1400);
-
-        if (incorrect.length === 0) {
-            setNotice(isSolved ? "Everything is correct. Submit your score when you're ready." : "No mistakes in the filled squares so far.");
-            return;
-        }
-
-        setNotice(`${incorrect.length} square${incorrect.length === 1 ? "" : "s"} need another look.`);
-    }
-
     function handleRevealEntry() {
         if (!activeEntry) return;
 
@@ -266,30 +252,18 @@ export default function MiniCrosswordGame() {
         setNotice(`Revealed ${activeEntry.number} ${activeEntry.direction}.`);
     }
 
-    function handleClearEntry() {
-        if (!activeEntry) return;
-
-        const nextLetters = { ...letters };
-        activeEntry.cells.forEach((cellKey) => {
-            nextLetters[cellKey] = "";
-        });
-        setLetters(nextLetters);
-        setNotice(`Cleared ${activeEntry.number} ${activeEntry.direction}.`);
-        window.requestAnimationFrame(() => focusInput(inputRefs, activeEntry.cells[0]));
-    }
-
     function handleResetPuzzle() {
-        const shouldReset = window.confirm("Reset the crossword and clear the saved progress on this browser?");
+        const shouldReset = window.confirm("Reset the crossword and clear your saved progress on this browser?");
         if (!shouldReset) return;
 
         const freshLetters = getEmptyLetters();
         setLetters(freshLetters);
         setActiveEntryId(PUZZLE.entries[0]?.id ?? "");
-        setChecksUsed(0);
         setRevealedEntryIds([]);
         setStartedAt(new Date().toISOString());
         setCompletedAt(null);
         setScoreSubmitted(false);
+        setFocusedCellKey(null);
         setNotice("Puzzle reset. Start with any clue.");
         window.localStorage.removeItem(STORAGE_KEY);
     }
@@ -351,47 +325,46 @@ export default function MiniCrosswordGame() {
     return (
         <div className="overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] shadow-[0_24px_80px_rgba(20,42,68,0.10)]">
 
-            {/* ── Top bar: label · stats · action buttons ── */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-primary/8 px-5 py-3.5 md:px-6">
-                <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-text-secondary">Mini Crossword</p>
-                <div className="flex items-center gap-3 text-xs text-text-secondary">
-                    <span>{fillCount}&thinsp;/&thinsp;{totalFillableCells} filled</span>
-                    <span className="opacity-30">·</span>
-                    <span>{solvedCellCount} correct</span>
-                    <span className="opacity-30">·</span>
-                    <span className="font-semibold text-primary">{score} pts</span>
-                </div>
-                <div className="ml-auto flex flex-wrap gap-1.5">
-                    <button
-                        type="button"
-                        onClick={handleCheckBoard}
-                        className="rounded-full border border-primary/12 bg-white px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-white"
-                    >
-                        Check
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleRevealEntry}
-                        disabled={!activeEntry || isSolved}
-                        className="rounded-full border border-accent/35 bg-accent/10 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        Reveal
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleClearEntry}
-                        disabled={!activeEntry}
-                        className="rounded-full border border-primary/12 bg-white px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        Clear
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleResetPuzzle}
-                        className="rounded-full border border-secondary/15 bg-secondary/6 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-secondary transition-colors hover:bg-secondary hover:text-white"
-                    >
-                        Reset
-                    </button>
+            {/* ── Header ── */}
+            <div className="border-b border-primary/8 px-5 py-6 md:px-8 md:py-7">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Daily Puzzle</p>
+                        <h2 className="mt-2 font-heading text-4xl text-primary">Mini Crossword</h2>
+                        <p className="mt-2 leading-relaxed text-text-secondary">
+                            Six clues built around Ashlyn and Jeffrey. Tap a square or clue to begin.
+                        </p>
+                    </div>
+
+                    <div className="flex shrink-0 flex-col items-end gap-2.5 pt-1">
+                        {/* Stats */}
+                        <div className="flex items-center gap-2 text-xs text-text-secondary">
+                            <span>{fillCount}&thinsp;/&thinsp;{totalFillableCells}</span>
+                            <span className="opacity-30">·</span>
+                            <span className="font-semibold text-primary">{score}&thinsp;pts</span>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex gap-1.5">
+                            {isAdmin && (
+                                <button
+                                    type="button"
+                                    onClick={handleRevealEntry}
+                                    disabled={!activeEntry || isSolved}
+                                    className="rounded-full border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-amber-700 transition-colors hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    Reveal
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleResetPuzzle}
+                                className="rounded-full border border-secondary/15 bg-secondary/6 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-secondary transition-colors hover:bg-secondary hover:text-white"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -423,22 +396,22 @@ export default function MiniCrosswordGame() {
                                 return <div key={cell.key} className="aspect-square rounded-[0.35rem] bg-[#0f2033]" />;
                             }
 
-                            const isActive = activeCells.includes(cell.key);
-                            const isCurrentDirection = activeEntry?.cells.includes(cell.key);
+                            const isFocused = focusedCellKey === cell.key;
+                            const isInActiveEntry = activeCells.includes(cell.key);
                             const isIncorrect = incorrectKeys.includes(cell.key);
 
                             return (
                                 <label
                                     key={cell.key}
-                                    className={`relative flex aspect-square items-stretch overflow-hidden rounded-[0.4rem] border ${
+                                    className={`relative flex aspect-square items-stretch overflow-hidden rounded-[0.4rem] border transition-colors ${
                                         isIncorrect
                                             ? "border-secondary bg-secondary/15"
-                                            : isActive
-                                                ? "border-accent bg-white"
-                                                : isCurrentDirection
-                                                    ? "border-white/30 bg-white/92"
+                                            : isFocused
+                                                ? "border-accent bg-white shadow-[inset_0_-2.5px_0_0_#7c1f28]"
+                                                : isInActiveEntry
+                                                    ? "border-accent/55 bg-white/90"
                                                     : "border-white/16 bg-white/82"
-                                    } transition-colors`}
+                                    }`}
                                 >
                                     {cell.number ? (
                                         <span className="pointer-events-none absolute left-0.5 top-0.5 text-[8px] font-semibold leading-none text-primary/65">
@@ -454,7 +427,9 @@ export default function MiniCrosswordGame() {
                                         onFocus={() => {
                                             const entry = getEntryForCell(cell.key, activeEntry?.direction);
                                             if (entry) setActiveEntryId(entry.id);
+                                            setFocusedCellKey(cell.key);
                                         }}
+                                        onBlur={() => setFocusedCellKey(null)}
                                         onClick={() => handleCellClick(cell)}
                                         onKeyDown={(event) => handleInputKeyDown(event, cell)}
                                         maxLength={1}
@@ -462,7 +437,7 @@ export default function MiniCrosswordGame() {
                                         autoCapitalize="characters"
                                         aria-label={`Crossword cell ${cell.row + 1}, ${cell.col + 1}`}
                                         disabled={isSolved}
-                                        className="h-full w-full bg-transparent px-0 pb-0 pt-3 text-center text-xl font-semibold uppercase tracking-[0.05em] text-primary outline-none"
+                                        className="h-full w-full bg-transparent px-0 pb-0 pt-3 text-center text-xl font-semibold uppercase tracking-[0.05em] text-primary outline-none [caret-color:transparent] selection:bg-transparent"
                                     />
                                 </label>
                             );
@@ -482,13 +457,9 @@ export default function MiniCrosswordGame() {
                             <span className="text-[11px] uppercase tracking-[0.24em] text-text-secondary">
                                 {activeEntry?.direction ?? ""}
                             </span>
-                            {activeEntry ? (
-                                <span className={`ml-auto shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.18em] ${
-                                    revealedEntryIds.includes(activeEntry.id)
-                                        ? "border-secondary/25 text-secondary"
-                                        : "border-primary/10 text-text-secondary"
-                                }`}>
-                                    {revealedEntryIds.includes(activeEntry.id) ? "Revealed" : "Hidden"}
+                            {activeEntry && revealedEntryIds.includes(activeEntry.id) ? (
+                                <span className="ml-auto shrink-0 rounded-full border border-secondary/25 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.18em] text-secondary">
+                                    Revealed
                                 </span>
                             ) : null}
                         </div>
@@ -558,7 +529,7 @@ export default function MiniCrosswordGame() {
                                     game="crossword"
                                     score={score}
                                     maxScore={100}
-                                    attempts={checksUsed + revealedEntryIds.length}
+                                    attempts={revealedEntryIds.length}
                                     solved={true}
                                     puzzleKey={PUZZLE.id}
                                     metadata={metadata}
