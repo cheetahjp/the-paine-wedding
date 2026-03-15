@@ -1245,3 +1245,47 @@ Three indexes: `guest_id`, `household_id`, `recorded_at DESC`.
    - `supabase/migrations/20260315020000_add_rsvp_history.sql` ← **required for History tab + audit log to work**
 2. Admin History tab shows "No RSVP changes recorded yet" until the migration is applied and guests start submitting. That's expected.
 3. Returning-visitor localStorage kicks in automatically — no DB changes needed for that feature.
+
+---
+
+## Session 20 — Homepage refresh, registry redesign, page polish
+
+### Changes shipped
+
+**Homepage (`src/app/(main)/page.tsx`)**
+- Hero: "Wedding Details" button → "Our Story" button
+- "Join Us in Celebration" section replaced with a **Registry CTA section** (intro copy + "View Registry" button)
+- Quick Details grid (When / Where / Dress Code): each column now has a short personality blurb and a button:
+  - When → "Can't wait for the big day? Us either — we made some games." → **Play the Games** → `/games`
+  - Where → "Live outside DFW? We've rounded up hotels, tips, and things to do." → **Plan Your Trip** → `/travel`
+  - Dress Code → "Not sure what to wear? Check out our attire guide." → **View Dress Code** → `/attire`
+
+**Attire page (`src/app/(main)/attire/page.tsx`)**
+- Content section: `background="surface"` → `background="white"` (white, not beige)
+- Top padding tightened: `py-24` → `pt-10 md:pt-14 pb-24 md:pb-32` to close the large gap below the hero
+
+**Explore page (`src/app/(main)/explore/page.tsx`)**
+- Removed "← Back to Travel & Stay" link — Explore is now a top-nav item, the back link was confusing
+- Tightened top padding: `py-20` → `pt-10 md:pt-12 pb-20`
+
+**Registry page (`src/app/(main)/registry/page.tsx`)**
+- Full redesign with brand-colored cards:
+  - Amazon: orange (#FF9900) top bar, "amazon" wordmark + orange underline, category pills (Kitchen, Bedroom, Bath, Entertaining, Home Decor) in warm amber tones
+  - Target: red (#CC0000) top bar, inline bullseye SVG + "Target" name in red, category pills (Home Essentials, Kitchen, Storage, Bedding) in pale red tones
+  - Per-brand personalised tagline copy
+  - "Browse →" CTA with ExternalLink icon, color-matched per brand
+  - White background section
+  - Warm closing italic note: "A card or heartfelt note means just as much..."
+- Removed unused `Link`, `Gift`, `Heart` imports; added `ExternalLink`
+
+**Section component (`src/components/ui/Section.tsx`)**
+- Added `"white"` to the background prop options → maps to `bg-white text-text-primary`
+- TypeScript type updated to include `"white"`
+
+**GamesHubClient (`src/components/games/GamesHubClient.tsx`)**
+- Painedle card and CountdownCard CTA text: removed `transition-transform duration-300 group-hover:translate-x-1` — the card still lifts on hover (`hover:-translate-y-1`) but the text no longer drifts right independently, which was jarring
+
+### Notes for next session
+- Games section is the main focus next — Ashlyn will be reviewing the full site and giving feedback
+- Games section has: Painedle (live), Mini Crossword (unlocks ~1 week before), Couple Trivia (unlocks day-of)
+- Consider: leaderboard display improvements, game intro copy, mobile feel
