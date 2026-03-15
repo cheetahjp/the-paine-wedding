@@ -1178,3 +1178,70 @@ Fixed persistent admin logout bug caused by cookie de-duplication in Next.js res
 1. **Apply DB migration:** `supabase/migrations/20260315000000_add_dietary_restrictions.sql` — run in Supabase SQL editor
 2. **Apply page visibility migration:** `supabase/migrations/20260315010000_default_page_visibility.sql` — run in Supabase SQL editor (sets Schedule and Details as hidden by default)
 3. **Test logout:** After deploying, log in as admin → log out via the floating bar → navigate to another page. The bar should NOT reappear.
+
+---
+
+## Session 19 — RSVP polish, history audit log, returning visitor memory
+
+### Plan going in
+1. Create `rsvp_history` migration (append-only audit log per submit)
+2. RSVP page: toggle deselect, dietary "✕ Remove", back from step 4, navy+beige checkmark, new step-4 buttons, plan-trip link, localStorage memory, make-changes flow, history insert
+3. Admin: "History" tab showing all RSVP submissions with timestamps
+4. Update AI_COLLAB.md
+
+### Key decisions
+- **RSVP column is `food_allergies` not `dietary_restrictions`** — the `dietary_restrictions` migration was never applied to live Supabase. Using `food_allergies` (confirmed live) prevents upsert failures.
+- **Audit log is append-only** (`rsvp_history`). Never deletes. Admin can see every version of a guest's RSVP in the History tab.
+- **localStorage key:** `rsvp_submitted` → `{ householdId, householdName, anyAttending }`. Set on successful submit. Checked on every page load. Allows "returning visitor" UX.
+- **History insert is fire-and-forget** — failures are only `console.warn`'d so they never block a guest's submit.
+- **Step 4 back button** uses `anyAttending` to decide where to land: step 3 (if attending guests) or step 2 (if all declined). This is correct because `responses` still reflects the last submitted state.
+
+### RSVP page changes (`src/app/(main)/rsvp/page.tsx`)
+- **Toggle deselect:** `handleAttendingToggle(guestId, value)` — if `current === value` sets `attending` to `null`, otherwise sets it to `value`. Clicking same button again unselects it.
+- **Dietary ✕ Remove:** Allergy section now has a small "✕ Remove" link in the label row. Clicking it calls `hideAllergyField(guestId)` which sets `showAllergies: false` AND clears `food_allergies: ""` (so accidental entries don't persist).
+- **Back from step 4:** `goBack()` now handles `step === 4` → sets step to `anyAttending ? 3 : 2`. Allows editing and re-submitting.
+- **Step 4 checkmark:** `bg-primary` navy circle with inline SVG stroke color `#f6f2ea` (site's beige/cream — the `--base` color). Previously was a gray `bg-primary/10` ring.
+- **Step 4 buttons:** "← Back" (outline style) + "Return Home" (filled `Button`, the primary/suggested action). Reversed from previous version where outline was the suggested CTA.
+- **Plan your trip link:** Shown only if `step4Attending === true`. Sits below the buttons as a small `text-sm text-text-secondary/60` sentence: "Live outside DFW? Plan your trip →" linking to `/travel`.
+- **Returning visitor (localStorage):** On mount, reads `rsvp_submitted` from localStorage. If found, sets `storedRSVP` and jumps to step 4. Shows: "Welcome back! / [HouseholdName] / You're all set!" with "Make changes to my RSVP" (outline) + "Return Home" (filled primary).
+- **Make changes flow:** `handleMakeChanges()` fetches household + guests from Supabase, pre-fills `responses` and restores `songRequest`/`advice` from DB, then jumps to step 2. After re-submitting, localStorage is updated with new `anyAttending` value.
+- **History insert:** After successful upsert, inserts one row per guest into `rsvp_history` table: `{ guest_id, household_id, attending, food_allergies, song_request, advice }`. Fire-and-forget.
+
+### New migration (`supabase/migrations/20260315020000_add_rsvp_history.sql`)
+```sql
+CREATE TABLE IF NOT EXISTS rsvp_history (
+  id           uuid       DEFAULT gen_random_uuid() PRIMARY KEY,
+  guest_id     uuid       NOT NULL REFERENCES guests(id)     ON DELETE CASCADE,
+  household_id uuid       NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+  recorded_at  timestamptz DEFAULT timezone('utc', now()) NOT NULL,
+  attending      boolean,
+  food_allergies text,
+  song_request   text,
+  advice         text
+);
+```
+Three indexes: `guest_id`, `household_id`, `recorded_at DESC`.
+
+### Admin dashboard changes (`src/app/(main)/admin/page.tsx`)
+- New `RSVPHistoryEntry` type
+- `rsvpHistory` state + `historyLoading` state
+- `fetchHistory()` — queries `rsvp_history` joined with `guests(first_name, last_name, households(name))`, ordered `recorded_at DESC`, limit 200
+- New "History" tab button (with count badge)
+- History tab renders a full table: When / Guest / Household / Attending / Dietary / Song / Advice
+- Graceful failure: if `rsvp_history` table doesn't exist yet (migration not applied), `fetchHistory` silently catches the error so the rest of the admin panel still works
+
+### Files created / modified
+| File | Change |
+|------|--------|
+| `supabase/migrations/20260315020000_add_rsvp_history.sql` | NEW — append-only audit log table |
+| `src/app/(main)/rsvp/page.tsx` | Toggle deselect, dietary remove, step-4 back, navy checkmark, localStorage memory, make-changes flow, history insert |
+| `src/app/(main)/admin/page.tsx` | History tab (type + state + fetch + render) |
+| `AI_COLLAB.md` | This update |
+
+### Pending actions for Jeff
+1. **Run migration in Supabase SQL editor:**
+   - `supabase/migrations/20260315000000_add_dietary_restrictions.sql` (adds `dietary_restrictions` column — currently unused but good to have)
+   - `supabase/migrations/20260315010000_default_page_visibility.sql` (hides Schedule + Details by default)
+   - `supabase/migrations/20260315020000_add_rsvp_history.sql` ← **required for History tab + audit log to work**
+2. Admin History tab shows "No RSVP changes recorded yet" until the migration is applied and guests start submitting. That's expected.
+3. Returning-visitor localStorage kicks in automatically — no DB changes needed for that feature.

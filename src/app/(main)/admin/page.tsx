@@ -30,6 +30,22 @@ type Guest = {
 type SortField = "name" | "household" | "affiliation" | "side" | "likelihood" | "rsvp" | "plusone";
 type SortDir = "asc" | "desc";
 
+type RSVPHistoryEntry = {
+    id: string;
+    recorded_at: string;
+    attending: boolean | null;
+    food_allergies: string | null;
+    song_request: string | null;
+    advice: string | null;
+    guest_id: string;
+    household_id: string;
+    guests: {
+        first_name: string;
+        last_name: string;
+        households: { name: string } | null;
+    } | null;
+};
+
 export default function AdminDashboard() {
     const { status, role, login, logout } = useAdminSession();
     const [guests, setGuests] = useState<Guest[]>([]);
@@ -39,7 +55,9 @@ export default function AdminDashboard() {
     const [importing, setImporting] = useState(false);
     const [importMessage, setImportMessage] = useState("");
     const [envError, setEnvError] = useState(false);
-    const [activeTab, setActiveTab] = useState<"guests" | "extras" | "pages">("guests");
+    const [activeTab, setActiveTab] = useState<"guests" | "extras" | "pages" | "history">("guests");
+    const [rsvpHistory, setRsvpHistory] = useState<RSVPHistoryEntry[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
     const [sortField, setSortField] = useState<SortField>("household");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
     const [pageVisibility, setPageVisibility] = useState<Array<{ slug: string; label: string; hidden: boolean }>>([]);
@@ -51,6 +69,7 @@ export default function AdminDashboard() {
         const timer = window.setTimeout(() => {
             void fetchData();
             void fetchPageVisibility();
+            void fetchHistory();
         }, 0);
         return () => window.clearTimeout(timer);
     }, [status]);
@@ -67,6 +86,21 @@ export default function AdminDashboard() {
             setPagesError(e instanceof Error ? e.message : "Unknown error");
         }
         setPagesLoading(false);
+    }
+
+    async function fetchHistory() {
+        setHistoryLoading(true);
+        try {
+            const { data, error: histErr } = await supabase
+                .from("rsvp_history")
+                .select("*, guests(first_name, last_name, households(name))")
+                .order("recorded_at", { ascending: false })
+                .limit(200);
+            if (!histErr && data) setRsvpHistory(data as RSVPHistoryEntry[]);
+        } catch {
+            // Non-critical — table may not exist yet if migration hasn't run
+        }
+        setHistoryLoading(false);
     }
 
     async function fetchData() {
@@ -302,6 +336,17 @@ export default function AdminDashboard() {
                             >
                                 Pages
                             </button>
+                            <button
+                                onClick={() => setActiveTab("history")}
+                                className={`text-sm uppercase tracking-widest pb-1 border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-text-secondary hover:text-primary"}`}
+                            >
+                                History
+                                {rsvpHistory.length > 0 && (
+                                    <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                                        {rsvpHistory.length}
+                                    </span>
+                                )}
+                            </button>
                         </div>
 
                         {activeTab === "guests" ? (
@@ -390,6 +435,62 @@ export default function AdminDashboard() {
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                        ) : activeTab === "history" ? (
+                            <div className="overflow-x-auto">
+                                {historyLoading ? (
+                                    <div className="py-10 text-center text-text-secondary text-sm">Loading history...</div>
+                                ) : rsvpHistory.length === 0 ? (
+                                    <div className="py-10 text-center text-text-secondary text-sm">No RSVP changes recorded yet.</div>
+                                ) : (
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="border-b border-gray-200 bg-surface/80 text-xs uppercase tracking-widest text-text-secondary">
+                                            <tr>
+                                                <th className="px-6 py-4 font-normal">When</th>
+                                                <th className="px-6 py-4 font-normal">Guest</th>
+                                                <th className="px-6 py-4 font-normal">Household</th>
+                                                <th className="px-6 py-4 font-normal">Attending</th>
+                                                <th className="px-6 py-4 font-normal">Dietary</th>
+                                                <th className="px-6 py-4 font-normal">Song</th>
+                                                <th className="px-6 py-4 font-normal">Advice</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {rsvpHistory.map((entry) => (
+                                                <tr key={entry.id} className="align-top transition-colors hover:bg-surface/10">
+                                                    <td className="px-6 py-3 text-text-secondary text-xs whitespace-nowrap">
+                                                        {new Date(entry.recorded_at).toLocaleDateString("en-US", {
+                                                            month: "short", day: "numeric", year: "numeric",
+                                                        })}
+                                                        <span className="block text-text-secondary/50">
+                                                            {new Date(entry.recorded_at).toLocaleTimeString("en-US", {
+                                                                hour: "numeric", minute: "2-digit",
+                                                            })}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-3 font-medium text-text-primary">
+                                                        {entry.guests ? `${entry.guests.first_name} ${entry.guests.last_name}` : "Unknown"}
+                                                    </td>
+                                                    <td className="px-6 py-3 text-text-secondary text-xs">
+                                                        {entry.guests?.households?.name ?? "—"}
+                                                    </td>
+                                                    <td className="px-6 py-3">
+                                                        {entry.attending === true ? (
+                                                            <span className="rounded bg-green-50 px-2 py-1 text-xs text-green-700">Attending</span>
+                                                        ) : entry.attending === false ? (
+                                                            <span className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">Declined</span>
+                                                        ) : (
+                                                            <span className="text-text-secondary/40 text-xs">—</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-3 text-text-secondary text-xs">{entry.food_allergies || "—"}</td>
+                                                    <td className="px-6 py-3 italic text-text-secondary text-xs">{entry.song_request || "—"}</td>
+                                                    <td className="px-6 py-3 text-text-secondary text-xs">{entry.advice || "—"}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         ) : (
                             <div className="p-6 md:p-8">
