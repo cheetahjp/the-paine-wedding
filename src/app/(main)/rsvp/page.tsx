@@ -208,7 +208,6 @@ type Guest = {
     nicknames: string | null;
     attending: boolean | null;
     meal_choice: string | null;
-    dietary_restrictions: string | null;
     food_allergies: string | null;
     song_request: string | null;
     advice: string | null;
@@ -219,6 +218,12 @@ type Household = {
     id: string;
     name: string;
     guests: Guest[];
+};
+
+type GuestResponse = {
+    attending: boolean | null;
+    food_allergies: string;
+    showAllergies: boolean;
 };
 
 // ── Progress bar ─────────────────────────────────────────────────────────────
@@ -247,7 +252,7 @@ function RSVPProgressBar({
                     const stepNum = (i + 1) as RSVPStep;
                     const isCompleted = stepNum < currentStep;
                     const isCurrent = stepNum === currentStep;
-                    const isClickable = isCompleted; // can only go back to completed steps
+                    const isClickable = isCompleted;
 
                     return (
                         <div
@@ -300,18 +305,14 @@ export default function RSVP() {
     const [envError, setEnvError] = useState(false);
     const [step, setStep] = useState<RSVPStep>(1);
 
-    // After search succeeds, hold the matched guest name + pending household
-    // data while we show the confirmation card (still on step 1)
     const [confirming, setConfirming] = useState<{
         matchedName: string;
         household: Household;
-        responses: Record<string, { attending: boolean | null; dietary_restrictions: string }>;
+        responses: Record<string, GuestResponse>;
     } | null>(null);
 
     const [household, setHousehold] = useState<Household | null>(null);
-    const [responses, setResponses] = useState<{
-        [guestId: string]: { attending: boolean | null; dietary_restrictions: string };
-    }>({});
+    const [responses, setResponses] = useState<Record<string, GuestResponse>>({});
 
     const [songRequest, setSongRequest] = useState("");
     const [advice, setAdvice] = useState("");
@@ -322,7 +323,6 @@ export default function RSVP() {
         if (targetStep < step) {
             setError(null);
             setStep(targetStep);
-            // If going back to step 1, also clear the confirmation state
             if (targetStep === 1) setConfirming(null);
         }
     };
@@ -400,7 +400,6 @@ export default function RSVP() {
             return;
         }
 
-        // Load household data
         const { data: householdData, error: hhError } = await supabase
             .from("households").select("*").eq("id", topMatch.guest.household_id).single();
 
@@ -419,15 +418,15 @@ export default function RSVP() {
             return;
         }
 
-        const initialResponses: Record<string, { attending: boolean | null; dietary_restrictions: string }> = {};
+        const initialResponses: Record<string, GuestResponse> = {};
         allHouseholdGuests.forEach((g: Guest) => {
             initialResponses[g.id] = {
                 attending: g.attending ?? null,
-                dietary_restrictions: g.dietary_restrictions || g.food_allergies || "",
+                food_allergies: g.food_allergies || "",
+                showAllergies: !!(g.food_allergies),
             };
         });
 
-        // Show confirmation card — don't advance yet
         setConfirming({
             matchedName: `${topMatch.guest.first_name} ${topMatch.guest.last_name}`,
             household: { ...householdData, guests: allHouseholdGuests },
@@ -451,7 +450,7 @@ export default function RSVP() {
 
     // ── Step 2 ────────────────────────────────────────────────────────────────
 
-    const handleResponseChange = (guestId: string, field: string, value: string | boolean | null) => {
+    const handleResponseChange = (guestId: string, field: keyof GuestResponse, value: string | boolean | null) => {
         setResponses((prev) => ({
             ...prev,
             [guestId]: { ...prev[guestId], [field]: value },
@@ -491,9 +490,9 @@ export default function RSVP() {
                 first_name: g.first_name,
                 last_name: g.last_name,
                 household_id: g.household_id,
-                attending: responses[g.id].attending,
-                meal_choice: null,
-                dietary_restrictions: responses[g.id].dietary_restrictions?.trim() || null,
+                attending: responses[g.id]?.attending ?? null,
+                meal_choice: null as string | null,
+                food_allergies: responses[g.id]?.food_allergies?.trim() || null,
                 song_request: songRequest.trim() || null,
                 advice: advice.trim() || null,
             }));
@@ -501,7 +500,7 @@ export default function RSVP() {
             if (updateError) throw updateError;
             setStep(4);
         } catch (err) {
-            console.error(err);
+            console.error("RSVP upsert error:", err);
             setError("Something went wrong while saving your RSVP. Please try again.");
         } finally {
             setLoading(false);
@@ -521,7 +520,7 @@ export default function RSVP() {
             title: household ? getDisplayHouseholdName(household.name) : "Who's Coming?",
             subtitle: "Let us know who from your household will be joining us.",
         },
-        3: { title: "A Few More Things", subtitle: "Help us make the night perfect." },
+        3: { title: "Last Things", subtitle: "Two quick questions, then you're done." },
         4: { title: "You're All Set!", subtitle: "" },
     };
 
@@ -532,8 +531,10 @@ export default function RSVP() {
             <RSVPBackdrop />
 
             <Section className="relative z-10 flex min-h-screen flex-col justify-center bg-transparent py-20 text-center md:py-28">
-                <div className="surface-panel mx-auto w-full max-w-[min(92vw,52rem)] p-6 shadow-[0_32px_90px_rgba(8,16,28,0.24)] sm:p-8 lg:p-12">
-
+                {/* Card — fixed min-height prevents jarring jumps between steps */}
+                <div className="surface-panel mx-auto w-full max-w-[min(92vw,52rem)] p-6 shadow-[0_32px_90px_rgba(8,16,28,0.24)] sm:p-8 lg:p-12"
+                    style={{ minHeight: "520px" }}
+                >
                     {/* Progress bar — hidden on final step */}
                     {step !== 4 && (
                         <RSVPProgressBar currentStep={step} onStepClick={handleStepClick} />
@@ -643,15 +644,18 @@ export default function RSVP() {
 
                     {/* ── Step 2: Attendance ──────────────────────────────────────────── */}
                     {step === 2 && household && (
-                        <form onSubmit={handleAttendanceNext} className="space-y-8 text-left animate-fade-in-up">
+                        <form onSubmit={handleAttendanceNext} className="space-y-6 text-left animate-fade-in-up">
                             {household.guests.map((guest: Guest) => {
-                                const isAttending = responses[guest.id]?.attending;
+                                const resp = responses[guest.id];
+                                const isAttending = resp?.attending;
+                                const showAllergies = resp?.showAllergies ?? false;
+
                                 return (
-                                    <div key={guest.id} className="space-y-4 pb-6 border-b border-surface last:border-0">
+                                    <div key={guest.id} className="space-y-3 pb-6 border-b border-surface last:border-0">
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                            <h3 className="font-medium text-lg border-l-2 border-primary pl-3">
+                                            <h3 className="font-medium text-lg border-l-2 border-primary pl-3 text-text-primary">
                                                 {guest.first_name} {guest.last_name}{" "}
-                                                {guest.suffix && <span className="text-text-secondary">{guest.suffix}</span>}
+                                                {guest.suffix && <span className="text-text-secondary text-base">{guest.suffix}</span>}
                                             </h3>
                                             <div className="flex gap-2 flex-shrink-0 pl-5 sm:pl-0">
                                                 <button type="button"
@@ -672,31 +676,46 @@ export default function RSVP() {
                                                 >Declined</button>
                                             </div>
                                         </div>
+
+                                        {/* Dietary — hidden behind a small link; only visible when attending */}
                                         {isAttending === true && (
-                                            <div className="space-y-2 pt-2 animate-fade-in-up">
-                                                <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                                    Dietary Restrictions
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={responses[guest.id]?.dietary_restrictions || ""}
-                                                    onChange={(e) => handleResponseChange(guest.id, "dietary_restrictions", e.target.value)}
-                                                    placeholder="Any allergies or dietary needs? (Optional)"
-                                                    className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
-                                                />
+                                            <div className="pl-5 animate-fade-in-up">
+                                                {!showAllergies ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleResponseChange(guest.id, "showAllergies", true)}
+                                                        className="text-xs text-text-secondary/60 hover:text-primary underline underline-offset-2 transition-colors"
+                                                    >
+                                                        + Add dietary restriction or allergy
+                                                    </button>
+                                                ) : (
+                                                    <div className="space-y-1.5 animate-fade-in-up">
+                                                        <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                                            Dietary Restriction / Allergy
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            autoFocus
+                                                            value={resp?.food_allergies || ""}
+                                                            onChange={(e) => handleResponseChange(guest.id, "food_allergies", e.target.value)}
+                                                            placeholder="e.g. gluten-free, nut allergy"
+                                                            className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                 );
                             })}
-                            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                            <div className="flex flex-col sm:flex-row gap-3 pt-2">
                                 <button type="button" onClick={goBack}
                                     className="sm:w-auto px-5 py-3 text-sm font-medium border border-gray-200 rounded-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
                                 >
                                     ← Back
                                 </button>
                                 <Button type="submit" className="flex-1" disabled={loading}>
-                                    {loading ? "Saving..." : anyAttending ? "Next" : "Submit RSVP"}
+                                    {loading ? "Saving..." : anyAttending ? "Next →" : "Submit RSVP"}
                                 </Button>
                             </div>
                         </form>
@@ -704,42 +723,49 @@ export default function RSVP() {
 
                     {/* ── Step 3: Extras ──────────────────────────────────────────────── */}
                     {step === 3 && household && (
-                        <form onSubmit={handleSubmitRSVP} className="space-y-6 text-left animate-fade-in-up">
+                        <form onSubmit={handleSubmitRSVP} className="space-y-8 text-left animate-fade-in-up">
+                            {/* Song request */}
                             <div className="space-y-2">
                                 <label className="block text-xs uppercase tracking-widest text-text-secondary">
                                     Song Request
                                 </label>
+                                <p className="text-xs text-text-secondary/55">
+                                    What song will get you on the dance floor?
+                                </p>
                                 <input
                                     type="text"
                                     value={songRequest}
                                     onChange={(e) => setSongRequest(e.target.value)}
-                                    placeholder="e.g. Shout — Tears For Fears"
+                                    placeholder="e.g. Mr. Brightside, Shout, anything Pitbull..."
                                     className="w-full border-b border-gray-300 py-3 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
                                 />
                             </div>
+
+                            {/* Advice */}
                             <div className="space-y-2">
                                 <label className="block text-xs uppercase tracking-widest text-text-secondary">
                                     Advice for the Couple
                                 </label>
+                                <p className="text-xs text-text-secondary/55">
+                                    Words of wisdom? Terrible advice? We&apos;ll take it.
+                                </p>
                                 <textarea
                                     value={advice}
                                     onChange={(e) => setAdvice(e.target.value)}
-                                    placeholder="Share a piece of marriage advice..."
+                                    placeholder="Share a thought..."
                                     rows={4}
                                     className="w-full border border-gray-200 p-3 text-sm rounded-sm focus:outline-none focus:border-primary bg-white resize-none placeholder:text-gray-400"
                                 />
                             </div>
-                            <p className="text-xs text-text-secondary/60 italic">
-                                Both fields are optional — feel free to skip!
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button type="button" onClick={goBack}
                                     className="sm:w-auto px-5 py-3 text-sm font-medium border border-gray-200 rounded-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
                                 >
                                     ← Back
                                 </button>
                                 <Button type="submit" className="flex-1" disabled={loading}>
-                                    {loading ? "Submitting..." : "Send RSVP"}
+                                    {loading ? "Sending..." : "Send RSVP"}
                                 </Button>
                             </div>
                         </form>
