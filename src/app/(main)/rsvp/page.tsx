@@ -201,6 +201,72 @@ function getDisplayHouseholdName(name: string): string {
     return name.replace(/\s+\d+\s*$/, "").trim();
 }
 
+// ── Step types ────────────────────────────────────────────────────────────────
+
+// 1 = Find Invitation, 2 = Who's Coming, 3 = A Few More Things, 4 = All Set
+type RSVPStep = 1 | 2 | 3 | 4;
+
+const STEP_LABELS = ["Find Invitation", "Who's Coming", "A Few More Things", "All Set!"];
+
+// ── Progress bar ─────────────────────────────────────────────────────────────
+
+function RSVPProgressBar({ currentStep }: { currentStep: RSVPStep }) {
+    const total = STEP_LABELS.length;
+
+    return (
+        <div className="mb-8 md:mb-10 px-1">
+            <div className="relative flex items-start justify-between">
+                {/* Background track */}
+                <div className="absolute top-4 left-4 right-4 h-px bg-primary/15 z-0" />
+
+                {/* Filled track — grows as steps complete */}
+                <div
+                    className="absolute top-4 left-4 h-px bg-primary/50 z-0 transition-all duration-500 ease-in-out"
+                    style={{ width: `calc(${((currentStep - 1) / (total - 1)) * 100}% - ${currentStep === 1 ? "0px" : currentStep === total ? "0px" : "0px"})` }}
+                />
+
+                {STEP_LABELS.map((label, i) => {
+                    const stepNum = (i + 1) as RSVPStep;
+                    const isCompleted = stepNum < currentStep;
+                    const isCurrent = stepNum === currentStep;
+
+                    return (
+                        <div key={label} className="relative z-10 flex flex-col items-center" style={{ width: `${100 / total}%` }}>
+                            <div
+                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
+                                    isCompleted
+                                        ? "bg-primary border-primary text-white"
+                                        : isCurrent
+                                        ? "bg-white border-primary text-primary shadow-[0_0_0_3px_rgba(var(--color-primary-rgb,23,37,82),0.12)]"
+                                        : "bg-white border-primary/20 text-text-secondary/40"
+                                }`}
+                            >
+                                {isCompleted ? (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                ) : (
+                                    stepNum
+                                )}
+                            </div>
+                            <span
+                                className={`mt-2 text-[9px] sm:text-[10px] uppercase tracking-wider font-medium text-center leading-tight transition-colors duration-300 ${
+                                    isCurrent ? "text-primary" : isCompleted ? "text-primary/50" : "text-text-secondary/35"
+                                }`}
+                                style={{ maxWidth: "4.5rem" }}
+                            >
+                                {label}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 type Guest = {
     id: string;
     first_name: string;
@@ -222,13 +288,15 @@ type Household = {
     guests: Guest[];
 };
 
+// ── Main Component ────────────────────────────────────────────────────────────
+
 export default function RSVP() {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [envError, setEnvError] = useState(false);
-    const [step, setStep] = useState<"search" | "respond" | "success">("search");
+    const [step, setStep] = useState<RSVPStep>(1);
     const [household, setHousehold] = useState<Household | null>(null);
     const [responses, setResponses] = useState<{
         [guestId: string]: { attending: boolean | null; dietary_restrictions: string };
@@ -237,7 +305,8 @@ export default function RSVP() {
     // Household-level extra fields
     const [songRequest, setSongRequest] = useState("");
     const [advice, setAdvice] = useState("");
-    const [guestEmail, setGuestEmail] = useState("");
+
+    // ── Step 1: Find Invitation ───────────────────────────────────────────────
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -350,9 +419,11 @@ export default function RSVP() {
 
         setResponses(initialResponses);
         setHousehold({ ...householdData, guests: allHouseholdGuests });
-        setStep("respond");
+        setStep(2);
         setLoading(false);
     };
+
+    // ── Step 2 helpers ────────────────────────────────────────────────────────
 
     const handleResponseChange = (guestId: string, field: string, value: string | boolean | null) => {
         setResponses((prev) => ({
@@ -364,20 +435,37 @@ export default function RSVP() {
         }));
     };
 
-    const handleSubmitRSVP = async (e: React.FormEvent) => {
+    const anyAttending = household
+        ? household.guests.some((g) => responses[g.id]?.attending === true)
+        : false;
+
+    const handleAttendanceNext = (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
         if (!household) return;
 
-        // Validate: every guest must have an explicit Attending or Declined selection
         const unselected = household.guests.find((g) => responses[g.id]?.attending === null);
         if (unselected) {
-            setError(
-                `Please select Attending or Declined for ${unselected.first_name}.`
-            );
+            setError(`Please select Attending or Declined for ${unselected.first_name}.`);
             return;
         }
+
+        if (anyAttending) {
+            setStep(3);
+        } else {
+            // All declining — skip extras and go straight to submit
+            void handleSubmitRSVP();
+        }
+    };
+
+    // ── Final submit ──────────────────────────────────────────────────────────
+
+    const handleSubmitRSVP = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        setError(null);
+
+        if (!household) return;
 
         setLoading(true);
 
@@ -397,28 +485,7 @@ export default function RSVP() {
             const { error: updateError } = await supabase.from("guests").upsert(updates);
             if (updateError) throw updateError;
 
-            // Send email notifications (fire-and-forget — never blocks the RSVP)
-            try {
-                await fetch("/api/rsvp/notify", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        household: household.name,
-                        guests: household.guests.map((g) => ({
-                            name: `${g.first_name} ${g.last_name}`,
-                            attending: responses[g.id].attending,
-                            dietary_restrictions: responses[g.id].dietary_restrictions?.trim() || null,
-                        })),
-                        songRequest: songRequest.trim() || null,
-                        advice: advice.trim() || null,
-                        guestEmail: guestEmail.trim() || null,
-                    }),
-                });
-            } catch (emailErr) {
-                console.error("Email notification failed (non-blocking):", emailErr);
-            }
-
-            setStep("success");
+            setStep(4);
         } catch (err) {
             console.error(err);
             setError("Something went wrong while saving your RSVP. Please try again.");
@@ -427,10 +494,30 @@ export default function RSVP() {
         }
     };
 
-    // Only show extras section when at least one guest has explicitly chosen to attend
-    const anyAttending = household
-        ? household.guests.some((g) => responses[g.id]?.attending === true)
-        : false;
+    // ── Derived ───────────────────────────────────────────────────────────────
+
+    const stepHeadings: Record<RSVPStep, { title: string; subtitle: string }> = {
+        1: {
+            title: "RSVP",
+            subtitle: `Please respond by ${WEDDING.date.rsvpDeadline}. Enter your name to find your invitation.`,
+        },
+        2: {
+            title: household ? getDisplayHouseholdName(household.name) : "Who's Coming?",
+            subtitle: "Let us know who from your household will be joining us.",
+        },
+        3: {
+            title: "A Few More Things",
+            subtitle: "Help us make the night perfect.",
+        },
+        4: {
+            title: "You're All Set!",
+            subtitle: "",
+        },
+    };
+
+    const heading = stepHeadings[step];
+
+    // ── Render ────────────────────────────────────────────────────────────────
 
     return (
         <div className="relative min-h-screen overflow-hidden">
@@ -438,12 +525,21 @@ export default function RSVP() {
 
             <Section className="relative z-10 flex min-h-screen flex-col justify-center bg-transparent py-20 text-center md:py-28">
                 <div className="surface-panel mx-auto w-full max-w-[min(92vw,52rem)] p-6 shadow-[0_32px_90px_rgba(8,16,28,0.24)] sm:p-8 lg:p-12">
+
+                    {/* Progress bar — visible on steps 1–3 */}
+                    {step !== 4 && <RSVPProgressBar currentStep={step} />}
+
+                    {/* Card heading */}
                     <div className="mb-8 text-center md:mb-10">
-                        <h1 className="font-heading text-5xl md:text-6xl">RSVP</h1>
-                        <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-primary/72 md:text-lg">
-                            Please RSVP by <strong>{WEDDING.date.rsvpDeadline}</strong>. Enter your first and last name to find your invitation.
-                        </p>
+                        <h1 className="font-heading text-4xl md:text-5xl">{heading.title}</h1>
+                        {heading.subtitle && (
+                            <p className="mx-auto mt-3 max-w-xl text-base leading-7 text-primary/72 md:text-lg">
+                                {heading.subtitle}
+                            </p>
+                        )}
                     </div>
+
+                    {/* Env / generic error banners */}
                     {envError && (
                         <div className="mb-8 p-6 bg-red-50 text-red-900 border border-red-200 shadow-sm rounded-sm text-left">
                             <h3 className="font-heading text-xl mb-2 text-red-800">
@@ -459,14 +555,14 @@ export default function RSVP() {
                     )}
 
                     {error && !envError && (
-                        <div className="mb-6 p-4 bg-red-50 text-red-800 text-sm border border-red-200">
+                        <div className="mb-6 p-4 bg-red-50 text-red-800 text-sm border border-red-200 rounded-sm">
                             {error}
                         </div>
                     )}
 
-                    {/* Step 1: Search */}
-                    {step === "search" && !envError && (
-                        <form onSubmit={handleSearch} className="space-y-6 text-left">
+                    {/* ── Step 1: Find Invitation ─────────────────────────────────────── */}
+                    {step === 1 && !envError && (
+                        <form onSubmit={handleSearch} className="space-y-6 text-left animate-fade-in-up">
                             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                                 <div className="space-y-2 min-w-0">
                                     <label className="block text-xs uppercase tracking-widest text-text-secondary">
@@ -499,20 +595,15 @@ export default function RSVP() {
 
                             <div className="pt-6">
                                 <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? "Locating..." : "Find Invitation"}
+                                    {loading ? "Locating..." : "Find My Invitation"}
                                 </Button>
                             </div>
                         </form>
                     )}
 
-                    {/* Step 2: Respond */}
-                    {step === "respond" && household && (
-                        <form onSubmit={handleSubmitRSVP} className="space-y-8 text-left animate-fade-in-up">
-                            <h2 className="font-heading text-2xl text-primary text-center pb-4 border-b border-surface">
-                                {getDisplayHouseholdName(household.name)}
-                            </h2>
-
-                            {/* Per-guest attendance + meal */}
+                    {/* ── Step 2: Who's Coming? ────────────────────────────────────────── */}
+                    {step === 2 && household && (
+                        <form onSubmit={handleAttendanceNext} className="space-y-8 text-left animate-fade-in-up">
                             {household.guests.map((guest: Guest) => {
                                 const isAttending = responses[guest.id]?.attending;
                                 return (
@@ -530,7 +621,7 @@ export default function RSVP() {
                                                 )}
                                             </h3>
 
-                                            {/* Explicit Yes / No toggle — neither highlighted until selected */}
+                                            {/* Attending / Declined toggle */}
                                             <div className="flex gap-2 flex-shrink-0 pl-5 sm:pl-0">
                                                 <button
                                                     type="button"
@@ -576,7 +667,7 @@ export default function RSVP() {
                                                             e.target.value
                                                         )
                                                     }
-                                                    placeholder="Any allergies or dietary restrictions? (Optional)"
+                                                    placeholder="Any allergies or dietary needs? (Optional)"
                                                     className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
                                                 />
                                             </div>
@@ -585,59 +676,48 @@ export default function RSVP() {
                                 );
                             })}
 
-                            {/* Household-level extras — only show if at least one person is attending */}
-                            {anyAttending && (
-                                <div className="space-y-6 pt-2 border-t border-surface">
-                                    <p className="text-xs uppercase tracking-widest text-text-secondary pt-2">
-                                        A Few More Things
-                                    </p>
+                            <div className="pt-4">
+                                <Button type="submit" className="w-full" disabled={loading}>
+                                    {loading ? "Saving..." : anyAttending ? "Next" : "Submit RSVP"}
+                                </Button>
+                            </div>
+                        </form>
+                    )}
 
-                                    {/* Confirmation Email */}
-                                    <div className="space-y-2">
-                                        <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                            Your Email{" "}
-                                            <span className="normal-case tracking-normal text-text-secondary/60 text-[10px]">
-                                                (optional — for a confirmation)
-                                            </span>
-                                        </label>
-                                        <input
-                                            type="email"
-                                            value={guestEmail}
-                                            onChange={(e) => setGuestEmail(e.target.value)}
-                                            placeholder="your@email.com"
-                                            className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
-                                        />
-                                    </div>
+                    {/* ── Step 3: A Few More Things ────────────────────────────────────── */}
+                    {step === 3 && household && (
+                        <form onSubmit={handleSubmitRSVP} className="space-y-6 text-left animate-fade-in-up">
+                            {/* Song Request */}
+                            <div className="space-y-2">
+                                <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                    Song Request
+                                </label>
+                                <input
+                                    type="text"
+                                    value={songRequest}
+                                    onChange={(e) => setSongRequest(e.target.value)}
+                                    placeholder="e.g. Shout — Tears For Fears"
+                                    className="w-full border-b border-gray-300 py-3 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
+                                />
+                            </div>
 
-                                    {/* Song Request */}
-                                    <div className="space-y-2">
-                                        <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                            Song Request
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={songRequest}
-                                            onChange={(e) => setSongRequest(e.target.value)}
-                                            placeholder="e.g. Shout — Tears For Fears"
-                                            className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
-                                        />
-                                    </div>
+                            {/* Advice */}
+                            <div className="space-y-2">
+                                <label className="block text-xs uppercase tracking-widest text-text-secondary">
+                                    Advice for the Couple
+                                </label>
+                                <textarea
+                                    value={advice}
+                                    onChange={(e) => setAdvice(e.target.value)}
+                                    placeholder="Share a piece of marriage advice..."
+                                    rows={4}
+                                    className="w-full border border-gray-200 p-3 text-sm rounded-sm focus:outline-none focus:border-primary bg-white resize-none placeholder:text-gray-400"
+                                />
+                            </div>
 
-                                    {/* Advice */}
-                                    <div className="space-y-2">
-                                        <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                            Advice for the Couple
-                                        </label>
-                                        <textarea
-                                            value={advice}
-                                            onChange={(e) => setAdvice(e.target.value)}
-                                            placeholder="Share a piece of marriage advice..."
-                                            rows={3}
-                                            className="w-full border border-gray-200 p-3 text-sm rounded-sm focus:outline-none focus:border-primary bg-white resize-none placeholder:text-gray-400"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            <p className="text-xs text-text-secondary/60 italic">
+                                Both fields are optional — feel free to skip!
+                            </p>
 
                             <div className="pt-4">
                                 <Button type="submit" className="w-full" disabled={loading}>
@@ -647,12 +727,13 @@ export default function RSVP() {
                         </form>
                     )}
 
-                    {/* Step 3: Success */}
-                    {step === "success" && (
+                    {/* ── Step 4: All Set! ─────────────────────────────────────────────── */}
+                    {step === 4 && (
                         <div className="text-center space-y-6 animate-fade-in-up">
-                            <div className="w-16 h-16 bg-primary/10 text-primary mx-auto rounded-full flex items-center justify-center mb-6">
+                            {/* Checkmark */}
+                            <div className="w-20 h-20 bg-primary/10 text-primary mx-auto rounded-full flex items-center justify-center">
                                 <svg
-                                    className="w-8 h-8"
+                                    className="w-10 h-10"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -665,15 +746,30 @@ export default function RSVP() {
                                     />
                                 </svg>
                             </div>
-                            <h2 className="font-heading text-3xl text-primary">Thank You!</h2>
-                            <p className="text-text-secondary leading-relaxed">
-                                Your RSVP has been received. We are so excited to celebrate with you
-                                on {WEDDING.date.dayOfWeek}, {WEDDING.date.display}.
-                            </p>
-                            <div className="pt-6">
+
+                            <div className="space-y-3">
+                                <p className="text-xs uppercase tracking-[0.2em] text-primary/60 font-medium">
+                                    Response Received
+                                </p>
+                                <p className="font-heading text-3xl md:text-4xl text-primary">
+                                    We&apos;ve got you!
+                                </p>
+                                <p className="text-text-secondary leading-relaxed max-w-md mx-auto">
+                                    {anyAttending
+                                        ? `Your RSVP is confirmed. We can't wait to celebrate with you on ${WEDDING.date.dayOfWeek}, ${WEDDING.date.display}.`
+                                        : `We're sorry you can't make it, but we appreciate you letting us know.`}
+                                </p>
+                            </div>
+
+                            <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
                                 <Button href="/" variant="outline">
                                     Return Home
                                 </Button>
+                                {anyAttending && (
+                                    <Button href="/travel" variant="outline">
+                                        Plan Your Trip
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}

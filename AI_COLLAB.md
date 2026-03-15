@@ -377,7 +377,7 @@ Both branches share commits through `b67b276`. After that they diverged:
 - [x] Mini Crossword — static story-based crossword with fill-in-the-blank clues, local progress save, and leaderboard submission
 - [x] Game leaderboards — username/email submission + top-score boards
 - [x] Trivia lock gate — countdown on `/games`, trivia opens on wedding day
-- [x] RSVP — full 3-step flow (search → household → submit)
+- [x] RSVP — **4-step flow with horizontal progress bar (Session 18)**: Find Invitation → Who's Coming → A Few More Things → All Set!
 - [x] Admin Dashboard (`/admin`) — RSVP metrics, guest data table, bulk importer
 - [x] Games Admin (`/admin/games`) — games control room with modal drill-down views
 - [x] Security Admin (`/admin/security`) — admin login tracking
@@ -391,11 +391,13 @@ Both branches share commits through `b67b276`. After that they diverged:
 - [x] Attending checkboxes per guest
 - [x] Meal choice per attending guest (hidden when `mealOptions` is empty — currently always hidden, Urban Crust pizza doesn't require per-guest selection)
 - [x] **Per-guest `dietary_restrictions` text field** (Session 17) — shown for each attending guest; replaces household-level food allergy checkbox
-- [x] **Optional guest email field** for RSVP confirmation (Session 17)
+- [x] ~~Optional guest email field~~ — **removed in Session 18** (email confirmations removed)
 - [x] Song request input with greyed placeholder format hint
 - [x] Advice for the couple textarea
 - [x] All new fields saved to Supabase
-- [x] **Email notifications via Resend (Session 17)**: admin gets email on every RSVP change; guest gets confirmation if email provided
+- [x] ~~**Email notifications via Resend**~~ — **removed in Session 18** (route file kept but no longer called)
+- [x] **RSVP multi-step redesign with horizontal progress bar (Session 18)** — 4 steps: Find Invitation → Who's Coming → A Few More Things → All Set!
+- [x] **RSVP success screen fixed (Session 18)** — no more "please RSVP by" text on confirmation; shows warm "We've got you!" message with context-aware copy (attending vs. declining)
 
 ### Admin Dashboard
 - [x] Server-side password auth via `/api/admin/auth` (passwords not exposed in client bundle)
@@ -450,11 +452,11 @@ These are all `TODO` strings in `wedding-data.ts`. When info is ready, drop it i
 - [ ] **Trivia CRUD admin** — Phase 3 of games plan: `trivia_questions` Supabase table + admin editor
 - [ ] **Round 2 guest seed** — add missing columns migration + apply seed to Supabase
 - [ ] **Apply `dietary_restrictions` migration** — `supabase/migrations/20260315000000_add_dietary_restrictions.sql` exists but has NOT been applied to hosted Supabase yet — run in Supabase SQL editor
-- [ ] **Set Resend env vars in Vercel** — `RESEND_API_KEY`, `RSVP_NOTIFY_EMAIL`, `RSVP_FROM_EMAIL` needed for email notifications to fire
+- [x] ~~**Set Resend env vars in Vercel**~~ — email notifications removed in Session 18 (unnecessary complexity)
 - [ ] **RSVP edit/update flow** — guests currently can't find their RSVP and change it
 - [ ] **FAQ accordion** — collapse/expand instead of all cards stacked
 - [ ] **CSV export** in admin dashboard (one button for caterer/venue/planner)
-- [x] ~~**Email confirmation** after RSVPing~~ — **done Session 17** via `/api/rsvp/notify` using Resend (needs env vars set)
+- [x] ~~**Email confirmation** after RSVPing~~ — removed in Session 18 (not needed; route file kept but no longer called)
 - [ ] **RSVP deadline countdown** on RSVP page ("X days left to RSVP" — deadline Aug 1 2026)
 - [ ] **Supabase RLS** — enable Row Level Security on `guests` table (currently disabled)
 
@@ -1123,5 +1125,56 @@ Large batch of improvements across RSVP, admin, travel page, navigation, and des
 
 ### Pending actions for Jeff
 1. **Apply DB migration:** Open Supabase SQL editor → paste `supabase/migrations/20260315000000_add_dietary_restrictions.sql` → Run
-2. **Set Resend env vars in Vercel:** `RESEND_API_KEY` (from resend.com), `RSVP_NOTIFY_EMAIL` (where you want admin emails), `RSVP_FROM_EMAIL` (verified sender in Resend dashboard)
-3. **Redeploy** after setting env vars
+2. ~~Set Resend env vars~~ — no longer needed; email notifications removed
+
+---
+
+## Session Log — 2026-03-15 (Session 18 — Admin logout fix, RSVP multi-step redesign, email removal)
+
+### Summary
+Fixed persistent admin logout bug caused by cookie de-duplication in Next.js response headers. Redesigned RSVP as a 4-step wizard with a horizontal dot progress bar. Removed Resend email notifications from the RSVP flow (not needed). Fixed the RSVP success/thank-you screen.
+
+### Bug fix: Admin logout persistence
+- **File:** `src/app/api/admin/session/route.ts`
+- **Root cause:** `response.cookies.set()` in Next.js deduplicates `Set-Cookie` headers by cookie name. The DELETE handler called it twice with the same name — first with `domain: thepainewedding.com`, then without domain. The second call silently overwrote the first, so only a host-only clear was sent. The domain-scoped cookie (set on login) was never deleted.
+- **Also:** `AdminEditBar` re-checks the session on every pathname change (`useEffect([pathname])`). If the cookie persisted, the bar came back after navigation.
+- **Fix:** Changed DELETE handler to use `response.headers.append("Set-Cookie", ...)` directly, which allows multiple `Set-Cookie` headers for the same name. Now sends BOTH the domain-scoped clear AND host-only clear correctly.
+- **Side effect cleanup:** Removed now-unused `getAdminSessionCookieBaseOptions` import from session route.
+
+### RSVP — Multi-step redesign with progress bar
+- **File:** `src/app/(main)/rsvp/page.tsx`
+- Replaced 2-state (search/respond/success) flow with a 4-step numbered wizard
+- **Step 1 — Find Your Invitation:** Name search only (first + last)
+- **Step 2 — Who's Coming?:** Attendance toggle per guest (Attending / Declined) + dietary restrictions for attending guests. "Next" advances to step 3 if anyone is attending; if all decline, submits directly and jumps to step 4.
+- **Step 3 — A Few More Things:** Song request + advice for the couple (both optional). Submit button.
+- **Step 4 — All Set!:** Success screen — no deadline text, clear confirmation.
+- **Progress bar (`RSVPProgressBar` component):** 4 labeled dots connected by a horizontal line. Completed steps show a checkmark (✓), current step is highlighted with a ring, future steps are muted. Line fills proportionally as steps complete. Hidden on step 4.
+- Step heading and subtitle update dynamically per step.
+
+### RSVP — Success screen fix
+- Step 4 shows: checkmark circle → "Response Received" label → "We've got you!" heading
+- Context-aware body text: attending guests get "We can't wait to celebrate with you on [day]"; declining guests get "We're sorry you can't make it, but we appreciate you letting us know."
+- Two CTAs: "Return Home" + "Plan Your Trip" (only if attending)
+- No "Please RSVP by" date visible anywhere on the success screen
+
+### RSVP — Email notifications removed
+- Removed `guestEmail` state, email input field, and `fetch("/api/rsvp/notify", ...)` call
+- The route file `src/app/api/rsvp/notify/route.ts` is **kept** (not deleted) in case it's useful later, but it is no longer called anywhere
+- Resend env vars (`RESEND_API_KEY`, etc.) no longer needed
+
+### Files created / modified this session
+| File | Change |
+|------|--------|
+| `src/app/api/admin/session/route.ts` | DELETE handler rewritten with `headers.append` to properly clear domain + host cookies |
+| `src/app/(main)/rsvp/page.tsx` | Full redesign: 4-step wizard, `RSVPProgressBar` component, email removed, success screen fixed |
+| `AI_COLLAB.md` | This update |
+
+### Verification
+- TypeScript: no new type errors (step type is `1 | 2 | 3 | 4`, all arms accounted for)
+- RSVP flow: step 1 → 2 → 3 → 4 (attending path); step 1 → 2 → 4 (declining path, auto-submit)
+- Logout: DELETE now sends two distinct `Set-Cookie` headers via `headers.append`, clearing both domain and host-only cookies
+
+### Pending actions for Jeff
+1. **Apply DB migration:** `supabase/migrations/20260315000000_add_dietary_restrictions.sql` — run in Supabase SQL editor
+2. **Apply page visibility migration:** `supabase/migrations/20260315010000_default_page_visibility.sql` — run in Supabase SQL editor (sets Schedule and Details as hidden by default)
+3. **Test logout:** After deploying, log in as admin → log out via the floating bar → navigate to another page. The bar should NOT reappear.
