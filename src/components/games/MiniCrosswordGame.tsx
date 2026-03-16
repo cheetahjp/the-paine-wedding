@@ -108,16 +108,19 @@ export default function MiniCrosswordGame() {
     const [notice, setNotice] = useState("Tap a clue or a square to start filling the board.");
     const [focusedCellKey, setFocusedCellKey] = useState<string | null>(null);
     const [durationSeconds, setDurationSeconds] = useState(1);
+    const [autoCheck, setAutoCheck] = useState(false);
 
     const { isAdmin } = useAdminSession();
 
-    // Auto-check: cells are incorrect if they have a letter that doesn't match the answer
+    // Auto-check: only highlight incorrect cells when the toggle is on
     const incorrectKeys = useMemo(
         () =>
-            PUZZLE.cells
-                .filter((cell) => cell.answer && letters[cell.key] && letters[cell.key] !== cell.answer)
-                .map((cell) => cell.key),
-        [letters]
+            autoCheck
+                ? PUZZLE.cells
+                    .filter((cell) => cell.answer && letters[cell.key] && letters[cell.key] !== cell.answer)
+                    .map((cell) => cell.key)
+                : [],
+        [letters, autoCheck]
     );
 
     useEffect(() => {
@@ -358,6 +361,17 @@ export default function MiniCrosswordGame() {
                             )}
                             <button
                                 type="button"
+                                onClick={() => setAutoCheck((v) => !v)}
+                                className={`rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] transition-colors ${
+                                    autoCheck
+                                        ? "border-accent/40 bg-accent/15 text-accent hover:bg-accent/25"
+                                        : "border-primary/15 bg-primary/5 text-text-secondary hover:bg-primary/10 hover:text-primary"
+                                }`}
+                            >
+                                {autoCheck ? "Check ✓" : "Check"}
+                            </button>
+                            <button
+                                type="button"
                                 onClick={handleResetPuzzle}
                                 className="rounded-full border border-secondary/15 bg-secondary/6 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-secondary transition-colors hover:bg-secondary hover:text-white"
                             >
@@ -405,12 +419,12 @@ export default function MiniCrosswordGame() {
                                     key={cell.key}
                                     className={`relative flex aspect-square items-stretch overflow-hidden rounded-[0.4rem] border transition-colors ${
                                         isIncorrect
-                                            ? "border-secondary bg-secondary/15"
+                                            ? "border-secondary bg-secondary/30"
                                             : isFocused
                                                 ? "border-accent bg-white shadow-[inset_0_-2.5px_0_0_#7c1f28]"
                                                 : isInActiveEntry
                                                     ? "border-accent bg-white"
-                                                    : "border-white/10 bg-white/55"
+                                                    : "border-white/20 bg-white/80"
                                     }`}
                                 >
                                     {cell.number ? (
