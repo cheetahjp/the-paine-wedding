@@ -7,7 +7,7 @@ export default async function OurStory() {
     const { wedding, content } = await getWeddingData();
 
     return (
-        <div className="pt-20">
+        <div>
             {/* Page header */}
             <Section background="surface" className="text-center pb-10 pt-12 md:pb-12 md:pt-16">
                 <div className="flex items-center justify-center gap-4 mb-5">

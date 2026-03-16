@@ -409,8 +409,8 @@ export default function MiniCrosswordGame() {
                                             : isFocused
                                                 ? "border-accent bg-white shadow-[inset_0_-2.5px_0_0_#7c1f28]"
                                                 : isInActiveEntry
-                                                    ? "border-accent/55 bg-white/90"
-                                                    : "border-white/16 bg-white/82"
+                                                    ? "border-accent bg-white"
+                                                    : "border-white/10 bg-white/55"
                                     }`}
                                 >
                                     {cell.number ? (
