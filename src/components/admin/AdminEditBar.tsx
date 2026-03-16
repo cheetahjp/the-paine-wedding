@@ -1267,7 +1267,9 @@ export default function AdminEditBar() {
     }, [settingsOpen]);
 
     // Don't render anything until session confirmed, and only for Master role
+    // Also hide on admin dashboard pages — the bar is only for public-facing pages
     if (sessionLoading || role !== "Master") return null;
+    if (pathname.startsWith("/admin")) return null;
 
     return (
         <>

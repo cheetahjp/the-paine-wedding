@@ -27,7 +27,7 @@ type Guest = {
     };
 };
 
-type SortField = "name" | "household" | "affiliation" | "side" | "likelihood" | "rsvp" | "plusone";
+type SortField = "name" | "household" | "rsvp" | "plusone";
 type SortDir = "asc" | "desc";
 
 type RSVPHistoryEntry = {
@@ -46,6 +46,26 @@ type RSVPHistoryEntry = {
     } | null;
 };
 
+function getHouseholdRsvpScore(guests: Guest[]): number {
+    if (guests.some((g) => g.attending === true)) return 2;
+    if (guests.every((g) => g.attending === false)) return 0;
+    return 1;
+}
+
+function RsvpBadge({ attending }: { attending: boolean | null }) {
+    if (attending === true)
+        return <span className="rounded bg-green-50 px-2 py-1 text-xs text-green-700">Attending</span>;
+    if (attending === false)
+        return <span className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">Declined</span>;
+    return <span className="rounded bg-yellow-50 px-2 py-1 text-xs text-yellow-600">Pending</span>;
+}
+
+function aggregateAttending(guests: Guest[]): boolean | null {
+    if (guests.some((g) => g.attending === true)) return true;
+    if (guests.every((g) => g.attending === false)) return false;
+    return null;
+}
+
 export default function AdminDashboard() {
     const { status, role, login, logout } = useAdminSession();
     const [guests, setGuests] = useState<Guest[]>([]);
@@ -55,11 +75,12 @@ export default function AdminDashboard() {
     const [importing, setImporting] = useState(false);
     const [importMessage, setImportMessage] = useState("");
     const [envError, setEnvError] = useState(false);
-    const [activeTab, setActiveTab] = useState<"guests" | "extras" | "pages" | "history">("guests");
+    const [activeTab, setActiveTab] = useState<"guests" | "pages" | "history">("guests");
     const [rsvpHistory, setRsvpHistory] = useState<RSVPHistoryEntry[]>([]);
     const [historyLoading, setHistoryLoading] = useState(false);
     const [sortField, setSortField] = useState<SortField>("household");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
+    const [secondarySort, setSecondarySort] = useState(true); // group by household toggle
     const [pageVisibility, setPageVisibility] = useState<Array<{ slug: string; label: string; hidden: boolean }>>([]);
     const [pagesLoading, setPagesLoading] = useState(false);
     const [pagesError, setPagesError] = useState<string | null>(null);
@@ -200,6 +221,60 @@ export default function AdminDashboard() {
         }
     }
 
+    // Returns households grouped and sorted appropriately
+    function getGroupedHouseholds(): Array<{ householdName: string; householdGuests: Guest[] }> {
+        // Build a map: household name → guests
+        const map: Record<string, Guest[]> = {};
+        for (const guest of guests) {
+            const hhName = guest.households?.name || "Unknown Household";
+            if (!map[hhName]) map[hhName] = [];
+            map[hhName].push(guest);
+        }
+
+        let entries = Object.entries(map).map(([householdName, householdGuests]) => ({
+            householdName,
+            householdGuests,
+        }));
+
+        if (sortField === "rsvp") {
+            // Sort households by aggregate RSVP score descending (attending first), then by name
+            entries.sort((a, b) => {
+                const scoreA = getHouseholdRsvpScore(a.householdGuests);
+                const scoreB = getHouseholdRsvpScore(b.householdGuests);
+                if (scoreA !== scoreB) {
+                    // attending (2) first, then pending (1), then declined (0)
+                    return sortDir === "asc" ? scoreB - scoreA : scoreA - scoreB;
+                }
+                return a.householdName.localeCompare(b.householdName);
+            });
+        } else if (sortField === "name") {
+            // Sort guests within each household by name, sort households by first guest name
+            for (const entry of entries) {
+                entry.householdGuests.sort((a, b) => {
+                    const aVal = `${a.last_name} ${a.first_name}`.toLowerCase();
+                    const bVal = `${b.last_name} ${b.first_name}`.toLowerCase();
+                    return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                });
+            }
+            entries.sort((a, b) => {
+                const aFirst = a.householdGuests[0];
+                const bFirst = b.householdGuests[0];
+                const aVal = aFirst ? `${aFirst.last_name} ${aFirst.first_name}`.toLowerCase() : "";
+                const bVal = bFirst ? `${bFirst.last_name} ${bFirst.first_name}`.toLowerCase() : "";
+                return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            });
+        } else {
+            // Default: sort by household name
+            entries = entries.sort((a, b) =>
+                sortDir === "asc"
+                    ? a.householdName.localeCompare(b.householdName)
+                    : b.householdName.localeCompare(a.householdName)
+            );
+        }
+
+        return entries;
+    }
+
     function getSortedGuests(): Guest[] {
         const sorted = [...guests];
         sorted.sort((a, b) => {
@@ -214,22 +289,12 @@ export default function AdminDashboard() {
                     aVal = (a.households?.name || "").toLowerCase();
                     bVal = (b.households?.name || "").toLowerCase();
                     break;
-                case "affiliation":
-                    aVal = (a.affiliation || "").toLowerCase();
-                    bVal = (b.affiliation || "").toLowerCase();
-                    break;
-                case "side":
-                    aVal = (a.side || "").toLowerCase();
-                    bVal = (b.side || "").toLowerCase();
-                    break;
-                case "likelihood":
-                    aVal = (a.likelihood || "").toLowerCase();
-                    bVal = (b.likelihood || "").toLowerCase();
-                    break;
-                case "rsvp":
-                    aVal = a.attending === true ? "attending" : a.attending === false ? "declined" : "pending";
-                    bVal = b.attending === true ? "attending" : b.attending === false ? "declined" : "pending";
-                    break;
+                case "rsvp": {
+                    const rsvpOrder = (g: Guest) =>
+                        g.attending === true ? 0 : g.attending === null ? 1 : 2;
+                    const cmpRsvp = rsvpOrder(a) - rsvpOrder(b);
+                    return sortDir === "asc" ? cmpRsvp : -cmpRsvp;
+                }
                 case "plusone":
                     aVal = (a.plus_one_name || "").toLowerCase();
                     bVal = (b.plus_one_name || "").toLowerCase();
@@ -245,9 +310,6 @@ export default function AdminDashboard() {
     const totalAttending = guests.filter((g) => g.attending === true).length;
     const totalDeclined = guests.filter((g) => g.attending === false).length;
     const totalPending = guests.filter((g) => g.attending === null).length;
-    const guestsWithExtras = guests.filter(
-        (g) => g.food_allergies || g.dietary_restrictions || g.song_request || g.advice
-    );
 
     function SortIcon({ field }: { field: SortField }) {
         if (sortField !== field) return <span className="ml-1 text-gray-300 text-[10px]">↕</span>;
@@ -269,15 +331,14 @@ export default function AdminDashboard() {
     if (status === "checking") return <div className="min-h-screen bg-base" />;
     if (status !== "authenticated") return <AdminLoginCard onLogin={login} />;
 
-    const sortedGuests = getSortedGuests();
-    const isGroupedByHousehold = sortField === "household";
+    const groupByHousehold = secondarySort;
 
     return (
         <AdminFrame
             section="rsvp"
             role={role}
             title="RSVP Dashboard"
-            description="Guest management, RSVP analytics, extras, and importer live here. Games and security now have their own admin sections."
+            description="Guest management, RSVP analytics, and importer live here. Games and security now have their own admin sections."
             onLogout={logout}
         >
             {envError ? (
@@ -310,25 +371,15 @@ export default function AdminDashboard() {
                         ))}
                     </div>
 
-                    {/* Guest Table + Extras */}
+                    {/* Guest Table */}
                     <div className="overflow-hidden rounded-[1.8rem] border border-primary/10 bg-white shadow-[0_12px_34px_rgba(20,42,68,0.05)]">
+                        {/* Tab bar */}
                         <div className="flex items-center gap-6 border-b border-primary/8 bg-[#fbf8f3] px-6 py-5">
                             <button
                                 onClick={() => setActiveTab("guests")}
                                 className={`text-sm uppercase tracking-widest pb-1 border-b-2 transition-colors ${activeTab === "guests" ? "border-primary text-primary" : "border-transparent text-text-secondary hover:text-primary"}`}
                             >
                                 Guest List
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("extras")}
-                                className={`text-sm uppercase tracking-widest pb-1 border-b-2 transition-colors ${activeTab === "extras" ? "border-primary text-primary" : "border-transparent text-text-secondary hover:text-primary"}`}
-                            >
-                                Extras
-                                {guestsWithExtras.length > 0 && (
-                                    <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                                        {guestsWithExtras.length}
-                                    </span>
-                                )}
                             </button>
                             <button
                                 onClick={() => setActiveTab("pages")}
@@ -347,6 +398,20 @@ export default function AdminDashboard() {
                                     </span>
                                 )}
                             </button>
+
+                            {/* Group by Household toggle — only visible on Guest List tab */}
+                            {activeTab === "guests" && (
+                                <button
+                                    onClick={() => setSecondarySort((v) => !v)}
+                                    className={`ml-auto rounded-full px-4 py-1.5 text-xs uppercase tracking-widest transition-colors ${
+                                        groupByHousehold
+                                            ? "bg-primary text-white"
+                                            : "border border-primary/20 bg-transparent text-primary hover:bg-primary/5"
+                                    }`}
+                                >
+                                    Group by Household
+                                </button>
+                            )}
                         </div>
 
                         {activeTab === "guests" ? (
@@ -355,82 +420,62 @@ export default function AdminDashboard() {
                                     <thead className="border-b border-gray-200 bg-surface/80 text-xs uppercase tracking-widest text-text-secondary">
                                         <tr>
                                             <ThSortable field="name">Guest Name</ThSortable>
-                                            <ThSortable field="household">Household</ThSortable>
-                                            <ThSortable field="affiliation">Affiliation</ThSortable>
-                                            <ThSortable field="side">Side</ThSortable>
-                                            <ThSortable field="likelihood">Likelihood</ThSortable>
                                             <ThSortable field="plusone">Plus One</ThSortable>
                                             <ThSortable field="rsvp">RSVP</ThSortable>
+                                            <th className="px-6 py-4 font-normal whitespace-nowrap">Allergies</th>
+                                            <th className="px-6 py-4 font-normal whitespace-nowrap">Song Request</th>
+                                            <th className="px-6 py-4 font-normal whitespace-nowrap">Advice</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {isGroupedByHousehold ? (
-                                            Object.entries(
-                                                sortedGuests.reduce((acc, guest) => {
-                                                    const hhName = guest.households?.name || "Unknown Household";
-                                                    if (!acc[hhName]) acc[hhName] = [];
-                                                    acc[hhName].push(guest);
-                                                    return acc;
-                                                }, {} as Record<string, Guest[]>)
-                                            )
-                                                .sort(([a], [b]) => sortDir === "asc" ? a.localeCompare(b) : b.localeCompare(a))
-                                                .map(([householdName, householdGuests]) => (
+                                        {groupByHousehold ? (
+                                            getGroupedHouseholds().map(({ householdName, householdGuests }) => {
+                                                const aggAttending = aggregateAttending(householdGuests);
+                                                // Find first guest with a song request / advice for the household
+                                                const householdSong = householdGuests.find((g) => g.song_request)?.song_request ?? null;
+                                                const householdAdvice = householdGuests.find((g) => g.advice)?.advice ?? null;
+                                                return (
                                                     <React.Fragment key={householdName}>
-                                                        <tr className="border-t-2 border-gray-100 bg-surface/30">
-                                                            <td colSpan={7} className="px-6 py-3 font-heading font-bold text-primary">
+                                                        {/* Household header row */}
+                                                        <tr className="border-t-2 border-gray-100 bg-surface/40">
+                                                            <td colSpan={2} className="px-6 py-3 font-heading font-bold text-primary">
                                                                 {householdName}
                                                             </td>
+                                                            <td className="px-6 py-3">
+                                                                <RsvpBadge attending={aggAttending} />
+                                                            </td>
+                                                            <td className="px-6 py-3 text-text-secondary/40 text-xs">—</td>
+                                                            <td className="px-6 py-3 italic text-text-secondary text-xs">
+                                                                {householdSong || <span className="not-italic text-text-secondary/40">—</span>}
+                                                            </td>
+                                                            <td className="px-6 py-3 text-text-secondary text-xs leading-relaxed">
+                                                                {householdAdvice || <span className="text-text-secondary/40">—</span>}
+                                                            </td>
                                                         </tr>
+                                                        {/* Guest sub-rows */}
                                                         {householdGuests.map((guest) => (
-                                                            <GuestRow key={guest.id} guest={guest} indented />
+                                                            <tr key={guest.id} className="transition-colors hover:bg-surface/10">
+                                                                <td className="px-6 py-3 pl-10 font-medium text-text-secondary">
+                                                                    {guest.first_name} {guest.last_name}
+                                                                    {guest.suffix ? <span className="ml-1 text-gray-400">{guest.suffix}</span> : null}
+                                                                </td>
+                                                                <td className="px-6 py-3 text-text-secondary text-xs">{guest.plus_one_name ?? "—"}</td>
+                                                                <td className="px-6 py-3">
+                                                                    <RsvpBadge attending={guest.attending} />
+                                                                </td>
+                                                                <td className="px-6 py-3 text-text-secondary text-xs">
+                                                                    {guest.food_allergies || guest.dietary_restrictions || <span className="text-text-secondary/40">—</span>}
+                                                                </td>
+                                                                <td className="px-6 py-3 text-text-secondary/40 text-xs">—</td>
+                                                                <td className="px-6 py-3 text-text-secondary/40 text-xs">—</td>
+                                                            </tr>
                                                         ))}
                                                     </React.Fragment>
-                                                ))
+                                                );
+                                            })
                                         ) : (
-                                            sortedGuests.map((guest) => (
-                                                <GuestRow key={guest.id} guest={guest} indented={false} />
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : activeTab === "extras" ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="border-b border-gray-200 bg-surface/80 text-xs uppercase tracking-widest text-text-secondary">
-                                        <tr>
-                                            <th className="px-6 py-4 font-normal">Guest</th>
-                                            <th className="px-6 py-4 font-normal">Dietary Restrictions</th>
-                                            <th className="px-6 py-4 font-normal">Song Request</th>
-                                            <th className="px-6 py-4 font-normal">Advice</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {guestsWithExtras.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="px-6 py-10 text-center text-text-secondary">
-                                                    No extras submitted yet.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            guestsWithExtras.map((guest) => (
-                                                <tr key={guest.id} className="align-top transition-colors hover:bg-surface/10">
-                                                    <td className="px-6 py-4 font-medium">
-                                                        {guest.first_name} {guest.last_name}
-                                                        <span className="block text-xs font-normal text-text-secondary">
-                                                            {guest.households?.name}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-text-secondary">
-                                                        {guest.dietary_restrictions || guest.food_allergies || "—"}
-                                                    </td>
-                                                    <td className="px-6 py-4 italic text-text-secondary">
-                                                        {guest.song_request || "—"}
-                                                    </td>
-                                                    <td className="px-6 py-4 leading-relaxed text-text-secondary">
-                                                        {guest.advice || "—"}
-                                                    </td>
-                                                </tr>
+                                            getSortedGuests().map((guest) => (
+                                                <GuestRow key={guest.id} guest={guest} />
                                             ))
                                         )}
                                     </tbody>
@@ -569,52 +614,25 @@ export default function AdminDashboard() {
     );
 }
 
-function GuestRow({ guest, indented }: { guest: Guest; indented: boolean }) {
+function GuestRow({ guest }: { guest: Guest }) {
     return (
         <tr className="transition-colors hover:bg-surface/10">
-            <td className={`px-6 py-3 font-medium text-text-secondary ${indented ? "pl-10" : ""}`}>
+            <td className="px-6 py-3 font-medium text-text-secondary">
                 {guest.first_name} {guest.last_name}
                 {guest.suffix ? <span className="ml-1 text-gray-400">{guest.suffix}</span> : null}
             </td>
-            <td className="px-6 py-3 text-text-secondary text-xs">
-                {guest.households?.name || "—"}
-            </td>
-            <td className="px-6 py-3 text-text-secondary">
-                {guest.affiliation ? (
-                    <span className={`rounded px-2 py-1 text-xs ${
-                        guest.affiliation === "Family" ? "bg-purple-50 text-purple-700" :
-                        guest.affiliation === "Our Friends" ? "bg-blue-50 text-blue-700" :
-                        "bg-teal-50 text-teal-700"
-                    }`}>{guest.affiliation}</span>
-                ) : "—"}
-            </td>
-            <td className="px-6 py-3 text-text-secondary">
-                {guest.side ? (
-                    <span className={`rounded px-2 py-1 text-xs ${
-                        guest.side === "Jeff" ? "bg-primary/10 text-primary" :
-                        guest.side === "Ash" ? "bg-secondary/10 text-secondary" :
-                        "bg-gray-100 text-gray-600"
-                    }`}>{guest.side}</span>
-                ) : "—"}
-            </td>
-            <td className="px-6 py-3 text-text-secondary">
-                {guest.likelihood ? (
-                    <span className={`rounded px-2 py-1 text-xs ${
-                        guest.likelihood === "Yes" ? "bg-green-50 text-green-700" :
-                        guest.likelihood === "Maybe" ? "bg-yellow-50 text-yellow-600" :
-                        "bg-red-50 text-red-600"
-                    }`}>{guest.likelihood}</span>
-                ) : "—"}
-            </td>
             <td className="px-6 py-3 text-text-secondary text-xs">{guest.plus_one_name ?? "—"}</td>
             <td className="px-6 py-3">
-                {guest.attending === true ? (
-                    <span className="rounded bg-green-50 px-2 py-1 text-xs text-green-700">Attending</span>
-                ) : guest.attending === false ? (
-                    <span className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">Declined</span>
-                ) : (
-                    <span className="rounded bg-yellow-50 px-2 py-1 text-xs text-yellow-600">Pending</span>
-                )}
+                <RsvpBadge attending={guest.attending} />
+            </td>
+            <td className="px-6 py-3 text-text-secondary text-xs">
+                {guest.food_allergies || guest.dietary_restrictions || <span className="text-text-secondary/40">—</span>}
+            </td>
+            <td className="px-6 py-3 italic text-text-secondary text-xs">
+                {guest.song_request || <span className="not-italic text-text-secondary/40">—</span>}
+            </td>
+            <td className="px-6 py-3 text-text-secondary text-xs leading-relaxed">
+                {guest.advice || <span className="text-text-secondary/40">—</span>}
             </td>
         </tr>
     );
