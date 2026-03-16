@@ -43,7 +43,6 @@ export default async function Registry() {
         <div>
             {/* Hero */}
             <Section background="surface" className="text-center pb-14 pt-12 md:pb-16 md:pt-16">
-                <p className="text-xs uppercase tracking-[0.25em] text-primary/55 mb-3 font-medium">Wishlist</p>
                 <h1 className="font-heading text-5xl md:text-6xl mb-6">Registry</h1>
                 <p className="max-w-xl mx-auto text-text-secondary tracking-wide leading-relaxed">
                     Your presence at our wedding is the greatest gift of all. But if you&apos;d like to honor us
