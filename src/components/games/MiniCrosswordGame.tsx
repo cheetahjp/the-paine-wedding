@@ -26,7 +26,7 @@ type SavedCrosswordState = {
     letters: Record<string, string>;
     activeEntryId: string;
     revealedEntryIds: string[];
-    startedAt: string;
+    startedAt: string | null;
     completedAt: string | null;
     scoreSubmitted: boolean;
 };
@@ -49,7 +49,7 @@ function getDefaultState(): SavedCrosswordState {
         letters: getEmptyLetters(),
         activeEntryId: PUZZLE.entries[0]?.id ?? "",
         revealedEntryIds: [],
-        startedAt: new Date().toISOString(),
+        startedAt: null,
         completedAt: null,
         scoreSubmitted: false,
     };
@@ -73,7 +73,7 @@ function getInitialState(): SavedCrosswordState {
             revealedEntryIds: Array.isArray(parsed.revealedEntryIds)
                 ? parsed.revealedEntryIds.filter((id) => ENTRY_MAP.has(id))
                 : [],
-            startedAt: typeof parsed.startedAt === "string" ? parsed.startedAt : new Date().toISOString(),
+            startedAt: typeof parsed.startedAt === "string" ? parsed.startedAt : null,
             completedAt: typeof parsed.completedAt === "string" || parsed.completedAt === null ? parsed.completedAt : null,
             scoreSubmitted: typeof parsed.scoreSubmitted === "boolean" ? parsed.scoreSubmitted : false,
         };
@@ -109,6 +109,10 @@ export default function MiniCrosswordGame() {
     const [focusedCellKey, setFocusedCellKey] = useState<string | null>(null);
     const [durationSeconds, setDurationSeconds] = useState(1);
     const [autoCheck, setAutoCheck] = useState(false);
+    const [gameStarted, setGameStarted] = useState(() => !!initialState.startedAt || !!initialState.completedAt);
+    const [isPaused, setIsPaused] = useState(false);
+    const [pausedMs, setPausedMs] = useState(0);
+    const pausedSinceRef = useRef<number | null>(null);
 
     const { isAdmin } = useAdminSession();
 
@@ -150,9 +154,12 @@ export default function MiniCrosswordGame() {
     );
 
     useEffect(() => {
+        if (!startedAt || isPaused) return;
+
         function updateDuration() {
             const endTime = completedAt ? new Date(completedAt).getTime() : Date.now();
-            setDurationSeconds(Math.max(1, Math.round((endTime - new Date(startedAt).getTime()) / 1000)));
+            const elapsed = endTime - new Date(startedAt!).getTime() - pausedMs;
+            setDurationSeconds(Math.max(1, Math.round(elapsed / 1000)));
         }
 
         updateDuration();
@@ -161,15 +168,36 @@ export default function MiniCrosswordGame() {
 
         const interval = window.setInterval(updateDuration, 1000);
         return () => window.clearInterval(interval);
-    }, [completedAt, startedAt]);
+    }, [completedAt, startedAt, isPaused, pausedMs]);
 
     const score = computeCrosswordScore(durationSeconds, 0, revealedEntryIds.length);
     const metadata: CrosswordMetadata = {
         duration_seconds: durationSeconds,
         checks_used: 0,
         reveals_used: revealedEntryIds.length,
-        completed_at: completedAt ?? startedAt,
+        completed_at: completedAt ?? startedAt ?? new Date().toISOString(),
     };
+
+    function handleStartGame() {
+        setGameStarted(true);
+        if (!startedAt) {
+            setStartedAt(new Date().toISOString());
+        }
+    }
+
+    function handlePause() {
+        if (isPaused) {
+            const now = Date.now();
+            if (pausedSinceRef.current !== null) {
+                setPausedMs((prev) => prev + (now - pausedSinceRef.current!));
+                pausedSinceRef.current = null;
+            }
+            setIsPaused(false);
+        } else {
+            pausedSinceRef.current = Date.now();
+            setIsPaused(true);
+        }
+    }
 
     function selectEntry(entry: CrosswordNumberedEntry, focus = true) {
         setActiveEntryId(entry.id);
@@ -263,10 +291,14 @@ export default function MiniCrosswordGame() {
         setLetters(freshLetters);
         setActiveEntryId(PUZZLE.entries[0]?.id ?? "");
         setRevealedEntryIds([]);
-        setStartedAt(new Date().toISOString());
+        setStartedAt(null);
         setCompletedAt(null);
         setScoreSubmitted(false);
         setFocusedCellKey(null);
+        setGameStarted(false);
+        setIsPaused(false);
+        setPausedMs(0);
+        pausedSinceRef.current = null;
         setNotice("Puzzle reset. Start with any clue.");
         window.localStorage.removeItem(STORAGE_KEY);
     }
@@ -326,7 +358,25 @@ export default function MiniCrosswordGame() {
     }
 
     return (
-        <div className="overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] shadow-[0_24px_80px_rgba(20,42,68,0.10)]">
+        <div className="relative overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] shadow-[0_24px_80px_rgba(20,42,68,0.10)]">
+
+            {/* ── Start overlay ── */}
+            {!gameStarted && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-6 rounded-[2.2rem] bg-[linear-gradient(160deg,rgba(23,55,86,0.97)_0%,rgba(15,32,51,0.97)_100%)] px-8 text-center backdrop-blur-sm">
+                    <p className="text-xs uppercase tracking-[0.35em] text-white/45">Daily Puzzle</p>
+                    <h2 className="font-heading text-4xl text-white">Mini Crossword</h2>
+                    <p className="max-w-xs text-sm leading-relaxed text-white/60">
+                        Six clues built around Ashlyn & Jeffrey. The timer starts when you do.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={handleStartGame}
+                        className="mt-2 rounded-full bg-accent px-10 py-3.5 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                    >
+                        Start
+                    </button>
+                </div>
+            )}
 
             {/* ── Header ── */}
             <div className="border-b border-primary/8 px-5 py-6 md:px-8 md:py-7">
@@ -344,11 +394,28 @@ export default function MiniCrosswordGame() {
                         <div className="flex items-center gap-2 text-xs text-text-secondary">
                             <span>{fillCount}&thinsp;/&thinsp;{totalFillableCells}</span>
                             <span className="opacity-30">·</span>
+                            {gameStarted && (
+                                <>
+                                    <span className="tabular-nums">
+                                        {Math.floor(durationSeconds / 60)}:{String(durationSeconds % 60).padStart(2, "0")}
+                                    </span>
+                                    <span className="opacity-30">·</span>
+                                </>
+                            )}
                             <span className="font-semibold text-primary">{score}&thinsp;pts</span>
                         </div>
 
                         {/* Action buttons */}
                         <div className="flex gap-1.5">
+                            {gameStarted && !isSolved && (
+                                <button
+                                    type="button"
+                                    onClick={handlePause}
+                                    className="rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-text-secondary transition-colors hover:bg-primary/10 hover:text-primary"
+                                >
+                                    {isPaused ? "Resume" : "Pause"}
+                                </button>
+                            )}
                             {isAdmin && (
                                 <button
                                     type="button"
@@ -391,7 +458,20 @@ export default function MiniCrosswordGame() {
             <div className="grid md:grid-cols-2">
 
                 {/* Left: grid panel — self-start so it doesn't stretch when right col grows */}
-                <div className="self-start bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-4 md:p-5">
+                <div className="relative self-start bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-4 md:p-5">
+                    {/* Pause overlay */}
+                    {isPaused && (
+                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-none bg-[rgba(15,32,51,0.92)] backdrop-blur-sm">
+                            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Paused</p>
+                            <button
+                                type="button"
+                                onClick={handlePause}
+                                className="rounded-full bg-accent px-8 py-2.5 text-xs font-semibold uppercase tracking-[0.22em] text-white transition-transform hover:scale-105 active:scale-95"
+                            >
+                                Resume
+                            </button>
+                        </div>
+                    )}
                     {/* Active entry badge above the grid */}
                     <div className="mb-2.5 flex items-center justify-between text-[11px]">
                         <span className="uppercase tracking-[0.22em] text-white/55">
