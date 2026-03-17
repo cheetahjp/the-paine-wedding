@@ -24,14 +24,9 @@ const TODAY_KEY = getTodayKey();
 const PUZZLE = getDailyCrosswordPuzzle(TODAY_KEY);
 const STORAGE_KEY = getCrosswordStorageKey(PUZZLE.id, TODAY_KEY);
 
-// The puzzle grid is 5×7 but cols 0 and 6 are always black (structural border
-// columns). We render only the 5 inner columns (cols 1–5) for a clean grid.
-const GRID_COL_MIN = 1;
-const GRID_COL_MAX = 5;
-const GRID_COLS = GRID_COL_MAX - GRID_COL_MIN + 1; // 5
-const GRID_CELLS = PUZZLE.cells.filter(
-    (c) => c.col >= GRID_COL_MIN && c.col <= GRID_COL_MAX
-);
+// Proper 5×5 NYT-style grid — all cells rendered directly from PUZZLE.
+const GRID_COLS = PUZZLE.cols;
+const GRID_CELLS = PUZZLE.cells;
 
 // Build fast lookup maps once
 const ENTRY_MAP = new Map<string, CrosswordNumberedEntry>(
