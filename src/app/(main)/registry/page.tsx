@@ -134,11 +134,6 @@ export default async function Registry() {
                     })}
                 </div>
 
-                {/* Warm closing note */}
-                <p className="mt-14 text-center text-sm text-text-secondary/55 max-w-md mx-auto leading-relaxed italic">
-                    A card or heartfelt note means just as much to us as any gift —
-                    we&apos;re grateful you&apos;re celebrating with us.
-                </p>
             </Section>
         </div>
     );

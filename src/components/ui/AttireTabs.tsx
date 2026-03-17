@@ -56,8 +56,8 @@ export default function AttireTabs({
             <div className="relative">
                 <div className="relative z-10 flex items-end gap-2 pl-4 md:pl-8">
                     {[
-                        { key: "ladies" as const, label: "For the Ladies" },
-                        { key: "gentlemen" as const, label: "For the Gentlemen" },
+                        { key: "ladies" as const, label: "For the Ladies", shortLabel: "Ladies" },
+                        { key: "gentlemen" as const, label: "For the Gentlemen", shortLabel: "Gentlemen" },
                     ].map((tab) => {
                         const active = activeTab === tab.key;
 
@@ -66,14 +66,15 @@ export default function AttireTabs({
                                 key={tab.key}
                                 type="button"
                                 onClick={() => setActiveTab(tab.key)}
-                                className={`relative rounded-t-[1.8rem] border px-5 py-4 text-left transition-all duration-300 md:px-8 ${
+                                className={`relative rounded-t-[1.8rem] border px-4 py-3 text-left transition-all duration-300 md:px-8 md:py-4 ${
                                     active
                                         ? "z-20 -mb-px border-primary/18 border-b-transparent bg-primary text-white"
                                         : "z-0 mb-0.5 border-primary/12 bg-[linear-gradient(180deg,rgba(251,248,243,0.98)_0%,rgba(245,240,231,0.98)_100%)] text-primary hover:bg-[linear-gradient(180deg,rgba(248,243,235,0.98)_0%,rgba(241,235,226,0.98)_100%)]"
                                 }`}
                             >
-                                <div className={`font-heading text-2xl leading-none md:text-3xl ${active ? "text-white" : "text-primary"}`}>
-                                    {tab.label}
+                                <div className={`font-heading leading-none text-lg md:text-3xl ${active ? "text-white" : "text-primary"}`}>
+                                    <span className="md:hidden">{tab.shortLabel}</span>
+                                    <span className="hidden md:inline">{tab.label}</span>
                                 </div>
                             </button>
                         );

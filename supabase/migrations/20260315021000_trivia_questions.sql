@@ -25,6 +25,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trivia_questions_updated_at ON trivia_questions;
 CREATE TRIGGER trivia_questions_updated_at
   BEFORE UPDATE ON trivia_questions
   FOR EACH ROW

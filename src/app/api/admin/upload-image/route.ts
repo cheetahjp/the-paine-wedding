@@ -61,7 +61,11 @@ export async function POST(request: NextRequest) {
             .from("site-images")
             .getPublicUrl(data.path);
 
-        return NextResponse.json({ url: urlData.publicUrl, path: data.path });
+        // Append cache-busting version param so the browser always fetches
+        // the new image even if the same storage path was overwritten via upsert.
+        const cacheBustedUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+
+        return NextResponse.json({ url: cacheBustedUrl, path: data.path });
     } catch (err) {
         const message = err instanceof Error ? err.message : "Upload failed.";
         return NextResponse.json({ error: message }, { status: 500 });

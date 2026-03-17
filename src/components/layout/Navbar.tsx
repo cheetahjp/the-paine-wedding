@@ -20,12 +20,15 @@ const navLinks = [
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
+    const hamburgerRef = useRef<HTMLButtonElement>(null);
     const pathname = usePathname();
 
-    // Close on outside click
+    // Close on outside click — exclude the hamburger button itself so its
+    // own onClick handler isn't fighting with this mousedown handler
     useEffect(() => {
         if (!menuOpen) return;
         function handleClick(e: MouseEvent) {
+            if (hamburgerRef.current?.contains(e.target as Node)) return;
             if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
                 setMenuOpen(false);
             }
@@ -94,6 +97,7 @@ export default function Navbar() {
 
                     {/* Mobile hamburger */}
                     <button
+                        ref={hamburgerRef}
                         className="relative z-[61] md:hidden text-text-primary p-1 -mr-1"
                         onClick={() => setMenuOpen((prev) => !prev)}
                         aria-label={menuOpen ? "Close menu" : "Open menu"}

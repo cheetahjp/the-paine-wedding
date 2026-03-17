@@ -16,7 +16,7 @@ export type LeaderboardEntry = {
 
 export type SubmitGameScoreInput = {
     game: GameType;
-    email: string;
+    email?: string;
     username: string;
     score: number;
     maxScore?: number | null;
@@ -38,8 +38,19 @@ export type BrowserProfile = {
 export type StoredGamePlayer = {
     email: string;
     username: string;
+    firstName?: string;
+    lastName?: string;
     browserProfile?: BrowserProfile;
     updatedAt?: string;
+};
+
+// email is optional when creating/saving a player
+export type SaveGamePlayerInput = {
+    email?: string;
+    username: string;
+    firstName?: string;
+    lastName?: string;
+    browserProfile?: BrowserProfile | null;
 };
 
 export const GAME_PLAYER_STORAGE_KEY = "wedding-games-player";
@@ -62,13 +73,15 @@ export function captureBrowserProfile(): BrowserProfile | null {
     };
 }
 
-export function saveStoredGamePlayer(player: { email: string; username: string; browserProfile?: BrowserProfile | null }) {
+export function saveStoredGamePlayer(player: { email?: string; username: string; firstName?: string; lastName?: string; browserProfile?: BrowserProfile | null }) {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(
         GAME_PLAYER_STORAGE_KEY,
         JSON.stringify({
-            email: normalizeEmail(player.email),
+            email: player.email ? normalizeEmail(player.email) : "",
             username: player.username.trim(),
+            firstName: player.firstName?.trim(),
+            lastName: player.lastName?.trim(),
             browserProfile: player.browserProfile ?? captureBrowserProfile() ?? undefined,
             updatedAt: new Date().toISOString(),
         })
@@ -84,10 +97,12 @@ export function getStoredGamePlayer() {
 
     try {
         const parsed = JSON.parse(rawValue) as StoredGamePlayer;
-        if (!parsed.email || !parsed.username) return null;
+        if (!parsed.username) return null;
         return {
             email: parsed.email,
             username: parsed.username,
+            firstName: parsed.firstName,
+            lastName: parsed.lastName,
             browserProfile: parsed.browserProfile,
             updatedAt: parsed.updatedAt,
         };

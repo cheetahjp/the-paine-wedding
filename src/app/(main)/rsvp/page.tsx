@@ -27,8 +27,10 @@ function levenshtein(a: string, b: string): number {
 function nameSimilarity(input: string, candidate: string): number {
     const a = input.toLowerCase().trim();
     const b = candidate.toLowerCase().trim();
+    if (!a || !b) return 0; // guard against empty strings (empty nicknames bug)
     if (a === b) return 1.0;
-    if (b.includes(a) || a.includes(b)) return 0.9;
+    if (b.startsWith(a)) return 0.9; // prefix match: "jo" → "john", "p" → "paine"
+    if (a.length >= 3 && b.includes(a)) return 0.75; // substring only for longer inputs
     const dist = levenshtein(a, b);
     const maxLen = Math.max(a.length, b.length);
     return maxLen === 0 ? 1.0 : 1 - dist / maxLen;
@@ -193,6 +195,10 @@ type Guest = {
     song_request: string | null;
     advice: string | null;
     household_id: string;
+    plus_one_allowed: boolean;
+    is_plus_one: boolean;
+    plus_one_for_id: string | null;
+    plus_one_claimed: boolean;
 };
 
 type Household = { id: string; name: string; guests: Guest[] };
@@ -201,6 +207,10 @@ type GuestResponse = {
     attending: boolean | null;
     food_allergies: string;
     showAllergies: boolean;
+    // For plus one guests: their real name (user can edit the placeholder)
+    firstName: string;
+    lastName: string;
+    nameEdited: boolean; // true once user has typed a name
 };
 
 // Stored in localStorage after a successful submit
@@ -269,6 +279,184 @@ function RSVPProgressBar({ currentStep, onStepClick }: {
 
 // ── Shared back/outline button style ─────────────────────────────────────────
 const outlineBtn = "px-6 py-3 text-sm font-medium border border-gray-200 rounded-sm text-text-secondary hover:border-primary hover:text-primary transition-colors";
+
+// Auto-resize textarea hook
+function useAutoResize(value: string, minRows: number = 1) {
+    const ref = React.useRef<HTMLTextAreaElement>(null);
+    React.useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.style.height = "auto";
+        const lineHeight = 24;
+        const minHeight = minRows * lineHeight + 24; // padding
+        const maxHeight = 240;
+        el.style.height = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight) + "px";
+        el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+    }, [value, minRows]);
+    return ref;
+}
+
+function SongRequestField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+    const ref = React.useRef<HTMLTextAreaElement>(null);
+    React.useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.style.height = "auto";
+        const maxH = 160;
+        el.style.height = Math.min(el.scrollHeight, maxH) + "px";
+        el.style.overflowY = el.scrollHeight > maxH ? "auto" : "hidden";
+    }, [value]);
+    return (
+        <div className="space-y-2">
+            <label className="block text-xs uppercase tracking-widest text-text-secondary">Song Request</label>
+            <p className="text-xs text-text-secondary/55">What song will get you on the dance floor?</p>
+            <textarea
+                ref={ref}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="e.g. Mr. Brightside, Shout, anything Pitbull..."
+                rows={1}
+                className="w-full border-b border-gray-300 py-3 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400 resize-none"
+                style={{ minHeight: "44px" }}
+            />
+        </div>
+    );
+}
+
+function AdviceField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+    const ref = React.useRef<HTMLTextAreaElement>(null);
+    React.useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.style.height = "auto";
+        const maxH = 240;
+        el.style.height = Math.min(el.scrollHeight, maxH) + "px";
+        el.style.overflowY = el.scrollHeight > maxH ? "auto" : "hidden";
+    }, [value]);
+    return (
+        <div className="space-y-2">
+            <label className="block text-xs uppercase tracking-widest text-text-secondary">Advice for the Couple</label>
+            <p className="text-xs text-text-secondary/55">Words of wisdom? Terrible advice? We&apos;ll take it.</p>
+            <textarea
+                ref={ref}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Share a thought..."
+                rows={3}
+                className="w-full border border-gray-200 p-3 text-sm rounded-sm focus:outline-none focus:border-primary bg-white resize-none placeholder:text-gray-400"
+                style={{ minHeight: "84px" }}
+            />
+        </div>
+    );
+}
+
+function PlusOneSlot({
+    plusOneGuest,
+    response,
+    onAttendingToggle,
+    onNameChange,
+    onAllergyChange,
+    onShowAllergy,
+    onHideAllergy,
+}: {
+    plusOneGuest: Guest;
+    response: GuestResponse | undefined;
+    onAttendingToggle: (val: boolean) => void;
+    onNameChange: (firstName: string, lastName: string) => void;
+    onAllergyChange: (val: string) => void;
+    onShowAllergy: () => void;
+    onHideAllergy: () => void;
+}) {
+    const isNamed = !!(response?.nameEdited && response?.firstName?.trim() && response?.lastName?.trim());
+    const isAttending = response?.attending;
+
+    return (
+        <div className="ml-5 mt-2 rounded-lg border border-dashed border-primary/20 bg-surface/30 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-widest text-text-secondary/60 font-medium">
+                + Your Plus One
+            </p>
+
+            {/* Name inputs */}
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-[10px] uppercase tracking-widest text-text-secondary/60 mb-1">First Name</label>
+                    <input
+                        type="text"
+                        value={response?.nameEdited ? (response?.firstName ?? "") : ""}
+                        onChange={(e) => onNameChange(e.target.value, response?.lastName ?? "")}
+                        placeholder="First name"
+                        className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[10px] uppercase tracking-widest text-text-secondary/60 mb-1">Last Name</label>
+                    <input
+                        type="text"
+                        value={response?.nameEdited ? (response?.lastName ?? "") : ""}
+                        onChange={(e) => onNameChange(response?.firstName ?? "", e.target.value)}
+                        placeholder="Last name"
+                        className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
+                    />
+                </div>
+            </div>
+
+            {/* RSVP toggles — only show after name is entered */}
+            {isNamed && (
+                <div className="flex items-center justify-between animate-fade-in-up">
+                    <span className="text-sm text-text-secondary font-medium">{response!.firstName} {response!.lastName}</span>
+                    <div className="flex gap-2">
+                        <button type="button"
+                            onClick={() => onAttendingToggle(true)}
+                            className={`px-4 py-1.5 text-sm font-medium rounded-sm border transition-colors ${
+                                isAttending === true
+                                    ? "bg-primary text-white border-primary"
+                                    : "bg-white text-text-secondary border-gray-200 hover:border-primary hover:text-primary"
+                            }`}
+                        >Attending</button>
+                        <button type="button"
+                            onClick={() => onAttendingToggle(false)}
+                            className={`px-4 py-1.5 text-sm font-medium rounded-sm border transition-colors ${
+                                isAttending === false
+                                    ? "bg-secondary text-white border-secondary"
+                                    : "bg-white text-text-secondary border-gray-200 hover:border-secondary hover:text-secondary"
+                            }`}
+                        >Declined</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Dietary — only if attending */}
+            {isNamed && isAttending === true && (
+                <div className="animate-fade-in-up">
+                    {!response?.showAllergies ? (
+                        <button type="button" onClick={onShowAllergy}
+                            className="text-xs text-text-secondary/55 hover:text-primary underline underline-offset-2 transition-colors">
+                            + Add dietary restriction or allergy
+                        </button>
+                    ) : (
+                        <div className="space-y-1.5 animate-fade-in-up">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs uppercase tracking-widest text-text-secondary">Dietary Restriction / Allergy</label>
+                                <button type="button" onClick={onHideAllergy}
+                                    className="text-xs text-text-secondary/40 hover:text-red-400 transition-colors">✕ Remove</button>
+                            </div>
+                            <input type="text" value={response?.food_allergies || ""}
+                                onChange={(e) => onAllergyChange(e.target.value)}
+                                placeholder="e.g. gluten-free, nut allergy"
+                                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400" />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {!isNamed && (
+                <p className="text-xs text-text-secondary/45 leading-relaxed">
+                    Leave blank if you&apos;re not bringing a plus one.
+                </p>
+            )}
+        </div>
+    );
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -352,7 +540,14 @@ export default function RSVP() {
 
     // ── Derived ───────────────────────────────────────────────────────────────
     const anyAttending = household
-        ? household.guests.some((g) => responses[g.id]?.attending === true)
+        ? household.guests.some((g) => {
+            const resp = responses[g.id];
+            if (g.is_plus_one) {
+                // Only count named plus ones
+                return resp?.attending === true && resp?.nameEdited && resp?.firstName?.trim() && resp?.lastName?.trim();
+            }
+            return resp?.attending === true;
+        })
         : false;
 
     // For step 4: did user come from localStorage only (no fresh submit this session)?
@@ -406,7 +601,7 @@ export default function RSVP() {
 
         const { data: allGuests, error: searchError } = await supabase
             .from("guests")
-            .select("household_id, first_name, last_name, nicknames");
+            .select("household_id, first_name, last_name, nicknames, is_plus_one");
 
         if (searchError || !allGuests?.length) {
             setError("There was an error communicating with the database. Please try again.");
@@ -414,11 +609,15 @@ export default function RSVP() {
             return;
         }
 
-        const scored = allGuests.map((g) => {
-            const nickScores = (g.nicknames || "")
+        const searchableGuests = allGuests.filter((g: {is_plus_one?: boolean}) => !g.is_plus_one);
+
+        const scored = searchableGuests.map((g) => {
+            const nickTokens = (g.nicknames || "")
                 .split(/[,;\/]/)
-                .map((n: string) => nameSimilarity(cleanFirst, n.trim()));
-            const firstScore = Math.max(nameSimilarity(cleanFirst, g.first_name), ...nickScores);
+                .map((n: string) => n.trim())
+                .filter((n: string) => n.length > 0);
+            const nickScores = nickTokens.map((n: string) => nameSimilarity(cleanFirst, n));
+            const firstScore = Math.max(nameSimilarity(cleanFirst, g.first_name), ...nickScores.length ? nickScores : [0]);
             const lastScore = nameSimilarity(cleanLast, g.last_name);
             return { guest: g, combinedScore: firstScore * lastScore };
         });
@@ -467,6 +666,9 @@ export default function RSVP() {
                 attending: g.attending ?? null,
                 food_allergies: g.food_allergies || "",
                 showAllergies: !!(g.food_allergies),
+                firstName: g.first_name,
+                lastName: g.last_name,
+                nameEdited: false,
             };
         });
 
@@ -484,6 +686,12 @@ export default function RSVP() {
         setResponses(confirming.responses);
         setConfirming(null);
         setStep(2);
+        // Fire-and-forget: mark household as "viewed" so admin can track engagement
+        fetch("/api/rsvp/viewed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ household_id: confirming.household.id }),
+        }).catch(() => {});
     };
 
     const handleNotMe = () => { setConfirming(null); setError(null); };
@@ -526,12 +734,31 @@ export default function RSVP() {
         e.preventDefault();
         setError(null);
         if (!household) return;
-        const unselected = household.guests.find((g) => responses[g.id]?.attending === null);
+
+        // Only require primary guests to have a selection
+        const primaryGuests = household.guests.filter(g => !g.is_plus_one);
+        const unselected = primaryGuests.find((g) => responses[g.id]?.attending === null);
         if (unselected) {
             setError(`Please select Attending or Declined for ${unselected.first_name}.`);
             return;
         }
-        // If nobody is attending, skip step 3 and submit directly
+
+        // Validate partially-named plus ones
+        const plusOneGuests = household.guests.filter(g => g.is_plus_one);
+        for (const po of plusOneGuests) {
+            const resp = responses[po.id];
+            if (resp?.nameEdited) {
+                if (!resp.firstName?.trim() || !resp.lastName?.trim()) {
+                    setError("Please enter your plus one's full name, or clear the name field.");
+                    return;
+                }
+                if (resp.attending === null) {
+                    setError(`Please select Attending or Declined for ${resp.firstName}.`);
+                    return;
+                }
+            }
+        }
+
         if (anyAttending) {
             setStep(3);
         } else {
@@ -547,7 +774,11 @@ export default function RSVP() {
         if (!household) return;
         setLoading(true);
         try {
-            const updates = household.guests.map((g) => ({
+            const primaryGuests = household.guests.filter(g => !g.is_plus_one);
+            const plusOneGuests = household.guests.filter(g => g.is_plus_one);
+
+            // Build updates for primary guests
+            const updates = primaryGuests.map((g) => ({
                 id: g.id,
                 first_name: g.first_name,
                 last_name: g.last_name,
@@ -557,10 +788,38 @@ export default function RSVP() {
                 food_allergies: responses[g.id]?.food_allergies?.trim() || null,
                 song_request: songRequest.trim() || null,
                 advice: advice.trim() || null,
+                viewed_rsvp: true,
             }));
+
+            // Build updates for plus one guests
+            for (const po of plusOneGuests) {
+                const resp = responses[po.id];
+                const isNamed = !!(resp?.nameEdited && resp?.firstName?.trim() && resp?.lastName?.trim());
+                updates.push({
+                    id: po.id,
+                    first_name: isNamed ? resp!.firstName.trim() : po.first_name,
+                    last_name: isNamed ? resp!.lastName.trim() : po.last_name,
+                    household_id: po.household_id,
+                    attending: isNamed ? (resp?.attending ?? null) : null,
+                    meal_choice: null,
+                    food_allergies: isNamed ? (resp?.food_allergies?.trim() || null) : null,
+                    song_request: isNamed ? (songRequest.trim() || null) : null,
+                    advice: isNamed ? (advice.trim() || null) : null,
+                    viewed_rsvp: isNamed ? true : false,
+                } as typeof updates[0]);
+            }
 
             const { error: updateError } = await supabase.from("guests").upsert(updates);
             if (updateError) throw updateError;
+
+            // Update plus_one_claimed for named plus ones
+            for (const po of plusOneGuests) {
+                const resp = responses[po.id];
+                const isNamed = !!(resp?.nameEdited && resp?.firstName?.trim() && resp?.lastName?.trim());
+                if (isNamed) {
+                    await supabase.from("guests").update({ plus_one_claimed: true }).eq("id", po.id);
+                }
+            }
 
             // Persist to localStorage so returning visitors see step 4
             const toStore: StoredRSVP = {
@@ -572,7 +831,7 @@ export default function RSVP() {
             setStoredRSVP(toStore);
 
             // Fire-and-forget history insert (doesn't block the user)
-            const historyRows = household.guests.map((g) => ({
+            const historyRows = primaryGuests.map((g) => ({
                 guest_id: g.id,
                 household_id: g.household_id,
                 attending: responses[g.id]?.attending ?? null,
@@ -581,7 +840,7 @@ export default function RSVP() {
                 advice: advice.trim() || null,
             }));
             supabase.from("rsvp_history").insert(historyRows).then(({ error: histErr }) => {
-                if (histErr) console.warn("RSVP history insert failed (non-blocking):", histErr);
+                if (histErr) console.warn("RSVP history insert failed:", histErr);
             });
 
             setStep(4);
@@ -613,6 +872,9 @@ export default function RSVP() {
                     attending: g.attending ?? null,
                     food_allergies: g.food_allergies || "",
                     showAllergies: !!(g.food_allergies),
+                    firstName: g.first_name,
+                    lastName: g.last_name,
+                    nameEdited: false,
                 };
             });
             setHousehold({ ...hhData, guests });
@@ -748,78 +1010,98 @@ export default function RSVP() {
                     {/* ── Step 2: Attendance ───────────────────────────────────────────── */}
                     {step === 2 && household && (
                         <form onSubmit={handleAttendanceNext} className="space-y-6 text-left animate-fade-in-up">
-                            {household.guests.map((guest: Guest) => {
-                                const resp = responses[guest.id];
-                                const isAttending = resp?.attending;
-                                return (
-                                    <div key={guest.id} className="space-y-3 pb-6 border-b border-surface last:border-0">
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                            <h3 className="font-medium text-lg border-l-2 border-primary pl-3 text-text-primary">
-                                                {guest.first_name} {guest.last_name}
-                                                {guest.suffix && <span className="text-text-secondary text-base ml-1">{guest.suffix}</span>}
-                                            </h3>
-                                            <div className="flex gap-2 flex-shrink-0 pl-5 sm:pl-0">
-                                                {/* Click same button again to deselect */}
-                                                <button type="button"
-                                                    onClick={() => handleAttendingToggle(guest.id, true)}
-                                                    className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
-                                                        isAttending === true
-                                                            ? "bg-primary text-white border-primary"
-                                                            : "bg-white text-text-secondary border-gray-200 hover:border-primary hover:text-primary"
-                                                    }`}
-                                                >Attending</button>
-                                                <button type="button"
-                                                    onClick={() => handleAttendingToggle(guest.id, false)}
-                                                    className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
-                                                        isAttending === false
-                                                            ? "bg-secondary text-white border-secondary"
-                                                            : "bg-white text-text-secondary border-gray-200 hover:border-secondary hover:text-secondary"
-                                                    }`}
-                                                >Declined</button>
-                                            </div>
-                                        </div>
+                            {(() => {
+                                const primaryGuests = household.guests.filter((g) => !g.is_plus_one);
+                                const plusOneByForId: Record<string, Guest> = {};
+                                household.guests
+                                    .filter((g) => g.is_plus_one && g.plus_one_for_id)
+                                    .forEach((g) => { plusOneByForId[g.plus_one_for_id!] = g; });
 
-                                        {/* Dietary — hidden behind a small link; clear × to remove */}
-                                        {isAttending === true && (
-                                            <div className="pl-5 animate-fade-in-up">
-                                                {!resp?.showAllergies ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => showAllergyField(guest.id)}
-                                                        className="text-xs text-text-secondary/55 hover:text-primary underline underline-offset-2 transition-colors"
-                                                    >
-                                                        + Add dietary restriction or allergy
-                                                    </button>
-                                                ) : (
-                                                    <div className="space-y-1.5 animate-fade-in-up">
-                                                        <div className="flex items-center justify-between">
-                                                            <label className="block text-xs uppercase tracking-widest text-text-secondary">
-                                                                Dietary Restriction / Allergy
-                                                            </label>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => hideAllergyField(guest.id)}
-                                                                className="text-xs text-text-secondary/40 hover:text-red-400 transition-colors leading-none"
-                                                                aria-label="Remove dietary restriction"
-                                                            >
-                                                                ✕ Remove
-                                                            </button>
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            autoFocus
-                                                            value={resp?.food_allergies || ""}
-                                                            onChange={(e) => handleAllergyChange(guest.id, e.target.value)}
-                                                            placeholder="e.g. gluten-free, nut allergy"
-                                                            className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
-                                                        />
-                                                    </div>
-                                                )}
+                                return primaryGuests.map((guest: Guest) => {
+                                    const resp = responses[guest.id];
+                                    const isAttending = resp?.attending;
+                                    const plusOneGuest = guest.plus_one_allowed ? plusOneByForId[guest.id] : undefined;
+
+                                    return (
+                                        <div key={guest.id} className="space-y-3 pb-6 border-b border-surface last:border-0">
+                                            {/* Primary guest row */}
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                                <h3 className="font-medium text-lg border-l-2 border-primary pl-3 text-text-primary">
+                                                    {guest.first_name} {guest.last_name}
+                                                    {guest.suffix && <span className="text-text-secondary text-base ml-1">{guest.suffix}</span>}
+                                                </h3>
+                                                <div className="flex gap-2 flex-shrink-0 pl-5 sm:pl-0">
+                                                    <button type="button"
+                                                        onClick={() => handleAttendingToggle(guest.id, true)}
+                                                        className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
+                                                            isAttending === true
+                                                                ? "bg-primary text-white border-primary"
+                                                                : "bg-white text-text-secondary border-gray-200 hover:border-primary hover:text-primary"
+                                                        }`}
+                                                    >Attending</button>
+                                                    <button type="button"
+                                                        onClick={() => handleAttendingToggle(guest.id, false)}
+                                                        className={`px-5 py-2 text-sm font-medium rounded-sm border transition-colors ${
+                                                            isAttending === false
+                                                                ? "bg-secondary text-white border-secondary"
+                                                                : "bg-white text-text-secondary border-gray-200 hover:border-secondary hover:text-secondary"
+                                                        }`}
+                                                    >Declined</button>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+
+                                            {/* Dietary restriction */}
+                                            {isAttending === true && (
+                                                <div className="pl-5 animate-fade-in-up">
+                                                    {!resp?.showAllergies ? (
+                                                        <button type="button" onClick={() => showAllergyField(guest.id)}
+                                                            className="text-xs text-text-secondary/55 hover:text-primary underline underline-offset-2 transition-colors">
+                                                            + Add dietary restriction or allergy
+                                                        </button>
+                                                    ) : (
+                                                        <div className="space-y-1.5 animate-fade-in-up">
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="block text-xs uppercase tracking-widest text-text-secondary">Dietary Restriction / Allergy</label>
+                                                                <button type="button" onClick={() => hideAllergyField(guest.id)}
+                                                                    className="text-xs text-text-secondary/40 hover:text-red-400 transition-colors leading-none" aria-label="Remove dietary restriction">
+                                                                    ✕ Remove
+                                                                </button>
+                                                            </div>
+                                                            <input type="text" autoFocus value={resp?.food_allergies || ""}
+                                                                onChange={(e) => handleAllergyChange(guest.id, e.target.value)}
+                                                                placeholder="e.g. gluten-free, nut allergy"
+                                                                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Plus one slot */}
+                                            {plusOneGuest && (
+                                                <PlusOneSlot
+                                                    plusOneGuest={plusOneGuest}
+                                                    response={responses[plusOneGuest.id]}
+                                                    onAttendingToggle={(val) => handleAttendingToggle(plusOneGuest.id, val)}
+                                                    onNameChange={(firstName, lastName) => {
+                                                        setResponses((prev) => ({
+                                                            ...prev,
+                                                            [plusOneGuest.id]: {
+                                                                ...prev[plusOneGuest.id],
+                                                                firstName,
+                                                                lastName,
+                                                                nameEdited: true,
+                                                            },
+                                                        }));
+                                                    }}
+                                                    onAllergyChange={(val) => handleAllergyChange(plusOneGuest.id, val)}
+                                                    onShowAllergy={() => showAllergyField(plusOneGuest.id)}
+                                                    onHideAllergy={() => hideAllergyField(plusOneGuest.id)}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                });
+                            })()}
                             <div className="flex flex-col sm:flex-row gap-3 pt-2">
                                 <button type="button" onClick={goBack} className={`sm:w-auto ${outlineBtn}`}>← Back</button>
                                 <Button type="submit" className="flex-1" disabled={loading}>
@@ -832,27 +1114,8 @@ export default function RSVP() {
                     {/* ── Step 3: Extras ───────────────────────────────────────────────── */}
                     {step === 3 && household && (
                         <form onSubmit={handleSubmitRSVP} className="space-y-8 text-left animate-fade-in-up">
-                            <div className="space-y-2">
-                                <label className="block text-xs uppercase tracking-widest text-text-secondary">Song Request</label>
-                                <p className="text-xs text-text-secondary/55">What song will get you on the dance floor?</p>
-                                <input
-                                    type="text" value={songRequest}
-                                    onChange={(e) => setSongRequest(e.target.value)}
-                                    placeholder="e.g. Mr. Brightside, Shout, anything Pitbull..."
-                                    className="w-full border-b border-gray-300 py-3 text-sm focus:outline-none focus:border-primary transition-colors bg-transparent placeholder:text-gray-400"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-xs uppercase tracking-widest text-text-secondary">Advice for the Couple</label>
-                                <p className="text-xs text-text-secondary/55">Words of wisdom? Terrible advice? We&apos;ll take it.</p>
-                                <textarea
-                                    value={advice}
-                                    onChange={(e) => setAdvice(e.target.value)}
-                                    placeholder="Share a thought..."
-                                    rows={4}
-                                    className="w-full border border-gray-200 p-3 text-sm rounded-sm focus:outline-none focus:border-primary bg-white resize-none placeholder:text-gray-400"
-                                />
-                            </div>
+                            <SongRequestField value={songRequest} onChange={setSongRequest} />
+                            <AdviceField value={advice} onChange={setAdvice} />
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button type="button" onClick={goBack} className={`sm:w-auto ${outlineBtn}`}>← Back</button>
                                 <Button type="submit" className="flex-1" disabled={loading}>

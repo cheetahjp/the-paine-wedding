@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Invalid game." }, { status: 400 });
         }
 
-        if (!email || !username) {
-            return NextResponse.json({ error: "Username and email are required." }, { status: 400 });
+        if (!username) {
+            return NextResponse.json({ error: "Username is required." }, { status: 400 });
         }
 
         if (!Number.isFinite(score) || score < 0) {
@@ -191,7 +191,9 @@ export async function POST(request: NextRequest) {
         }
 
         const supabase = createClient<Database>(supabaseUrl, supabaseKey);
-        const player = await upsertGamePlayer(supabase, email, username);
+        // If no email provided, derive a stable synthetic one from the username so the upsert still works
+        const effectiveEmail = email || `${username.toLowerCase().replace(/\s+/g, ".")}.guest@wedding.local`;
+        const player = await upsertGamePlayer(supabase, effectiveEmail, username);
         const puzzleKey = body.puzzleKey ?? "";
 
         const { data: existingScore, error: existingError } = await supabase

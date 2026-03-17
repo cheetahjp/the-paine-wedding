@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ADMIN_SESSION_EVENT, emitAdminSessionChange } from "@/components/admin/useAdminSession";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -563,11 +563,13 @@ function ImageEditPanel({
     rect,
     settings,
     onClose,
+    onRefresh,
 }: {
     state: ImagePanelState;
     rect: RectSnapshot;
     settings: Record<string, unknown>;
     onClose: () => void;
+    onRefresh: () => void;
 }) {
     const [url, setUrl] = useState(state.currentUrl);
     const [hasOverlay, setHasOverlay] = useState(!!state.currentOverlay);
@@ -625,7 +627,8 @@ function ImageEditPanel({
             } else {
                 await apiSaveSetting(key, { url, overlay: hasOverlay ? overlay : null });
             }
-            window.location.reload();
+            onClose();
+            onRefresh();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -638,7 +641,8 @@ function ImageEditPanel({
         setError(null);
         try {
             await apiDeleteSetting(state.key);
-            window.location.reload();
+            onClose();
+            onRefresh();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -797,10 +801,12 @@ function TextEditPanel({
     state,
     rect,
     onClose,
+    onRefresh,
 }: {
     state: TextPanelState;
     rect: RectSnapshot;
     onClose: () => void;
+    onRefresh: () => void;
 }) {
     const [richMode, setRichMode] = useState(state.richText);
     const [text, setText] = useState(state.currentText);
@@ -823,7 +829,8 @@ function TextEditPanel({
         try {
             const value = richMode ? getRichContent() : text;
             await apiSaveSetting(state.key, value);
-            window.location.reload();
+            onClose();
+            onRefresh();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -836,7 +843,8 @@ function TextEditPanel({
         setError(null);
         try {
             await apiDeleteSetting(state.key);
-            window.location.reload();
+            onClose();
+            onRefresh();
         } catch (e) {
             setError((e as Error).message);
             setSaving(false);
@@ -1001,6 +1009,7 @@ export default function AdminEditBar() {
     const toolbarRef = useRef<HTMLDivElement | null>(null);
 
     const pathname = usePathname();
+    const router = useRouter();
 
     const syncSession = useCallback(async () => {
         try {
@@ -1440,6 +1449,7 @@ export default function AdminEditBar() {
                                 setPanel({ mode: "closed" });
                                 clearSelectedElement();
                             }}
+                            onRefresh={() => router.refresh()}
                         />
                     ) : (
                         <TextEditPanel
@@ -1449,6 +1459,7 @@ export default function AdminEditBar() {
                                 setPanel({ mode: "closed" });
                                 clearSelectedElement();
                             }}
+                            onRefresh={() => router.refresh()}
                         />
                     )}
                 </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import Section from "@/components/ui/Section";
 import { getWeddingData } from "@/lib/site-settings";
 import { MapPin, Plane, Car, ExternalLink, Phone } from "lucide-react";
@@ -248,6 +249,13 @@ export default async function Travel() {
                         ))}
                     </div>
                 </div>
+            </Section>
+
+            <Section background="surface" className="py-8 text-center">
+                <p className="text-sm text-text-secondary">
+                    Have questions about parking, shuttles, or the area?{" "}
+                    <Link href="/faq" className="text-primary underline underline-offset-2">Check our FAQ</Link>
+                </p>
             </Section>
         </div>
     );

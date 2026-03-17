@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import Section from "@/components/ui/Section";
 import AttireTabs from "@/components/ui/AttireTabs";
 import { getWeddingData } from "@/lib/site-settings";
@@ -52,6 +53,13 @@ export default async function Attire() {
                         gentlemenAdminKey="dresscode.gentlemen"
                     />
                 </div>
+            </Section>
+
+            <Section background="surface" className="py-8 text-center">
+                <p className="text-sm text-text-secondary">
+                    Questions about dress code?{" "}
+                    <Link href="/faq" className="text-primary underline underline-offset-2">See our FAQ</Link>
+                </p>
             </Section>
         </div>
     );

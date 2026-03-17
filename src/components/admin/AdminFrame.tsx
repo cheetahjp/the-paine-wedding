@@ -9,7 +9,7 @@ type AdminFrameProps = {
     section: AdminSection;
     role: string;
     title: string;
-    description: string;
+    description?: string;
     onLogout: () => Promise<void>;
     children: ReactNode;
 };
@@ -37,18 +37,20 @@ export default function AdminFrame({
                         <div>
                             <p className="text-xs uppercase tracking-[0.28em] text-text-secondary">Admin</p>
                             <h1 className="mt-3 font-heading text-4xl text-primary">{title}</h1>
-                            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text-secondary">{description}</p>
+                            {description && (
+                                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text-secondary">{description}</p>
+                            )}
                         </div>
-                        <div className="flex items-center gap-3">
-                            <span className="rounded-full border border-primary/12 bg-primary/5 px-4 py-2 text-xs uppercase tracking-[0.22em] text-primary">
+                        <div className="flex items-center gap-4">
+                            {/* Role indicator — plain label, not a button */}
+                            <span className="flex items-center gap-1.5 text-xs uppercase tracking-[0.22em] text-text-secondary">
+                                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                                 {role}
                             </span>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    void onLogout();
-                                }}
-                                className="rounded-full border border-secondary/18 bg-secondary/6 px-4 py-2 text-xs uppercase tracking-[0.22em] text-secondary transition-colors duration-200 hover:bg-secondary hover:text-white"
+                                onClick={() => { void onLogout(); }}
+                                className="rounded-full border border-secondary/30 bg-secondary/8 px-4 py-2 text-xs uppercase tracking-[0.22em] text-secondary transition-colors duration-200 hover:bg-secondary hover:text-white"
                             >
                                 Log Out
                             </button>

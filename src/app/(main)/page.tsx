@@ -3,6 +3,9 @@ import Section from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
 import { getWeddingData } from "@/lib/site-settings";
 
+// Always fetch fresh from Supabase — prevents stale hero image flash after admin changes
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { wedding, images, overlays, content } = await getWeddingData();
 
@@ -78,10 +81,10 @@ export default async function Home() {
 
       {/* Quick Details Grid */}
       <Section background="base">
-        <div className="grid md:grid-cols-3 gap-12 text-center">
+        <div className="grid md:grid-cols-3 gap-12 text-center md:items-stretch">
 
           {/* When → Games */}
-          <div className="space-y-4 flex flex-col items-center">
+          <div className="flex flex-col items-center gap-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">When</h3>
             <p
               className="font-heading text-2xl"
@@ -92,7 +95,7 @@ export default async function Home() {
             >
               {wedding.date.dayOfWeek}, {wedding.date.display}
             </p>
-            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem] flex-grow">
               Can&apos;t wait for the big day? Us either — so we made some games to pass the time.
             </p>
             <Button href="/games" variant="outline" className="mt-2">
@@ -101,7 +104,7 @@ export default async function Home() {
           </div>
 
           {/* Where → Travel */}
-          <div className="space-y-4 flex flex-col items-center md:border-l md:border-r border-surface px-4">
+          <div className="flex flex-col items-center gap-4 md:border-l md:border-r border-surface px-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">Where</h3>
             <p
               className="font-heading text-2xl"
@@ -112,7 +115,7 @@ export default async function Home() {
               {wedding.venue.name}
             </p>
             <p className="text-sm text-text-secondary">{wedding.venue.cityDisplay}</p>
-            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem] flex-grow">
               Live outside DFW? We&apos;ve rounded up hotels, tips, and things to do while you&apos;re in town.
             </p>
             <Button href="/travel" variant="outline" className="mt-2">
@@ -121,7 +124,7 @@ export default async function Home() {
           </div>
 
           {/* Dress Code → Attire */}
-          <div className="space-y-4 flex flex-col items-center">
+          <div className="flex flex-col items-center gap-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">Dress Code</h3>
             <p
               className="font-heading text-2xl"
@@ -131,7 +134,7 @@ export default async function Home() {
             >
               {wedding.dresscode.short === "TBD" ? "Details Coming Soon" : wedding.dresscode.short}
             </p>
-            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem] flex-grow">
               Not sure what to wear? Check out our attire guide so you fit right in.
             </p>
             <Button href="/attire" variant="outline" className="mt-2">

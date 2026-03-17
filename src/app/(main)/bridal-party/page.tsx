@@ -9,7 +9,7 @@ export default async function BridalParty() {
     const hasParty = bridesmaids.length > 0 || groomsmen.length > 0;
 
     const fallback =
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
+        "/images/hero/JeffAshlyn-7977_2.jpg";
 
     return (
         <div>
