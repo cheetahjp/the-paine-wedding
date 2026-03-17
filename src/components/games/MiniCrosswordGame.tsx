@@ -496,22 +496,26 @@ export default function MiniCrosswordGame() {
             </div>
 
             {/* ── Grid + Clues ── */}
-            <div className="flex flex-col md:flex-row">
+            <div className="relative flex flex-col md:flex-row">
+
+                {/* Pause overlay — covers grid AND clues, fades in */}
+                <div
+                    className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[rgba(23,55,86,0.52)] backdrop-blur-sm transition-opacity duration-300 ${
+                        isPaused ? "opacity-100" : "opacity-0 pointer-events-none"
+                    }`}
+                >
+                    <p className="text-xs uppercase tracking-[0.3em] text-white/55">Paused</p>
+                    <button
+                        type="button"
+                        onClick={handlePause}
+                        className="rounded-full bg-accent px-8 py-2.5 text-xs font-semibold uppercase tracking-[0.22em] text-white transition-transform hover:scale-105 active:scale-95"
+                    >
+                        Resume
+                    </button>
+                </div>
 
                 {/* Grid */}
-                <div className="relative flex items-center justify-center bg-[#fbf8f3] p-5 md:p-8">
-                    {isPaused && (
-                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[rgba(23,55,86,0.90)] backdrop-blur-sm">
-                            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Paused</p>
-                            <button
-                                type="button"
-                                onClick={handlePause}
-                                className="rounded-full bg-accent px-8 py-2.5 text-xs font-semibold uppercase tracking-[0.22em] text-white transition-transform hover:scale-105 active:scale-95"
-                            >
-                                Resume
-                            </button>
-                        </div>
-                    )}
+                <div className="flex items-center justify-center bg-[#fbf8f3] p-5 md:p-8">
                     {/*
                         The puzzle is 5×7 but cols 0 and 6 are always black structural
                         borders — we skip them so the rendered grid is a clean 5×5.
