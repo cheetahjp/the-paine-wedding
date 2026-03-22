@@ -475,7 +475,7 @@ export default function MiniCrosswordGame({ puzzle, dateKey = getTodayKey() }: M
                 >
                     <p className="text-xs uppercase tracking-[0.35em] text-white/55">Ready to play?</p>
                     <p className="max-w-xs text-sm leading-relaxed text-white/70">
-                        Six clues built around Ashlyn &amp; Jeffrey. The timer starts when you do.
+                        Ten clues built around Ashlyn &amp; Jeffrey. The timer starts when you do.
                     </p>
                     <button
                         type="button"

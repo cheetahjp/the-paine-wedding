@@ -25,7 +25,7 @@ export default async function CrosswordPage() {
                 </div>
                 <h1 className="mb-4 font-heading text-5xl text-primary md:text-6xl">Mini Crossword</h1>
                 <p className="mx-auto max-w-xl text-text-secondary leading-relaxed">
-                    Six clues built around Ashlyn & Jeffrey. A fresh puzzle every day — solve it fast for the top spot.
+                    Ten clues built around Ashlyn & Jeffrey. A fresh puzzle every day — solve it fast for the top spot.
                 </p>
             </Section>
             <Section className="pb-16 pt-8 md:pb-18 md:pt-10">

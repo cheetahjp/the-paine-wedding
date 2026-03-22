@@ -921,51 +921,84 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                             </div>
 
                             <div className="space-y-6">
-                                <div className="rounded-[1.9rem] border border-primary/10 bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-5 text-white shadow-[0_18px_48px_rgba(20,42,68,0.14)]">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                {/* Board preview — exact same visual structure as the front-end game */}
+                                <div className="overflow-hidden rounded-[2.2rem] border border-primary/12 bg-[linear-gradient(160deg,#fffdf8_0%,#f4efe6_100%)] shadow-[0_24px_80px_rgba(20,42,68,0.10)]">
+                                    {/* Admin header bar */}
+                                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/8 px-5 py-4">
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.24em] text-white/62">Board Preview</p>
-                                            <p className="mt-2 text-sm text-white/76">Answers are visible here for admin review only.</p>
+                                            <p className="text-xs uppercase tracking-[0.3em] text-text-secondary">Admin Preview</p>
+                                            <p className="text-xs text-text-secondary">Answers visible · {selectedCrossword.rows}×{selectedCrossword.cols}</p>
                                         </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            <div className="rounded-full border border-white/14 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/85">
-                                                {selectedCrossword.rows} x {selectedCrossword.cols}
-                                            </div>
+                                        <div className="flex gap-2">
                                             <button
                                                 type="button"
                                                 onClick={handleResetCrosswordToBase}
-                                                className="rounded-full border border-white/16 bg-white/8 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition-colors hover:bg-white/14"
+                                                className="rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-text-secondary transition-colors hover:bg-primary/10 hover:text-primary"
                                             >
-                                                Restore Default
+                                                Restore
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => void handleSaveCrosswordPuzzle()}
                                                 disabled={crosswordSaving}
-                                                className="rounded-full bg-white px-4 py-2 text-xs uppercase tracking-[0.22em] text-primary transition-colors hover:bg-white/90 disabled:opacity-50"
+                                                className="rounded-full bg-primary px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
                                             >
-                                                {crosswordSaving ? "Saving…" : "Save Puzzle"}
+                                                {crosswordSaving ? "Saving…" : "Save"}
                                             </button>
                                         </div>
                                     </div>
-                                    <div
-                                        className="mt-5 grid gap-1.5"
-                                        style={{ gridTemplateColumns: `repeat(${selectedCrossword.cols}, minmax(0, 1fr))` }}
-                                    >
-                                        {selectedCrossword.cells.map((cell) => (
-                                            cell.answer ? (
-                                                <div key={cell.key} className="relative flex aspect-square items-center justify-center rounded-[0.82rem] border border-white/18 bg-white/88 text-base font-semibold uppercase text-primary">
-                                                    {cell.number ? (
-                                                        <span className="absolute left-1.5 top-1 text-[10px] font-medium text-primary/60">
-                                                            {cell.number}
-                                                        </span>
-                                                    ) : null}
-                                                    {cell.answer}
+                                    {/* Same 2-col layout as the game: grid left · clues right */}
+                                    <div className="grid md:grid-cols-2">
+                                        {/* Left: dark blue grid panel, flush — same as game */}
+                                        <div className="self-start bg-[linear-gradient(155deg,#173756_0%,#214467_100%)] p-4 md:p-5">
+                                            <div className="mb-2.5 text-[11px] uppercase tracking-[0.22em] text-white/55">Solved board</div>
+                                            <div
+                                                className="grid w-full gap-1.5"
+                                                style={{ gridTemplateColumns: `repeat(${selectedCrossword.cols}, minmax(0, 1fr))` }}
+                                            >
+                                                {selectedCrossword.cells.map((cell) => (
+                                                    cell.answer ? (
+                                                        <div key={cell.key} className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[0.4rem] border border-white/20 bg-white/80">
+                                                            {cell.number ? (
+                                                                <span className="absolute left-0.5 top-0.5 text-[8px] font-semibold leading-none text-primary/65">{cell.number}</span>
+                                                            ) : null}
+                                                            <span className="text-xl font-semibold uppercase text-primary">{cell.answer}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div key={cell.key} className="aspect-square rounded-[0.35rem] bg-[#0f2033]" />
+                                                    )
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {/* Right: clue list — same as game */}
+                                        <div className="flex flex-col divide-y divide-primary/8 bg-white/60">
+                                            <div className="grid flex-1 grid-cols-2 divide-x divide-primary/8">
+                                                <div className="px-4 py-4">
+                                                    <p className="mb-2.5 text-[10px] uppercase tracking-[0.28em] text-text-secondary">Across</p>
+                                                    <div className="space-y-1.5">
+                                                        {selectedCrossword.across.map((entry) => (
+                                                            <div key={entry.id} className="rounded-xl border border-primary/8 bg-[#f9f6f1] px-3 py-3 text-sm leading-snug">
+                                                                <span className="mr-1 text-[10px] font-bold text-text-secondary">{entry.number}</span>
+                                                                <span className="font-mono text-[9px] font-semibold uppercase tracking-wider text-accent">{entry.answer}</span>
+                                                                <p className="mt-1 text-[13px] text-primary">{entry.clue}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            ) : (
-                                                <div key={cell.key} className="aspect-square rounded-[0.72rem] bg-[#0f2033]" />
-                                            )
-                                        ))}
+                                                <div className="px-4 py-4">
+                                                    <p className="mb-2.5 text-[10px] uppercase tracking-[0.28em] text-text-secondary">Down</p>
+                                                    <div className="space-y-1.5">
+                                                        {selectedCrossword.down.map((entry) => (
+                                                            <div key={entry.id} className="rounded-xl border border-primary/8 bg-[#f9f6f1] px-3 py-3 text-sm leading-snug">
+                                                                <span className="mr-1 text-[10px] font-bold text-text-secondary">{entry.number}</span>
+                                                                <span className="font-mono text-[9px] font-semibold uppercase tracking-wider text-accent">{entry.answer}</span>
+                                                                <p className="mt-1 text-[13px] text-primary">{entry.clue}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
