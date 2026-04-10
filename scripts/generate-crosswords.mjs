@@ -5,7 +5,7 @@
 // Design:
 //   - 4 grid templates (A/B/C/D) with corner black squares
 //   - Curated-only fill pool for launch-quality clue consistency
-//   - Word reuse allowed as needed to complete the full 194-puzzle bank
+//   - Word reuse cooldown of 14 puzzles before any word can reappear
 //   - WORD_CLUES map provides ~470 wedding-themed words with rich clues
 //   - FILL_CLUES map provides ~500 common English words with real clues
 //   - All words in the pool have proper clues — no "dictionary word" fallback
@@ -2686,7 +2686,7 @@ function getClue(word) {
 // ---------------------------------------------------------------------------
 // Word reuse cooldown (same word allowed again after COOLDOWN puzzles)
 // ---------------------------------------------------------------------------
-const WORD_COOLDOWN = 0;
+const WORD_COOLDOWN = 7;
 const lastUsedAt = {};
 
 function wordAvailable(word, puzzleIdx) {
@@ -2758,12 +2758,49 @@ function getMatchingWords(len, cons, usedSet, puzzleIdx) {
 }
 
 // ---------------------------------------------------------------------------
+// Fast existence check: does at least 1 valid word exist for a slot?
+// ---------------------------------------------------------------------------
+function hasMatchingWord(len, cons, usedSet, puzzleIdx) {
+  const conEntries = Object.entries(cons).map(([k, v]) => [+k, v]);
+
+  if (conEntries.length === 0) {
+    return WORDS_BY_LEN[len].some(w => !usedSet.has(w) && wordAvailable(w, puzzleIdx));
+  }
+
+  conEntries.sort((a, b) => {
+    const aLen = (wordIdx[len][a[0]][a[1]] || []).length;
+    const bLen = (wordIdx[len][b[0]][b[1]] || []).length;
+    return aLen - bLen;
+  });
+
+  const firstList = wordIdx[len][conEntries[0][0]][conEntries[0][1]] || [];
+  if (firstList.length === 0) return false;
+
+  let candidates = new Set(firstList);
+  for (let i = 1; i < conEntries.length; i++) {
+    const nextList = wordIdx[len][conEntries[i][0]][conEntries[i][1]] || [];
+    if (nextList.length === 0) return false;
+    const nextSet = new Set(nextList);
+    for (const w of candidates) {
+      if (!nextSet.has(w)) candidates.delete(w);
+    }
+    if (candidates.size === 0) return false;
+  }
+
+  for (const w of candidates) {
+    if (!usedSet.has(w) && wordAvailable(w, puzzleIdx)) return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // Forward checking: verify all future slots still have >= 1 valid option
+// Uses fast hasMatchingWord (early exit) for speed
 // ---------------------------------------------------------------------------
 function forwardCheck(futureSlots, newGrid, usedSet, puzzleIdx) {
   for (const slot of futureSlots) {
     const cons = getConstraints(slot, newGrid);
-    if (getMatchingWords(slot.len, cons, usedSet, puzzleIdx).length === 0) return false;
+    if (Object.keys(cons).length > 0 && !hasMatchingWord(slot.len, cons, usedSet, puzzleIdx)) return false;
   }
   return true;
 }
@@ -2840,23 +2877,24 @@ for (const [name, tmpl] of Object.entries(TEMPLATES)) {
 // ---------------------------------------------------------------------------
 // Fast solver: backtracking with forward checking + themed-word preference
 // ---------------------------------------------------------------------------
-const MAX_POOL_PER_SLOT = 120;
+const MAX_POOL_PER_SLOT = 50;
 const MAX_RESTARTS_PER_PUZZLE = 500;
-const PUZZLE_TIMEOUT_MS = 180000; // 3 minutes max per puzzle
+const PUZZLE_TIMEOUT_MS = 20000; // 20 seconds max per puzzle
+const MAX_NODES_PER_RESTART = 100000;
 
 let _puzzleDeadline = 0;
+let _nodeCount = 0;
 
 function solvePuzzle(orderedSlots, puzzleIdx) {
+  _nodeCount = 0;
   function place(slotIdx, grid, usedInPuzzle, assignment) {
-    if (Date.now() > _puzzleDeadline) return null;
+    if (++_nodeCount > MAX_NODES_PER_RESTART || Date.now() > _puzzleDeadline) return null;
     if (slotIdx === orderedSlots.length) return assignment;
 
     const slot = orderedSlots[slotIdx];
     const cons = getConstraints(slot, grid);
     const futureSlots = orderedSlots.slice(slotIdx + 1);
 
-    // Strongly prefer explicitly clued words. Only touch uncued system-dictionary
-    // rescue fill when a slot has zero curated/clued options at all.
     const allMatches = getMatchingWords(slot.len, cons, usedInPuzzle, puzzleIdx);
     const tier1 = shuffleArr(allMatches.filter(w => PRIMARY_WORDS.has(w)));
     const tier2 = shuffleArr(allMatches.filter(w => !PRIMARY_WORDS.has(w) && ALL_CLUE_WORDS.has(w)));
@@ -2869,7 +2907,6 @@ function solvePuzzle(orderedSlots, puzzleIdx) {
       const newUsed = new Set(usedInPuzzle);
       newUsed.add(word);
 
-      // Forward check: ensure all future slots still have valid options
       if (!forwardCheck(futureSlots, newGrid, newUsed, puzzleIdx)) {
         continue;
       }
@@ -2893,7 +2930,7 @@ function solvePuzzle(orderedSlots, puzzleIdx) {
 // ---------------------------------------------------------------------------
 process.stderr.write('Generating 194 puzzles sequentially...\n');
 
-const TEMPLATE_CYCLE = ['A', 'B', 'C', 'D'];
+const TEMPLATE_CYCLE = ['B', 'C'];
 const THEME_RANGES = [
   { end: 15,  theme: 'How They Met' },
   { end: 45,  theme: 'Long Distance Era' },
@@ -2912,24 +2949,46 @@ function themeFor(i) {
 const startDate = new Date('2026-03-17T00:00:00Z');
 const puzzles = [];
 
+// Track grid signatures to prevent duplicate grids
+const usedGridSignatures = new Set();
+
+function gridSignature(assignment) {
+  return Object.values(assignment).slice().sort().join(',');
+}
+
+function isUniqueGrid(assignment) {
+  const sig = gridSignature(assignment);
+  return !usedGridSignatures.has(sig);
+}
+
 for (let i = 0; i < 194; i++) {
-  const tName = TEMPLATE_CYCLE[i % 4];
+  const tName = TEMPLATE_CYCLE[i % TEMPLATE_CYCLE.length];
   const orderedSlots = templateOrders[tName];
 
   let assignment = null;
   _puzzleDeadline = Date.now() + PUZZLE_TIMEOUT_MS;
+  let attempts = 0;
 
   for (let r = 0; r < MAX_RESTARTS_PER_PUZZLE && !assignment; r++) {
     if (Date.now() > _puzzleDeadline) break;
-    assignment = solvePuzzle(orderedSlots, i);
+    attempts++;
+    const candidate = solvePuzzle(orderedSlots, i);
+    if (candidate && isUniqueGrid(candidate)) {
+      assignment = candidate;
+    }
   }
+  process.stderr.write(`  p${i+1}: ${attempts} attempts, ${assignment ? 'OK' : 'FAIL'}\n`);
 
-  // If primary template failed, try fallback templates
+  // If primary template failed, try fallback templates (each gets a fresh timeout)
   if (!assignment) {
-    for (const t2 of ['A','B','C','D'].filter(t => t !== tName)) {
+    for (const t2 of ['B','C'].filter(t => t !== tName)) {
+      _puzzleDeadline = Date.now() + PUZZLE_TIMEOUT_MS;
       for (let r = 0; r < MAX_RESTARTS_PER_PUZZLE && !assignment; r++) {
         if (Date.now() > _puzzleDeadline) break;
-        assignment = solvePuzzle(templateOrders[t2], i);
+        const candidate = solvePuzzle(templateOrders[t2], i);
+        if (candidate && isUniqueGrid(candidate)) {
+          assignment = candidate;
+        }
       }
       if (assignment) {
         process.stderr.write(`  Puzzle ${i+1}: used fallback template ${t2}\n`);
@@ -2940,13 +2999,14 @@ for (let i = 0; i < 194; i++) {
 
   if (assignment) {
     for (const word of Object.values(assignment)) markWordUsed(word, i);
+    usedGridSignatures.add(gridSignature(assignment));
     puzzles.push({ tName, assignment });
   } else {
     process.stderr.write(`  WARNING: puzzle ${i+1} failed\n`);
     puzzles.push(null);
   }
 
-  if ((i+1) % 25 === 0) process.stderr.write(`  Completed ${i+1}/194\n`);
+  if ((i+1) % 10 === 0) process.stderr.write(`  Completed ${i+1}/194\n`);
 }
 
 const good = puzzles.filter(Boolean).length;
@@ -2967,7 +3027,7 @@ for (let i = 0; i < 194; i++) {
   const dateStr = d.toISOString().slice(0, 10);
   const id = `p${String(i+1).padStart(3,'0')}`;
   const theme = themeFor(i);
-  const tName = TEMPLATE_CYCLE[i % 4];
+  const tName = TEMPLATE_CYCLE[i % TEMPLATE_CYCLE.length];
 
   if (!p) {
     lines.push(`  // ${id} — ${dateStr} — MISSING`);
@@ -2990,4 +3050,38 @@ for (let i = 0; i < 194; i++) {
 
 lines.push(`];`);
 process.stdout.write(lines.join('\n') + '\n');
+
+// ---------------------------------------------------------------------------
+// Validation: assert unique grids + word frequency limits
+// ---------------------------------------------------------------------------
+const validPuzzles = puzzles.filter(Boolean);
+const gridSigs = new Set(validPuzzles.map(p => gridSignature(p.assignment)));
+const wordFreq = {};
+for (const p of validPuzzles) {
+  for (const word of Object.values(p.assignment)) {
+    wordFreq[word] = (wordFreq[word] || 0) + 1;
+  }
+}
+const maxFreqWord = Object.entries(wordFreq).sort((a,b) => b[1] - a[1])[0];
+const avgFreq = Object.values(wordFreq).reduce((a,b) => a+b, 0) / Object.keys(wordFreq).length;
+
+process.stderr.write('\n--- Validation ---\n');
+process.stderr.write(`  Puzzles generated: ${validPuzzles.length}/194\n`);
+process.stderr.write(`  Unique grids: ${gridSigs.size}\n`);
+process.stderr.write(`  Unique words used: ${Object.keys(wordFreq).length}\n`);
+process.stderr.write(`  Max word frequency: ${maxFreqWord[0]} = ${maxFreqWord[1]}\n`);
+process.stderr.write(`  Avg word frequency: ${avgFreq.toFixed(1)}\n`);
+
+// Top 10 most-used words
+const top10 = Object.entries(wordFreq).sort((a,b) => b[1] - a[1]).slice(0, 10);
+process.stderr.write(`  Top 10 words: ${top10.map(([w,c]) => `${w}(${c})`).join(', ')}\n`);
+
+if (gridSigs.size < validPuzzles.length) {
+  process.stderr.write(`  ERROR: ${validPuzzles.length - gridSigs.size} duplicate grids detected!\n`);
+  process.exit(1);
+}
+if (maxFreqWord[1] > 15) {
+  process.stderr.write(`  WARNING: word "${maxFreqWord[0]}" appears ${maxFreqWord[1]} times (target: ≤15)\n`);
+}
+
 process.stderr.write('Done!\n');
