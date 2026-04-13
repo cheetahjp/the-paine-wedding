@@ -1,7 +1,23 @@
 import React from "react";
+import type { Metadata } from "next";
 import Section from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
 import { getWeddingData } from "@/lib/site-settings";
+import HeroImage from "@/components/ui/HeroImage";
+import { buildPageMetadata } from "@/lib/seo";
+
+// Always fetch fresh from Supabase — prevents stale hero image flash after admin changes
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { wedding } = await getWeddingData();
+  return buildPageMetadata({
+    path: "/",
+    absoluteTitle: wedding.meta.title,
+    description: wedding.meta.description,
+    keywords: ["wedding website", "wedding RSVP", "wedding registry", "wedding travel"],
+  });
+}
 
 export default async function Home() {
   const { wedding, images, overlays, content } = await getWeddingData();
@@ -9,17 +25,20 @@ export default async function Home() {
   return (
     <>
       {/* Hero Section — data-admin-key lets the AdminEditBar intercept clicks in edit mode */}
-      <section
-        className="relative w-full h-screen min-h-[600px] flex items-center justify-center overflow-hidden"
-        data-admin-key="images.hero"
+        <section
+            className="relative w-full h-screen min-h-[600px] flex items-center justify-center overflow-hidden"
+            data-admin-key="images.hero"
         data-admin-type="image"
         data-admin-current-url={images.hero.main}
         data-admin-label="Hero Photo"
-      >
-        <div
-          className="absolute inset-0 bg-primary/20 bg-cover pointer-events-none"
-          style={{ backgroundImage: `url('${images.hero.main}'), url('${images.hero.fallback}')`, backgroundPosition: 'center 25%' }}
-        />
+        >
+        <div className="absolute inset-0 pointer-events-none">
+          <HeroImage
+            src={images.hero.main}
+            fallback={images.hero.fallback}
+            alt={`${wedding.couple.names} hero`}
+          />
+        </div>
         <div className="absolute inset-0 bg-text-primary/30 pointer-events-none" />
         {overlays.hero && (
           <div
@@ -42,13 +61,13 @@ export default async function Home() {
             <p>{wedding.venue.cityDisplay}</p>
           </div>
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button href="/rsvp" variant="primary">
+            <Button href="/rsvp" variant="primary" className="min-w-[11rem] px-10 py-4 text-base">
               RSVP
             </Button>
             <Button
               href="/our-story"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-primary"
+              className="min-w-[9.5rem] border-white px-7 py-3 text-sm text-white hover:bg-white hover:text-primary"
             >
               Our Story
             </Button>
@@ -78,10 +97,10 @@ export default async function Home() {
 
       {/* Quick Details Grid */}
       <Section background="base">
-        <div className="grid md:grid-cols-3 gap-12 text-center">
+        <div className="grid md:grid-cols-3 gap-12 text-center md:items-stretch">
 
           {/* When → Games */}
-          <div className="space-y-4 flex flex-col items-center">
+          <div className="flex flex-col items-center gap-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">When</h3>
             <p
               className="font-heading text-2xl"
@@ -92,7 +111,7 @@ export default async function Home() {
             >
               {wedding.date.dayOfWeek}, {wedding.date.display}
             </p>
-            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem] flex-grow">
               Can&apos;t wait for the big day? Us either — so we made some games to pass the time.
             </p>
             <Button href="/games" variant="outline" className="mt-2">
@@ -101,7 +120,7 @@ export default async function Home() {
           </div>
 
           {/* Where → Travel */}
-          <div className="space-y-4 flex flex-col items-center md:border-l md:border-r border-surface px-4">
+          <div className="flex flex-col items-center gap-4 md:border-l md:border-r border-surface px-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">Where</h3>
             <p
               className="font-heading text-2xl"
@@ -112,7 +131,7 @@ export default async function Home() {
               {wedding.venue.name}
             </p>
             <p className="text-sm text-text-secondary">{wedding.venue.cityDisplay}</p>
-            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem] flex-grow">
               Live outside DFW? We&apos;ve rounded up hotels, tips, and things to do while you&apos;re in town.
             </p>
             <Button href="/travel" variant="outline" className="mt-2">
@@ -121,7 +140,7 @@ export default async function Home() {
           </div>
 
           {/* Dress Code → Attire */}
-          <div className="space-y-4 flex flex-col items-center">
+          <div className="flex flex-col items-center gap-4">
             <h3 className="uppercase tracking-widest text-sm text-text-secondary">Dress Code</h3>
             <p
               className="font-heading text-2xl"
@@ -131,7 +150,7 @@ export default async function Home() {
             >
               {wedding.dresscode.short === "TBD" ? "Details Coming Soon" : wedding.dresscode.short}
             </p>
-            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem]">
+            <p className="text-sm text-text-secondary/70 leading-relaxed max-w-[16rem] flex-grow">
               Not sure what to wear? Check out our attire guide so you fit right in.
             </p>
             <Button href="/attire" variant="outline" className="mt-2">

@@ -36,10 +36,24 @@ export default function ScoreSubmissionForm({
     onSubmitted,
 }: ScoreSubmissionFormProps) {
     const storedPlayer = getStoredGamePlayer();
-    const [username, setUsername] = useState(() => storedPlayer?.username ?? "");
+    const [firstName, setFirstName] = useState(() => {
+        if (!storedPlayer) return "";
+        return storedPlayer.firstName ?? storedPlayer.username?.split(" ")[0] ?? "";
+    });
+    const [lastName, setLastName] = useState(() => {
+        if (!storedPlayer) return "";
+        return storedPlayer.lastName ?? (storedPlayer.username?.includes(" ") ? storedPlayer.username.split(" ").slice(1).join(" ") : "");
+    });
     const [email, setEmail] = useState(() => storedPlayer?.email ?? "");
     const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
+
+    function getDisplayName(player: typeof storedPlayer): string {
+        if (!player) return "";
+        if (player.firstName && player.lastName) return `${player.firstName} ${player.lastName}`;
+        if (player.firstName) return player.firstName;
+        return player.username ?? "";
+    }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -47,12 +61,13 @@ export default function ScoreSubmissionForm({
         setMessage("");
 
         const browserProfile = storedPlayer?.browserProfile ?? captureBrowserProfile();
+        const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
 
         try {
             await submitGameScore({
                 game,
-                username,
-                email,
+                username: fullName,
+                email: email.trim(),
                 score,
                 maxScore,
                 attempts,
@@ -69,14 +84,14 @@ export default function ScoreSubmissionForm({
                 },
             });
 
-            saveStoredGamePlayer({ username, email, browserProfile });
+            saveStoredGamePlayer({ username: fullName, firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), browserProfile });
             setStatus("success");
             setMessage(successMessage);
             window.dispatchEvent(new Event(GAME_LEADERBOARD_REFRESH_EVENT));
             onSubmitted?.();
-        } catch {
+        } catch (error) {
             setStatus("error");
-            setMessage("Could not submit score right now.");
+            setMessage(error instanceof Error ? error.message : "Could not submit score right now.");
         }
     }
 
@@ -94,40 +109,52 @@ export default function ScoreSubmissionForm({
             <p className="text-sm uppercase tracking-[0.3em] text-text-secondary">Claim Your Score</p>
             <p className="mt-3 text-text-secondary">
                 {storedPlayer
-                    ? `Submitting as ${storedPlayer.username}.`
-                    : "Add a username and email to show up on the leaderboard."}
+                    ? `Submitting as ${getDisplayName(storedPlayer)}.`
+                    : "Add your name to show up on the leaderboard."}
             </p>
 
             <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
                 {storedPlayer ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="min-w-0 rounded-[1rem] border border-primary/12 bg-white px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.22em] text-text-secondary">Username</p>
-                            <p className="mt-2 truncate text-text-primary">{username}</p>
-                        </div>
-                        <div className="min-w-0 rounded-[1rem] border border-primary/12 bg-white px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.22em] text-text-secondary">Email</p>
-                            <p className="mt-2 truncate text-text-primary">{email}</p>
-                        </div>
+                    <div className="min-w-0 rounded-[1rem] border border-primary/12 bg-white px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.22em] text-text-secondary">Name</p>
+                        <p className="mt-2 truncate text-text-primary">{getDisplayName(storedPlayer)}</p>
                     </div>
                 ) : (
                     <>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(event) => setUsername(event.target.value)}
-                            placeholder="Username"
-                            required
-                            className="rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
-                        />
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            placeholder="Email address"
-                            required
-                            className="rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
-                        />
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-text-secondary/60">First Name</p>
+                                <input
+                                    type="text"
+                                    value={firstName}
+                                    onChange={(event) => setFirstName(event.target.value)}
+                                    placeholder="First name"
+                                    required
+                                    className="w-full rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
+                                />
+                            </div>
+                            <div>
+                                <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-text-secondary/60">Last Name</p>
+                                <input
+                                    type="text"
+                                    value={lastName}
+                                    onChange={(event) => setLastName(event.target.value)}
+                                    placeholder="Last name"
+                                    required
+                                    className="w-full rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-text-secondary/60">Email Address</p>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
+                                placeholder="email@example.com (optional)"
+                                className="w-full rounded-[1rem] border border-primary/12 bg-white px-4 py-3 text-text-primary outline-none transition-colors focus:border-accent"
+                            />
+                        </div>
                     </>
                 )}
                 <button

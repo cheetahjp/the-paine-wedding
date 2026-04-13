@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Paine Wedding Website Review</title>
+  <style>
+    :root {
+      --bg: #f5f2eb;
+      --paper: #fffdf9;
+      --ink: #132235;
+      --muted: #63748a;
+      --line: #d8e0ea;
+      --navy: #1d4b7c;
+      --burgundy: #8a2733;
+      --gold: #c9a06b;
+      --a: #18794e;
+      --b: #2b6cb0;
+      --c: #b7791f;
+      --d: #c05621;
+      --f: #b83280;
+      --shadow: 0 18px 50px rgba(19, 34, 53, 0.08);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(201, 160, 107, 0.18), transparent 28%),
+        linear-gradient(180deg, #f8f5ee 0%, #f2efe8 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(19, 34, 53, 0.96), rgba(29, 75, 124, 0.92));
+      color: #fff;
+      border-radius: 32px;
+      padding: 42px;
+      box-shadow: 0 26px 70px rgba(19, 34, 53, 0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -80px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 160, 107, 0.55), transparent 68%);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 12px;
+      opacity: 0.78;
+      margin: 0 0 10px;
+    }
+
+    h1, h2, h3 {
+      font-family: "Bodoni MT", "Didot", "Times New Roman", serif;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 4.7rem);
+      line-height: 0.96;
+      max-width: 780px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      font-size: 1.35rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .lede {
+      max-width: 760px;
+      font-size: 1.06rem;
+      color: rgba(255, 255, 255, 0.86);
+    }
+
+    .hero-grid,
+    .cards,
+    .page-grid,
+    .roadmap {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid {
+      margin-top: 28px;
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+
+    .cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 26px;
+    }
+
+    .page-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .roadmap {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel,
+    .card,
+    .page-card {
+      background: var(--paper);
+      border: 1px solid rgba(29, 75, 124, 0.11);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 28px;
+    }
+
+    .card {
+      padding: 20px;
+    }
+
+    .page-card {
+      padding: 26px;
+    }
+
+    .section {
+      margin-top: 26px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .grade {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-size: 0.95rem;
+    }
+
+    .grade.a { background: var(--a); }
+    .grade.b { background: var(--b); }
+    .grade.c { background: var(--c); }
+    .grade.d { background: var(--d); }
+    .grade.f { background: var(--f); }
+
+    .summary-score {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .summary-score .big {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(201, 160, 107, 0.25), rgba(255, 255, 255, 0.08));
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .tiny {
+      font-size: 0.88rem;
+    }
+
+    .kicker {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #e9eef4;
+      overflow: hidden;
+      margin: 14px 0 10px;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--navy), var(--gold));
+    }
+
+    ul {
+      margin: 10px 0 0 20px;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .note {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(29, 75, 124, 0.06);
+      border: 1px solid rgba(29, 75, 124, 0.09);
+    }
+
+    .note strong {
+      color: var(--navy);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    .table th,
+    .table td {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 0.79rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(138, 39, 51, 0.08);
+      color: var(--burgundy);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .footer {
+      margin-top: 26px;
+      padding: 20px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .page-grid,
+      .roadmap,
+      .cards,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <p class="eyebrow">Professional Website Review • Local Audit • March 16, 2026</p>
+      <h1>The Paine Wedding Site Is Beautiful, Intentional, and Nearly Event-Ready, but It Still Has a Few “Finish the Last 15%” Gaps.</h1>
+      <p class="lede">
+        This review covers visual design, layout, page-by-page UX, content readiness, mobile behavior, accessibility instincts, SEO signals, frontend quality, and backend/admin reliability. I reviewed the codebase, ran a production build, and visually inspected key pages on desktop and mobile.
+      </p>
+
+      <div class="hero-grid">
+        <div class="panel" style="background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.1); color: #fff;">
+          <div class="summary-score">
+            <div class="big">B+</div>
+            <div>
+              <div class="kicker" style="color: rgba(255,255,255,0.72);">Overall Grade</div>
+              <p style="margin:0; font-size: 1.08rem;">Strong visual identity, thoughtful guest flows, and above-average polish for a custom wedding site.</p>
+            </div>
+          </div>
+          <div class="badge-row">
+            <span class="pill" style="background: rgba(255,255,255,0.14); color: #fff;">Best Strength: Brand feel</span>
+            <span class="pill" style="background: rgba(255,255,255,0.14); color: #fff;">Biggest Risk: Content completeness</span>
+            <span class="pill" style="background: rgba(255,255,255,0.14); color: #fff;">Technical Status: Build passes</span>
+          </div>
+        </div>
+
+        <div class="panel" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); color: #fff;">
+          <div class="kicker" style="color: rgba(255,255,255,0.72);">Bottom Line</div>
+          <p>This does not feel like a template site. It feels personal, elevated, and built with care.</p>
+          <p>The current ceiling is genuinely high enough for an A range, but the grade is being held back by navigation discoverability, a handful of unfinished or easy-to-miss content areas, and a few backend/security choices that are acceptable for a personal project but not especially tight.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cards">
+      <article class="card">
+        <div class="kicker">Design</div>
+        <h3>Grade A-</h3>
+        <div class="bar"><span style="width: 91%;"></span></div>
+        <p class="tiny muted">Elegant typography, clean spacing, and a consistent visual language that feels wedding-appropriate without becoming generic.</p>
+      </article>
+      <article class="card">
+        <div class="kicker">UX / Navigation</div>
+        <h3>Grade B</h3>
+        <div class="bar"><span style="width: 84%;"></span></div>
+        <p class="tiny muted">Most paths are smooth, but a few important pages are less discoverable than they should be and some sections bury practical information.</p>
+      </article>
+      <article class="card">
+        <div class="kicker">Content Readiness</div>
+        <h3>Grade B</h3>
+        <div class="bar"><span style="width: 82%;"></span></div>
+        <p class="tiny muted">There is a lot of strong content, but some “coming soon” seams and placeholder-style areas still weaken confidence.</p>
+      </article>
+      <article class="card">
+        <div class="kicker">Engineering</div>
+        <h3>Grade B</h3>
+        <div class="bar"><span style="width: 83%;"></span></div>
+        <p class="tiny muted">The build is healthy and the admin system is practical, though security hardening and tooling cleanup would improve trust.</p>
+      </article>
+    </section>
+
+    <section class="section panel">
+      <h2>Executive Summary</h2>
+      <p>
+        The strongest thing about this site is that it already has a point of view. It does not feel auto-generated. The color palette, typography, hero photography, and editorial tone all work together to create a polished, warm, upscale wedding experience. The RSVP entrance is especially memorable, the attire page is visually strong, and the games layer gives the site more personality than most wedding websites have.
+      </p>
+      <p>
+        Where the site loses points is mostly in the practical layer. A guest should never have to wonder where the schedule lives, whether details are final, or whether a practical page is still under construction. There are also a few implementation decisions that are fine for a private personal project but not ideal from a professional robustness standpoint: public-facing mutation endpoints, basic password-only admin auth, swallowed server errors, and a lint workflow that appears to crawl extra generated worktree output.
+      </p>
+      <div class="split">
+        <div class="note">
+          <strong>What is working best:</strong>
+          <p>The visual identity is cohesive, the site feels premium, and the main guest journey is emotionally on-brand. The codebase also shows real structure rather than being a pile of page-specific hacks.</p>
+        </div>
+        <div class="note">
+          <strong>What most needs attention:</strong>
+          <p>Make the practical information harder to miss, remove any traces of incompleteness before invites go out, and tighten the admin / data-writing surfaces.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Site-Wide Rubric</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Grade</th>
+            <th>Why It Earned That Grade</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Branding & Visual Identity</strong></td>
+            <td><span class="grade a">A</span></td>
+            <td>The navy, cream, and warm gold palette feels elevated and consistent. The typography choice is romantic without being fussy, and the photography carries a lot of emotional weight well.</td>
+          </tr>
+          <tr>
+            <td><strong>Layout & Hierarchy</strong></td>
+            <td><span class="grade b">B+</span></td>
+            <td>Most pages are easy to scan and use large type well. The main weakness is that practical content occasionally gets visually flattened into the same soft-card style, which makes key facts feel less urgent than they should.</td>
+          </tr>
+          <tr>
+            <td><strong>Navigation & Discoverability</strong></td>
+            <td><span class="grade b">B</span></td>
+            <td>The top nav is clean, but not all important guest pages are promoted strongly enough. Wedding details, schedule, and FAQ feel more secondary than they should for real-world use.</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Friendliness</strong></td>
+            <td><span class="grade b">B+</span></td>
+            <td>The site is broadly responsive and the hero / RSVP views remain attractive on phone. A few mobile views feel oversized and slightly cramped, especially where large type and tall cards compete for space.</td>
+          </tr>
+          <tr>
+            <td><strong>Accessibility Instincts</strong></td>
+            <td><span class="grade b">B</span></td>
+            <td>Semantic structure is decent and buttons/links are mostly clear, but some pale secondary text, decorative-heavy layouts, and subtle nav states may underperform for contrast and scannability.</td>
+          </tr>
+          <tr>
+            <td><strong>Content Completeness</strong></td>
+            <td><span class="grade b">B</span></td>
+            <td>The actual content quality is good, but the presence of “coming soon” states and detail placeholders lowers guest confidence because it signals the site may still be in-progress.</td>
+          </tr>
+          <tr>
+            <td><strong>Performance / Technical Shape</strong></td>
+            <td><span class="grade b">B+</span></td>
+            <td>The production build succeeds and the app structure is healthy. The main concerns are operational: lint workflow noise, dynamic settings behavior, and a few endpoints that are looser than ideal.</td>
+          </tr>
+          <tr>
+            <td><strong>Admin / Backend Trustworthiness</strong></td>
+            <td><span class="grade b">B-</span></td>
+            <td>The editable content/admin layer is genuinely useful, but the auth model is still fairly lightweight and some update endpoints would benefit from stricter hardening and better error visibility.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Page-By-Page Grades</h2>
+      <div class="page-grid">
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A-</span>
+            <div>
+              <div class="kicker">Homepage</div>
+              <h3>Beautiful first impression, strong emotional hit</h3>
+            </div>
+          </div>
+          <p>The homepage sells the wedding immediately. The hero image is excellent, the typography is elegant, and the two primary CTAs are clean and easy to understand. It looks expensive.</p>
+          <ul>
+            <li><strong>What works:</strong> Strong photography, confident type scale, clear first actions, and a high-end editorial feel.</li>
+            <li><strong>What hurts the grade:</strong> The lower content blocks are a bit too gentle for guests who need logistics quickly. It is emotionally strong before it is practically strong.</li>
+            <li><strong>Professional take:</strong> As a landing page, this succeeds. As a wedding control center, it still needs stronger surfacing of day-of essentials.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A</span>
+            <div>
+              <div class="kicker">Our Story</div>
+              <h3>One of the site’s strongest editorial pages</h3>
+            </div>
+          </div>
+          <p>This page benefits from the brand system and gives the site heart. The layout choice supports narrative pacing and makes the site feel personal rather than purely functional.</p>
+          <ul>
+            <li><strong>What works:</strong> Clear page framing, a focused story concept, and a layout that feels intentional instead of generic.</li>
+            <li><strong>What hurts the grade:</strong> Very little. The main risk is only that story pages are naturally lower-priority for guests than logistics pages.</li>
+            <li><strong>Professional take:</strong> This is a genuine differentiator for the site.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A-</span>
+            <div>
+              <div class="kicker">Bridal Party</div>
+              <h3>Warm and visually consistent</h3>
+            </div>
+          </div>
+          <p>The page is clean, polished, and likely emotionally meaningful to the couple and close guests. Portrait-based pages live or die on image consistency, and this one has enough structure to present well.</p>
+          <ul>
+            <li><strong>What works:</strong> Good use of portrait cards, balanced grouping, and readable relationship labels.</li>
+            <li><strong>What hurts the grade:</strong> This page is not a discovery priority, so its excellence does not offset weaker practical navigation elsewhere.</li>
+            <li><strong>Professional take:</strong> Strong supporting page, not a problem area.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade b">B</span>
+            <div>
+              <div class="kicker">Wedding Details</div>
+              <h3>Useful, but not as sharp as the site’s visual peak</h3>
+            </div>
+          </div>
+          <p>This page has the right content categories, but it feels more informationally generic than the rest of the site. The content cards are solid, though they do not punch hard enough for a page this important.</p>
+          <ul>
+            <li><strong>What works:</strong> Venue, attire, transport, food, and timeline summary are all in sensible buckets.</li>
+            <li><strong>What hurts the grade:</strong> The “pizza selection coming soon” style content and the softer card treatment make the page feel not fully final.</li>
+            <li><strong>Professional take:</strong> This page should feel like the site’s operational command center, and right now it feels more like a supporting explainer.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade b">B</span>
+            <div>
+              <div class="kicker">Schedule</div>
+              <h3>Good structure, but hidden in the overall site hierarchy</h3>
+            </div>
+          </div>
+          <p>The timeline component is a sensible choice and the event list itself is readable. The bigger issue is not page quality, but page prominence.</p>
+          <ul>
+            <li><strong>What works:</strong> A clean vertical timeline is the right pattern here.</li>
+            <li><strong>What hurts the grade:</strong> This page is mission-critical for guests yet does not feel equally mission-critical in navigation or homepage emphasis.</li>
+            <li><strong>Professional take:</strong> This should be easier to reach and possibly condensed into a more prominent “at a glance” version elsewhere too.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade b">B+</span>
+            <div>
+              <div class="kicker">Travel</div>
+              <h3>Helpful and content-rich, but a little busy</h3>
+            </div>
+          </div>
+          <p>This is a strong practical page with genuinely useful research built in. It gives real guidance instead of vague “book nearby” filler, which is a major plus.</p>
+          <ul>
+            <li><strong>What works:</strong> Airport info, hotel clustering, driving realities, and transportation guidance are excellent guest-service content.</li>
+            <li><strong>What hurts the grade:</strong> The top of the page is a little subdued and the map area does not feel as polished or authoritative as it should.</li>
+            <li><strong>Professional take:</strong> Very useful page. Give the map and hotel selection area stronger visual leadership.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A-</span>
+            <div>
+              <div class="kicker">Attire</div>
+              <h3>One of the most visually successful pages</h3>
+            </div>
+          </div>
+          <p>This page feels editorial and expensive. The tab concept works well, the inspiration images elevate the site, and the copy has the right tone.</p>
+          <ul>
+            <li><strong>What works:</strong> Strong imagery, helpful guidance, and a layout that feels custom.</li>
+            <li><strong>What hurts the grade:</strong> On smaller screens the cards and copy become a bit tall and dominant, so the page can feel more like a lookbook than a quick answer page.</li>
+            <li><strong>Professional take:</strong> Excellent page. Keep it, just tighten mobile pacing a bit.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A-</span>
+            <div>
+              <div class="kicker">Registry</div>
+              <h3>Simple, elegant, and easy to trust</h3>
+            </div>
+          </div>
+          <p>The registry page is straightforward in the right way. It frames the gift language politely, gives recognizable external options, and uses brand styling thoughtfully without going cheesy.</p>
+          <ul>
+            <li><strong>What works:</strong> Clear CTA pattern, tasteful use of store branding, strong readability.</li>
+            <li><strong>What hurts the grade:</strong> It is perhaps almost too simple, but that is far better than overcomplicating a registry page.</li>
+            <li><strong>Professional take:</strong> This page is in good shape.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade b">B+</span>
+            <div>
+              <div class="kicker">Explore</div>
+              <h3>Useful and differentiated</h3>
+            </div>
+          </div>
+          <p>This is a nice extra page because it gives the wedding site personality and city context. It helps the weekend feel like an experience rather than a single event.</p>
+          <ul>
+            <li><strong>What works:</strong> Strong curation, nice local flavor, and a good balance of destination and convenience picks.</li>
+            <li><strong>What hurts the grade:</strong> Dense list layouts can become skim-heavy. A little more visual chunking would help.</li>
+            <li><strong>Professional take:</strong> Better than average value-add content.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade b">B</span>
+            <div>
+              <div class="kicker">FAQ</div>
+              <h3>Solid, but visually plain for the brand level</h3>
+            </div>
+          </div>
+          <p>The FAQ format is easy enough to read, but it is less dynamic than the best pages on the site and therefore feels more utilitarian than premium.</p>
+          <ul>
+            <li><strong>What works:</strong> Predictable structure, useful for guests, easy to maintain.</li>
+            <li><strong>What hurts the grade:</strong> If any answers still resolve to “details coming soon,” the whole page loses authority fast.</li>
+            <li><strong>Professional take:</strong> Worth keeping, but it should feel more final and maybe more interactive.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A-</span>
+            <div>
+              <div class="kicker">Games Hub</div>
+              <h3>A memorable differentiator</h3>
+            </div>
+          </div>
+          <p>The games section adds charm, originality, and repeat-visit energy. Most wedding sites do not have this sort of personality layer, so it gives the project a stronger identity.</p>
+          <ul>
+            <li><strong>What works:</strong> Clear cards, good naming, and a fun use of locked/live states.</li>
+            <li><strong>What hurts the grade:</strong> Practical guests may not care, so this should stay additive rather than compete with logistics.</li>
+            <li><strong>Professional take:</strong> Big brand upside, as long as core info remains easier to find than entertainment.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="summary-score">
+            <span class="grade a">A-</span>
+            <div>
+              <div class="kicker">RSVP</div>
+              <h3>Strong first impression with a high-stakes form</h3>
+            </div>
+          </div>
+          <p>The RSVP entrance screen is visually excellent. It feels premium and event-specific rather than like a form embedded as an afterthought.</p>
+          <ul>
+            <li><strong>What works:</strong> Great atmosphere, clear step framing, and a polished central card on desktop.</li>
+            <li><strong>What hurts the grade:</strong> On mobile the panel becomes quite dominant and visually tight; this is exactly the type of flow that must remain effortless on a phone.</li>
+            <li><strong>Professional take:</strong> High upside page. Make mobile completion feel a little more breathable and this becomes a flagship flow.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Frontend Review</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Grade</th>
+            <th>Assessment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Typography</strong></td>
+            <td><span class="grade a">A</span></td>
+            <td>Very good. The serif headline treatment is elegant and the sans-serif body text stays readable. It feels designed, not default.</td>
+          </tr>
+          <tr>
+            <td><strong>Color & Atmosphere</strong></td>
+            <td><span class="grade a">A</span></td>
+            <td>The palette feels wedding-appropriate, upscale, and emotionally cohesive. The cream backgrounds help the photography and serif headlines land well.</td>
+          </tr>
+          <tr>
+            <td><strong>Spacing & Composition</strong></td>
+            <td><span class="grade b">B+</span></td>
+            <td>Most pages breathe nicely, though some content cards and utility areas stack into a similar rhythm, which occasionally softens hierarchy too much.</td>
+          </tr>
+          <tr>
+            <td><strong>Interaction Design</strong></td>
+            <td><span class="grade b">B+</span></td>
+            <td>Buttons, hover states, tabs, and progress UI are largely good. The site is strongest in calm refinement rather than bold interaction cues, which is appropriate but can make some actions feel understated.</td>
+          </tr>
+          <tr>
+            <td><strong>Accessibility Readiness</strong></td>
+            <td><span class="grade b">B</span></td>
+            <td>Reasonable structure is present, but some secondary text is pale, active states are subtle, and decorative image-heavy surfaces should be contrast-checked before launch.</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Execution</strong></td>
+            <td><span class="grade b">B+</span></td>
+            <td>Responsive behavior is real, not bolted on. Still, a few headline/card combinations feel oversized on small screens and the mobile header could use stronger action clarity.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section panel">
+      <h2>Backend / Admin Review</h2>
+      <p>
+        For a personal event site, the backend is more capable than average. Pulling editable content from Supabase and wiring an admin surface for images, page visibility, trivia, and guest management is a legitimate strength. That said, this layer is also where the project is least “luxury” and most “startup practicality.”
+      </p>
+      <ul>
+        <li><strong>Good:</strong> Centralized content/data model, clear app structure, editable settings, and successful production build.</li>
+        <li><strong>Good:</strong> Page visibility controls and admin editing hooks show real operational thinking.</li>
+        <li><strong>Concern:</strong> Admin access is password-only and intentionally lightweight. That is okay for a small private site, but not a high-security model.</li>
+        <li><strong>Concern:</strong> The RSVP viewed endpoint updates guest records from public input with only a household id. That may be acceptable for low-risk telemetry, but it is still a writable public surface.</li>
+        <li><strong>Concern:</strong> Several server-side helpers swallow errors and fall back quietly. Good for uptime, less good for diagnosing bad data or broken integrations.</li>
+        <li><strong>Concern:</strong> The lint command did not finish cleanly in a reasonable window because it appeared to be traversing generated `.next` output inside a `.claude/worktrees/...` folder. That is a tooling hygiene issue worth tightening.</li>
+      </ul>
+      <div class="note" style="margin-top: 18px;">
+        <strong>Verification note:</strong>
+        <p>I confirmed that `npm run build` completed successfully on March 16, 2026. `npm run lint` appeared to get bogged down scanning generated worktree artifacts rather than returning a normal project-only result.</p>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Biggest Things Helping the Grade</h2>
+      <ul>
+        <li>The site has a real visual identity and does not look templated.</li>
+        <li>The RSVP and attire experiences feel custom and emotionally on-brand.</li>
+        <li>Travel and explore content provide genuine guest value, not filler.</li>
+        <li>The admin/content architecture is practical and gives the site a real maintenance path.</li>
+        <li>The games concept gives the website personality and makes it memorable.</li>
+      </ul>
+    </section>
+
+    <section class="section panel">
+      <h2>Biggest Things Holding the Grade Back</h2>
+      <ul>
+        <li>Some important logistical pages are not surfaced as aggressively as they should be.</li>
+        <li>Any remaining “coming soon” or placeholder-style content reduces guest trust immediately.</li>
+        <li>The practical pages are slightly less visually resolved than the romance-driven pages.</li>
+        <li>Mobile spacing is good overall but not yet effortless everywhere.</li>
+        <li>The backend/admin layer is useful, but security and tooling are still more functional than refined.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Priority Roadmap</h2>
+      <div class="roadmap">
+        <article class="page-card">
+          <div class="kicker">Quick Changes</div>
+          <h3>Low effort, high return</h3>
+          <ul>
+            <li>Add stronger site-wide paths to <strong>Wedding Details</strong>, <strong>Schedule</strong>, and <strong>FAQ</strong>.</li>
+            <li>Remove or finish every “coming soon” fragment before guest traffic ramps up.</li>
+            <li>Raise contrast on lighter secondary text and subtle nav states.</li>
+            <li>Make the RSVP mobile card breathe more with slightly tighter headline scale and more form spacing.</li>
+            <li>Give the travel map block a more definitive, polished fallback if embeds fail or look blank.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="kicker">Medium Changes</div>
+          <h3>Noticeable quality jump</h3>
+          <ul>
+            <li>Rework the homepage lower section so logistics are surfaced more assertively without losing the elegance.</li>
+            <li>Turn FAQ into accordions or grouped topics so it feels designed, not just stacked.</li>
+            <li>Create a stronger “guest essentials” block that combines venue, ceremony time, schedule, and RSVP deadline in one obvious spot.</li>
+            <li>Scope the lint configuration so generated artifacts and side worktrees are excluded.</li>
+            <li>Add more explicit empty/error states around admin-driven content so quiet failures are easier to catch.</li>
+          </ul>
+        </article>
+
+        <article class="page-card">
+          <div class="kicker">Hefty Changes</div>
+          <h3>Would move the site toward A / A+</h3>
+          <ul>
+            <li>Tighten admin authentication with stronger session handling, rate limiting, and better audit protections.</li>
+            <li>Harden public write endpoints so guest-related mutations are more constrained and observable.</li>
+            <li>Build a unified practical-information design system for details, schedule, travel, FAQ, and RSVP support states so the utility pages feel as premium as the showcase pages.</li>
+            <li>Add a true launch-readiness checklist to detect incomplete content, hidden pages, missing travel data, and stale settings before publishing.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Final Verdict</h2>
+      <p>
+        <strong>Final grade: B+.</strong> This is already better designed than most custom wedding websites and dramatically better than most template-driven ones. The brand, imagery, and overall tone are strong enough that the site feels memorable.
+      </p>
+      <p>
+        The path to an A is clear: make the utility layer as polished and as unmistakable as the emotional layer, remove every trace of unfinished content, and tighten the backend edges so the site feels as reliable behind the curtain as it looks on the front.
+      </p>
+    </section>
+
+    <div class="footer">
+      Reviewed locally from the project workspace. Visual checks included desktop and mobile captures; technical checks included code inspection and a successful production build.
+    </div>
+  </div>
+</body>
+</html>

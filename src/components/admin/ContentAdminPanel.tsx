@@ -601,6 +601,11 @@ export default function ContentAdminPanel() {
     const [metaDescription, setMetaDescription] = useState(WEDDING.meta.description);
     const metaSave = useSaveStatus();
 
+    // ── Page Visibility ──
+    const [pageVisibility, setPageVisibility] = useState<Array<{ slug: string; label: string; hidden: boolean }>>([]);
+    const [pagesLoading, setPagesLoading] = useState(false);
+    const [pagesError, setPagesError] = useState<string | null>(null);
+
     // ── Load saved settings ──────────────────────────────────────────────────
 
     useEffect(() => {
@@ -660,6 +665,36 @@ export default function ContentAdminPanel() {
             }
         })();
     }, []);
+
+    // ── Page visibility handlers ──────────────────────────────────────────────
+
+    async function fetchPageVisibility() {
+        setPagesLoading(true);
+        setPagesError(null);
+        try {
+            const res = await fetch("/api/admin/page-visibility", { credentials: "same-origin" });
+            const data = await res.json() as { pages: Array<{ slug: string; label: string; hidden: boolean }> };
+            setPageVisibility(data.pages);
+        } catch (e) {
+            setPagesError(e instanceof Error ? e.message : "Unknown error");
+        } finally {
+            setPagesLoading(false);
+        }
+    }
+
+    async function togglePageVisibility(slug: string, hidden: boolean) {
+        setPageVisibility((prev) => prev.map((p) => p.slug === slug ? { ...p, hidden } : p));
+        try {
+            await fetch("/api/admin/page-visibility", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ slug, hidden }),
+            });
+        } catch {
+            await fetchPageVisibility();
+        }
+    }
 
     // ── Save handlers ────────────────────────────────────────────────────────
 
@@ -806,6 +841,45 @@ export default function ContentAdminPanel() {
 
     return (
         <div className="space-y-0 divide-y divide-primary/8">
+            {/* ── Page Visibility ───────────────────────────────────────── */}
+            <ContentSection label="Page Visibility">
+                <div>
+                    <p className="mb-4 text-sm text-text-secondary">Toggle pages on or off for public visitors. Hidden pages show a 404 to guests.</p>
+                    {pageVisibility.length === 0 && !pagesLoading && !pagesError && (
+                        <button
+                            onClick={() => void fetchPageVisibility()}
+                            className="rounded-full border border-primary/12 bg-white px-4 py-2 text-xs uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-white"
+                        >
+                            Load Pages
+                        </button>
+                    )}
+                    {pagesLoading && <p className="text-sm text-text-secondary py-2">Loading...</p>}
+                    {pagesError && <p className="text-sm text-red-600 py-2">{pagesError}</p>}
+                    {pageVisibility.length > 0 && (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                            {pageVisibility.map((page) => (
+                                <div key={page.slug} className="flex items-center justify-between rounded-xl border border-primary/8 bg-surface/60 px-4 py-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-primary">{page.label}</p>
+                                        <p className="text-xs text-text-secondary mt-0.5">/{page.slug}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => void togglePageVisibility(page.slug, !page.hidden)}
+                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${page.hidden ? "bg-gray-200" : "bg-primary"}`}
+                                        role="switch" aria-checked={!page.hidden}
+                                    >
+                                        <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${page.hidden ? "translate-x-0" : "translate-x-5"}`} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {pageVisibility.length > 0 && (
+                        <p className="mt-4 text-xs text-text-secondary"><span className="font-medium">On</span> = visible · <span className="font-medium">Off</span> = hidden</p>
+                    )}
+                </div>
+            </ContentSection>
+
             {/* ── Event Details ─────────────────────────────────────────── */}
             <ContentSection label="Event Details" defaultOpen>
                 <div className="space-y-1">
@@ -908,8 +982,8 @@ export default function ContentAdminPanel() {
                 </div>
             </ContentSection>
 
-            {/* ── Images ────────────────────────────────────────────────── */}
-            <ContentSection label="Images">
+            {/* ── Hero Image ────────────────────────────────────────────── */}
+            <ContentSection label="Hero Image">
                 <div className="space-y-6">
                     <div>
                         <p className="text-xs text-text-secondary mb-3">

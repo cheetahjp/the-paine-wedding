@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholder";
 
 const DEFAULT_FALLBACK =
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
+    "/images/hero/JeffAshlyn-7977_2.jpg";
 
 /** Client component for bridal party portraits with onError fallback and admin-key */
 export function PersonPortrait({
@@ -44,6 +45,10 @@ export function PersonPortrait({
                     src={safeSrc}
                     alt={name}
                     fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                    quality={68}
+                    placeholder="blur"
+                    blurDataURL={IMAGE_BLUR_DATA_URL}
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = fallback || DEFAULT_FALLBACK;

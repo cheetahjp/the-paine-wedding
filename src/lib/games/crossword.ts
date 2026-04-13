@@ -170,6 +170,8 @@ export function parseCrosswordOverrides(value: unknown): CrosswordOverrideMap {
 // Word reuse allowed after 8-puzzle cooldown.
 // ---------------------------------------------------------------------------
 
+// AUTO-GENERATED — 194/194 puzzles, 2026-03-17 to 2026-09-26
+// Word reuse allowed after 0-puzzle cooldown.
 const RAW_PUZZLES: RawPuzzleData[] = [
   // p001 — 2026-03-17 — How They Met — template C
   { id: "p001", rows: 5, cols: 5, words: [
@@ -2691,8 +2693,7 @@ const RAW_PUZZLES: RawPuzzleData[] = [
     { word: "LANCE", clue: "Knights weapon", row: 0, col: 1, dir: "D" },
     { word: "INDEX", clue: "List guide", row: 0, col: 2, dir: "D" },
     { word: "AGENT", clue: "Representative", row: 0, col: 3, dir: "D" },
-    { word: "RARE", clue: "Uncommon", row: 0, col: 4, dir: "D" },
-  ] },
+    { word: "RARE", clue: "Uncommon", row: 0, col: 4, dir: "D" },  ] },
 ];
 
 

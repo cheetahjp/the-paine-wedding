@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import ScoreSubmissionForm from "@/components/games/ScoreSubmissionForm";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import {
@@ -14,6 +14,13 @@ import {
     getWordStatusMap,
     type LetterStatus,
 } from "@/lib/games/painedle";
+import {
+    captureBrowserProfile,
+    GAME_LEADERBOARD_REFRESH_EVENT,
+    getStoredGamePlayer,
+    saveStoredGamePlayer,
+    submitGameScore,
+} from "@/lib/games/leaderboard";
 
 type GameStatus = "playing" | "won" | "lost";
 
@@ -221,6 +228,9 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     const [isCheckingGuess, setIsCheckingGuess] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [showAdminAnswer, setShowAdminAnswer] = useState(false);
+    const [autoSubmitStatus, setAutoSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+    const [shareCopied, setShareCopied] = useState(false);
+    const autoSubmitAttempted = useRef(false);
 
     const { isAdmin } = useAdminSession();
 
@@ -228,6 +238,68 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     const storageKey = getStorageKey(dateKey);
     const keyboardStatuses = getWordStatusMap(guesses, solution);
     const score = status === "won" ? MAX_GUESSES - guesses.length + 1 : 0;
+
+    // Auto-submit score when game ends if player account is stored
+    useEffect(() => {
+        if (status === "playing" || autoSubmitAttempted.current) return;
+        if (status !== "won") return; // only submit wins
+        const storedPlayer = getStoredGamePlayer();
+        if (!storedPlayer) return;
+        autoSubmitAttempted.current = true;
+        setAutoSubmitStatus("submitting");
+        const browserProfile = storedPlayer.browserProfile ?? captureBrowserProfile();
+        const fullName = storedPlayer.firstName && storedPlayer.lastName
+            ? `${storedPlayer.firstName} ${storedPlayer.lastName}`
+            : storedPlayer.username ?? "";
+        submitGameScore({
+            game: "painedle",
+            username: fullName,
+            email: storedPlayer.email ?? "",
+            score,
+            maxScore: MAX_GUESSES,
+            attempts: guesses.length,
+            solved: true,
+            puzzleKey: dateKey,
+            metadata: {
+                solution,
+                word_length: WORD_LENGTH,
+                browser_language: browserProfile?.language ?? null,
+                browser_languages: browserProfile?.languages ?? null,
+                browser_platform: browserProfile?.platform ?? null,
+                browser_timezone: browserProfile?.timezone ?? null,
+                browser_user_agent: browserProfile?.userAgent ?? null,
+                browser_screen: browserProfile?.screen ?? null,
+            },
+        }).then(() => {
+            saveStoredGamePlayer({ ...storedPlayer, username: fullName, browserProfile });
+            setAutoSubmitStatus("success");
+            window.dispatchEvent(new Event(GAME_LEADERBOARD_REFRESH_EVENT));
+        }).catch(() => {
+            setAutoSubmitStatus("error");
+        });
+    }, [status, score, guesses.length, dateKey, solution]);
+
+    function buildShareText() {
+        const guessEmojis = guesses.map((guess) =>
+            evaluateGuess(guess, solution)
+                .map((s) => s === "correct" ? "🟩" : s === "present" ? "🟨" : "⬛")
+                .join("")
+        );
+        const header = `Painedle ${status === "won" ? guesses.length : "X"}/${MAX_GUESSES}`;
+        return [header, ...guessEmojis, "", "thepainewedding.com/games/painedle"].join("\n");
+    }
+
+    function handleShare() {
+        const text = buildShareText();
+        if (navigator.share) {
+            void navigator.share({ text });
+        } else {
+            void navigator.clipboard.writeText(text).then(() => {
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 2000);
+            });
+        }
+    }
 
     useEffect(() => {
         const stateToSave: SavedGameState = {
@@ -300,7 +372,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
     function handleKeyInput(key: string) {
         if (status !== "playing") return;
 
-        if (key === "Enter") {
+        if (key === "Enter" || key === "ENTER") {
             handleSubmit();
             return;
         }
@@ -353,7 +425,7 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
         <>
             {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
-            <div className="relative overflow-hidden rounded-[2.3rem] border border-white/18 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_12px_0_rgba(12,24,39,0.22),0_28px_90px_rgba(20,42,68,0.20)] md:p-10">
+            <div className="relative overflow-hidden rounded-[2.3rem] border border-white/18 bg-[linear-gradient(155deg,#0f2439_0%,#15314f_58%,#1e4566_100%)] p-6 text-white shadow-[0_20px_70px_rgba(12,24,39,0.30)] md:p-10">
                 <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-accent/16 blur-3xl" />
                 <div className="pointer-events-none absolute -left-10 bottom-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
 
@@ -433,29 +505,31 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
                 </div>
 
                 {/* Keyboard */}
-                <div className="relative mt-8 space-y-2.5">
+                <div className="relative mt-6 space-y-[2px] md:space-y-1.5">
                     {KEYBOARD_ROWS.map((row) => (
-                        <div key={row.join("")} className="flex justify-center gap-1.5 md:gap-2">
+                        <div key={row.join("")} className="flex justify-center gap-[2px] md:gap-1.5">
                             {row.map((key) => {
-                                const isAction = key === "ENTER" || key === "BACK";
+                                const isEnter = key === "ENTER";
+                                const isBack = key === "BACK";
+                                const isAction = isEnter || isBack;
                                 const keyStatus = !isAction ? keyboardStatuses[key.toLowerCase()] : undefined;
                                 const statusClass = isAction
                                     ? "border-primary bg-primary text-white hover:bg-[#1e4566]"
                                     : keyboardKeyClasses(keyStatus);
-                                const sizeClass = isAction
-                                    ? "min-w-[4rem] px-2 md:min-w-[5.5rem] md:px-4"
-                                    : "w-9 md:w-[3.1rem]";
+                                const sizeClass = isEnter
+                                    ? "min-w-[4.5rem] px-1 md:min-w-[5.5rem] md:px-4"
+                                    : "w-[calc((100vw-2rem)/10)] max-w-[3.1rem] md:w-[3.1rem]";
 
                                 return (
                                     <button
                                         key={key}
                                         type="button"
                                         onClick={() => {
-                                            void handleKeyInput(key === "BACK" ? "Backspace" : key);
+                                            void handleKeyInput(isBack ? "Backspace" : key);
                                         }}
-                                        className={`flex h-12 items-center justify-center rounded-[0.9rem] border text-xs font-semibold uppercase tracking-[0.1em] transition-colors duration-200 md:h-14 md:text-sm ${sizeClass} ${statusClass}`}
+                                        className={`flex h-[calc((100vw-2rem)/10)] max-h-14 min-h-10 items-center justify-center rounded-[0.6rem] border text-xs font-semibold uppercase tracking-[0.05em] transition-colors duration-200 md:h-14 md:rounded-[0.9rem] md:text-sm ${sizeClass} ${statusClass}`}
                                     >
-                                        {key === "BACK" ? "←" : key}
+                                        {isBack ? "←" : key}
                                     </button>
                                 );
                             })}
@@ -465,19 +539,41 @@ function PainedleBoard({ dateKey }: { dateKey: string }) {
 
                 {/* Post-game */}
                 {status !== "playing" ? (
-                    <div className="relative mt-10">
+                    <div className="relative mt-10 space-y-4">
+                        {/* Share button — always shown after game ends */}
+                        <button
+                            type="button"
+                            onClick={handleShare}
+                            className="flex w-full items-center justify-center gap-2 rounded-[1.75rem] border border-white/15 bg-white/10 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white/80 transition-colors hover:bg-white/18 hover:text-white"
+                        >
+                            {shareCopied ? "✓ Copied!" : "Share Result"}
+                        </button>
+
                         {status === "won" ? (
-                            <ScoreSubmissionForm
-                                game="painedle"
-                                score={score}
-                                maxScore={MAX_GUESSES}
-                                attempts={guesses.length}
-                                solved
-                                puzzleKey={dateKey}
-                                metadata={{ solution, word_length: WORD_LENGTH }}
-                                buttonLabel="Submit Painedle Score"
-                                successMessage="Painedle score submitted."
-                            />
+                            autoSubmitStatus === "success" ? (
+                                <div className="rounded-[1.75rem] border border-emerald-400/20 bg-emerald-400/10 p-5 text-center">
+                                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                                        Score Submitted ✓
+                                    </p>
+                                    <p className="mt-2 text-sm text-white/60">Your Painedle score is on the leaderboard.</p>
+                                </div>
+                            ) : autoSubmitStatus === "submitting" ? (
+                                <div className="rounded-[1.75rem] border border-white/12 bg-white/8 p-5 text-center">
+                                    <p className="text-sm text-white/50">Submitting score…</p>
+                                </div>
+                            ) : (
+                                <ScoreSubmissionForm
+                                    game="painedle"
+                                    score={score}
+                                    maxScore={MAX_GUESSES}
+                                    attempts={guesses.length}
+                                    solved
+                                    puzzleKey={dateKey}
+                                    metadata={{ solution, word_length: WORD_LENGTH }}
+                                    buttonLabel="Submit Painedle Score"
+                                    successMessage="Painedle score submitted."
+                                />
+                            )
                         ) : (
                             <div className="rounded-[1.75rem] border border-white/12 bg-white/8 p-6">
                                 <p className="text-sm uppercase tracking-[0.3em] text-white/60">Round Complete</p>

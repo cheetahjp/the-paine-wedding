@@ -1,9 +1,20 @@
 import React from "react";
+import Link from "next/link";
 import Section from "@/components/ui/Section";
 import AttireTabs from "@/components/ui/AttireTabs";
 import { getWeddingData } from "@/lib/site-settings";
+import { requirePageVisible } from "@/lib/page-visibility";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const metadata = buildPageMetadata({
+    path: "/attire",
+    title: "Attire",
+    description: "See the dress code and outfit inspiration for Ashlyn and Jeffrey's semi-formal wedding celebration.",
+    keywords: ["dress code", "wedding attire", "semi-formal wedding attire"],
+});
 
 export default async function Attire() {
+    await requirePageVisible("attire");
     const { wedding, images, overlays } = await getWeddingData();
     const dresscodeReady = wedding.dresscode.short !== "TBD";
 
@@ -33,7 +44,7 @@ export default async function Attire() {
                 </p>
             </Section>
 
-            <Section background="white" className="pt-10 md:pt-14 pb-24 md:pb-32">
+            <Section background="white" className="pb-14 pt-10 md:pb-18 md:pt-14">
                 <div className="mx-auto max-w-6xl">
                     <AttireTabs
                         ladiesText={
@@ -52,6 +63,13 @@ export default async function Attire() {
                         gentlemenAdminKey="dresscode.gentlemen"
                     />
                 </div>
+            </Section>
+
+            <Section background="surface" className="pb-6 pt-3 text-center md:pb-8 md:pt-4">
+                <p className="text-sm text-text-secondary">
+                    Questions about dress code?{" "}
+                    <Link href="/faq" className="text-primary underline underline-offset-2">See our FAQ</Link>
+                </p>
             </Section>
         </div>
     );

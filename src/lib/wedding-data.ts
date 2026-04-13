@@ -95,9 +95,9 @@ export const WEDDING = {
     summary:
       'Both the ceremony and reception are indoors. Come dressed up and ready to celebrate — see the Attire page for full guidance.',
     ladies:
-      'The inspiration leans polished and feminine: satin slip dresses, soft florals, elevated midi lengths, sculptural necklines, and heels or refined flats. Color is welcome, especially warm neutrals, dusty blues, sage, and rich floral tones. Aim for dressy and tailored rather than casual.',
+      'Midi or floor-length dresses, polished jumpsuits, and refined separates are all welcome. We recommend elevated fabrics, a tailored silhouette, and heels or dressy flats for an overall look that feels polished rather than casual.',
     gentlemen:
-      'The gentlemen’s mood is clean and tailored: classic suits, navy or charcoal separates, crisp dress shirts, ties optional, and polished shoes or dress boots. Think sharp reception-ready dressing — elevated, fitted, and comfortable enough for a long night on the dance floor.',
+      'Suits or tailored separates in classic tones are ideal, paired with a dress shirt and polished shoes or boots. Ties are optional, but the overall look should feel clean, dressy, and evening-ready.',
   },
 
   bridalParty: {
@@ -135,13 +135,13 @@ export const WEDDING = {
       {
         name: 'Brynn Wilson',
         role: 'Bridesmaid',
-        relationship: "Jeffrey's Cousin",
+        relationship: "Jeff's Cousin",
         image: '/images/bridal-party/Bridesmaids/Brynn.jpg',
       },
       {
         name: 'Emma Wilson',
         role: 'Bridesmaid',
-        relationship: "Jeffrey's Cousin",
+        relationship: "Jeff's Cousin",
         image: '/images/bridal-party/Bridesmaids/Emma.jpg',
       },
     ],
@@ -149,37 +149,37 @@ export const WEDDING = {
       {
         name: 'John Paine',
         role: 'Best Man',
-        relationship: "Jeffrey's Brother",
+        relationship: "Jeff's Brother",
         image: '/images/bridal-party/Groomsmen/John.jpg',
       },
       {
         name: 'Hudson Boyd',
         role: 'Groomsman',
-        relationship: "Jeffrey's College Friend",
+        relationship: "Jeff's College Friend",
         image: '/images/bridal-party/Groomsmen/Hudson.jpg',
       },
       {
         name: 'Roman Richichi',
         role: 'Groomsman',
-        relationship: "Jeffrey's High School Friend",
+        relationship: "Jeff's High School Friend",
         image: '/images/bridal-party/Groomsmen/Roman.jpg',
       },
       {
         name: 'Justin Luurtsema',
         role: 'Groomsman',
-        relationship: "Jeffrey's College Friend",
+        relationship: "Jeff's College Friend",
         image: '/images/bridal-party/Groomsmen/Justin.jpg',
       },
       {
         name: 'Duncan Marshall',
         role: 'Groomsman',
-        relationship: "Jeffrey's High School Friend",
+        relationship: "Jeff's High School Friend",
         image: '/images/bridal-party/Groomsmen/Duncan.jpg',
       },
       {
         name: 'Collin Groezinger',
         role: 'Groomsman',
-        relationship: "Jeffrey's Childhood Friend",
+        relationship: "Jeff's Childhood Friend",
         image: '/images/bridal-party/Groomsmen/Collin.jpg',
       },
       {
@@ -331,8 +331,7 @@ export const WEDDING = {
       description:
         'Ashlyn and Jeffrey met at an ice cream social at Texas A&M University – Commerce in 2021. Ashlyn had asked a mutual friend to introduce them because she had been hoping for a chance to talk to him. After the introduction, they started texting and finding excuses to hang out. Their first official date was a trip to Sonic and a long drive around town where they talked for hours. They dated for about six months before going their separate ways — they both needed time to grow and mature in their walk with the Lord.',
       image: '/images/story/First round.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/First round.jpg',
     },
     {
       year: 'October 2024',
@@ -340,8 +339,7 @@ export const WEDDING = {
       description:
         'Almost two years later, they both ended up at an A&M football game with 100,000 other people — sitting just five rows apart. They spotted each other and kept their distance, unsure if the other would want to reconnect. Afterward, Jeffrey texted Ashlyn just to say he hoped she was doing well. That simple message sparked nearly a year of monthly check-ins. In August of 2024, Jeffrey asked Ashlyn to hang out. She said no at first, nervous and second-guessing herself, but then regretted it and reached back out. Jeffrey drove four and a half hours to Houston to take Ashlyn on a date at Galveston Bay Brewing, where they talked for hours and realized they were both different people who had grown a lot in the years apart. Two months later, they started dating again on October 18th, 2024.',
       image: '/images/story/A&M Game(Reunion).jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/A&M Game(Reunion).jpg',
     },
     {
       year: 'October 2024',
@@ -349,8 +347,7 @@ export const WEDDING = {
       description:
         'The last year and a half has been long distance, but Ashlyn lives thirty minutes from Galveston — which means plenty of beach days and trips to the lake in Dallas. Any excuse to be outside in the sun, they took it.',
       image: '/images/story/Lake.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/Lake.jpg',
     },
     {
       year: '2024',
@@ -358,8 +355,7 @@ export const WEDDING = {
       description:
         'They love to travel and experience new places together. Their first big trip was New York City — Ashlyn had never been. Jeffrey has traveled his whole life, but he says experiencing places with Ashlyn for the first time makes it feel brand new again.',
       image: '/images/story/NYC.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/NYC.jpg',
     },
     {
       year: '2025',
@@ -367,8 +363,7 @@ export const WEDDING = {
       description:
         'Any weekend without plans, they head to the park with their hammocks. They read, talk about life, or just enjoy being outside together. It is one of their favorite simple things.',
       image: '/images/story/Hammock.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/Hammock.jpg',
     },
     {
       year: '2025',
@@ -376,8 +371,7 @@ export const WEDDING = {
       description:
         'Jeffrey has done photography and videography for years, and Ashlyn shot photos in high school. They started getting asked to shoot proposals and weddings and discovered they make a great team — Jeffrey behind the camera, Ashlyn directing and posing clients. It has become a fun way to spend time together and be part of their friends\' biggest moments.',
       image: '/images/story/Photographers.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/Photographers.jpg',
     },
     {
       year: '2025',
@@ -385,8 +379,7 @@ export const WEDDING = {
       description:
         'To celebrate one year of dating, they headed to San Antonio for the weekend. They strolled the River Walk, tried new restaurants, and ended with a celebratory dinner at what Google called "the most romantic restaurant in Texas." They spent the evening reflecting on the year and talking through their favorite memories together.',
       image: '/images/story/San Antonio.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1531218150217-5afc461afac8?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/San Antonio.jpg',
     },
     {
       year: '2025',
@@ -394,8 +387,7 @@ export const WEDDING = {
       description:
         'A first for both of them — they went on wine tours, learned how the wine is made, and explored the Hill Country together. Another trip, another set of memories.',
       image: '/images/story/Fredricksburg.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1605371304245-2070f8ee9bae?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/Fredricksburg.jpg',
     },
     {
       year: 'February 2026',
@@ -403,8 +395,7 @@ export const WEDDING = {
       description:
         'Jeffrey proposed on February 21st, 2026. Ashlyn thought she had planned a day for her friends Megan and Izzy to meet — she had no idea they were already in on it. After a full day together, they suggested a walk at Arbor Hills Nature Preserve and steered Ashlyn down a different path through the trees. That is when she saw Jeffrey waiting for her. He got down on one knee and asked her to spend forever with him. She said, "Yes, yes, yes, yes — I will!" The evening kept going: a private dinner at 60 Vines where they talked through all the planning that had gone into the day, then the biggest surprise of all — a party at Jeffrey\'s parents\' house filled with every person they love most.',
       image: '/images/story/Proposal.jpg',
-      imageFallback:
-        'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80',
+      imageFallback: '/images/story/Proposal.jpg',
     },
   ],
 
@@ -445,14 +436,12 @@ export const WEDDING = {
 export const IMAGES = {
   hero: {
     main: '/images/hero/JeffAshlyn-7977_2.jpg',
-    fallback:
-      'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80',
+    fallback: '/images/hero/JeffAshlyn-7977_2.jpg',
   },
   engagement: {
     main: '/images/engagement/engagement-1.webp',
     og: '/images/engagement/og-image.jpg',
-    fallback:
-      'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80',
+    fallback: '/images/hero/JeffAshlyn-7977_2.jpg',
   },
   attire: {
     ladies: [
@@ -466,8 +455,6 @@ export const IMAGES = {
       '/images/attire/Womens Outfit 8.jpg',
       '/images/attire/Womens Outfit 9.jpg',
       '/images/attire/Womens Outfit 10.jpg',
-      '/images/attire/Womens Outfit 11.png',
-      '/images/attire/Womens Outfit 12.png',
     ],
     gents: [
       '/images/attire/Mens Outfit 1.jpg',
@@ -481,14 +468,14 @@ export const IMAGES = {
       '/images/attire/Mens Outfit 9.jpg',
     ],
     ladiesFallbacks: [
-      'https://images.unsplash.com/photo-1594892415170-071a93e3d622?auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1596704017254-9b121068fb29?auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1605655787612-409dd786d7cd?auto=format&fit=crop&q=80',
+      '/images/attire/Womens Outfit 1.png',
+      '/images/attire/Womens Outfit 2.jpg',
+      '/images/attire/Womens Outfit 3.jpg',
     ],
     gentsFallbacks: [
-      'https://images.unsplash.com/photo-1563720235374-9b418d184ebc?auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1588665792942-d392376dc372?auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1564883401567-27e1fecde59b?auto=format&fit=crop&q=80',
+      '/images/attire/Mens Outfit 1.jpg',
+      '/images/attire/Mens Outfit 2.jpg',
+      '/images/attire/Mens Outfit 3.jpg',
     ],
   },
 };

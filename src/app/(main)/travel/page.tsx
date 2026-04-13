@@ -1,9 +1,20 @@
 import React from "react";
+import Link from "next/link";
 import Section from "@/components/ui/Section";
 import { getWeddingData } from "@/lib/site-settings";
 import { MapPin, Plane, Car, ExternalLink, Phone } from "lucide-react";
+import { requirePageVisible } from "@/lib/page-visibility";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const metadata = buildPageMetadata({
+    path: "/travel",
+    title: "Travel & Stay",
+    description: "Find hotels, airports, directions, and venue travel details for Ashlyn and Jeffrey's wedding weekend.",
+    keywords: ["travel", "hotels", "wedding venue directions", "Celeste Texas hotels"],
+});
 
 export default async function Travel() {
+    await requirePageVisible("travel");
     const { wedding } = await getWeddingData();
 
     const greenvilleHotels = wedding.hotels.filter((h) => h.hub === 'Greenville');
@@ -248,6 +259,13 @@ export default async function Travel() {
                         ))}
                     </div>
                 </div>
+            </Section>
+
+            <Section background="surface" className="py-8 text-center">
+                <p className="text-sm text-text-secondary">
+                    Have questions about parking, shuttles, or the area?{" "}
+                    <Link href="/faq" className="text-primary underline underline-offset-2">Check our FAQ</Link>
+                </p>
             </Section>
         </div>
     );

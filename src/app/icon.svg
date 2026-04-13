@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#163865"/>
+  <text
+    x="64"
+    y="73"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="34"
+    font-style="italic"
+    font-weight="700"
+    letter-spacing="-2"
+    fill="#f0e7dd"
+  >
+    A&amp;J
+  </text>
+</svg>
