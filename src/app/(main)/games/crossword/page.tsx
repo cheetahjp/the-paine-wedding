@@ -12,10 +12,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata = buildPageMetadata({
     path: "/games/crossword",
-    title: "Mini Crossword",
+    title: "Crossing Paths",
     description: "Play the daily mini crossword built around Ashlyn and Jeffrey, with fresh clues and leaderboard competition.",
     keywords: ["mini crossword", "daily crossword", "wedding crossword"],
 });
+
 
 export default async function CrosswordPage() {
     const todayKey = getCentralDateKey();
@@ -31,7 +32,7 @@ export default async function CrosswordPage() {
                     <span className="text-xs font-medium uppercase tracking-[0.3em] text-accent">Daily Puzzle</span>
                     <span className="h-px w-12 bg-accent" />
                 </div>
-                <h1 className="mb-4 font-heading text-5xl text-primary md:text-6xl">Mini Crossword</h1>
+                <h1 className="mb-4 font-heading text-5xl text-primary md:text-6xl">Crossing Paths</h1>
                 <p className="mx-auto max-w-xl text-text-secondary leading-relaxed">
                     Ten clues built around Ashlyn & Jeffrey. A fresh puzzle every day — solve it fast for the top spot.
                 </p>

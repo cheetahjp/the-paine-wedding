@@ -252,7 +252,7 @@ export default function MiniCrosswordGame({ puzzle, dateKey = getTodayKey() }: M
 
     function handleShare() {
         const timeStr = fmtTime(displayTime);
-        const text = `Mini Crossword — ${timeStr} ✨\nthepainewedding.com/games/crossword`;
+        const text = `Crossing Paths — ${timeStr} ✨\nthepainewedding.com/games/crossword`;
         if (typeof navigator !== "undefined" && navigator.share) {
             navigator.share({ text }).catch(() => {});
         } else {
@@ -617,6 +617,7 @@ export default function MiniCrosswordGame({ puzzle, dateKey = getTodayKey() }: M
                     <div className="flex items-start justify-between gap-3">
                         <div>
                             <p className="text-[10px] uppercase tracking-[0.3em] text-text-secondary">Daily Puzzle</p>
+                            <h2 className="font-heading text-2xl text-primary">Crossing Paths</h2>
                             {solved && postGameUnlocked && (
                                 <button
                                     type="button"
@@ -724,7 +725,7 @@ export default function MiniCrosswordGame({ puzzle, dateKey = getTodayKey() }: M
                     </div>
                     <div>
                         <h3 className="font-heading text-3xl text-white">Congratulations!</h3>
-                        <p className="mt-2 text-base text-white/70">You solved the Mini Crossword</p>
+                        <p className="mt-2 text-base text-white/70">You solved Crossing Paths</p>
                     </div>
                     <div>
                         <p className="font-mono text-5xl font-bold tabular-nums text-accent">{fmtTime(displayTime)}</p>
@@ -896,18 +897,29 @@ export default function MiniCrosswordGame({ puzzle, dateKey = getTodayKey() }: M
                 </div>
             </div>
 
-            {solved && postGameUnlocked && (
-                <div className="border-t border-primary/8 bg-white px-6 py-6">
-                    <div className="space-y-4">
-                        <button
-                            type="button"
-                            onClick={handleShare}
-                            className="flex w-full items-center justify-center gap-2 rounded-[1.5rem] border border-primary/20 bg-primary/5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-primary transition-colors hover:bg-primary/10"
-                        >
-                            {shareCopied ? "✓ Copied!" : "Share Result"}
-                        </button>
+            {solved && (
+                <div className="border-t border-primary/8">
+                    <div className="bg-[linear-gradient(160deg,#173756_0%,#214467_100%)] px-6 py-8 text-center">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/20">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                <path d="M16 3l2.5 8h8.5l-7 5 2.5 8L16 19l-6.5 5 2.5-8-7-5h8.5z" fill="#c9a96e" />
+                            </svg>
+                        </div>
+                        <h3 className="font-heading text-3xl text-white">Congratulations!</h3>
+                        <p className="mt-2 text-base text-white/70">You solved Crossing Paths</p>
+                        <p className="mt-4 font-mono text-5xl font-bold tabular-nums text-accent">{fmtTime(displayTime)}</p>
+                        {revealedEntryIds.length > 0 ? (
+                            <p className="mt-2 text-sm text-white/50">
+                                {revealedEntryIds.length} reveal{revealedEntryIds.length > 1 ? "s" : ""} used
+                            </p>
+                        ) : (
+                            <p className="mt-2 text-sm text-white/50">Clean solve ✨</p>
+                        )}
+                        <p className="mt-1 text-sm font-semibold text-accent">{score} pts</p>
+                    </div>
 
-                        {scoreSubmitted || autoSubmitStatus === "success" ? (
+                    <div className="bg-white px-6 py-6">
+                        {scoreSubmitted ? (
                             <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-center">
                                 <p className="text-xs uppercase tracking-[0.3em] text-emerald-700">Score Locked In</p>
                                 <p className="mt-2 text-sm text-text-secondary">

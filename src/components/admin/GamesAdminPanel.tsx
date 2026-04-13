@@ -35,7 +35,7 @@ type ModalView =
     | "submissions"
     | "players";
 
-type ScoreFilter = "all" | "trivia" | "painedle" | "crossword";
+type ScoreFilter = "all" | "trivia" | "painedle" | "crossword" | "connections";
 
 type PlayerSummary = {
     email: string;
@@ -140,7 +140,7 @@ function getScoreLabel(score: AdminGameScore) {
 
 function getPuzzleLabel(score: AdminGameScore) {
     if (score.game === "trivia") return "Wedding-day trivia";
-    if (score.game === "crossword") return "Mini crossword";
+    if (score.game === "crossword") return "Crossing Paths";
     return score.puzzle_key;
 }
 
@@ -862,7 +862,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         <OverviewMetric
                             label="Unlock"
                             value={crosswordRemaining.isUnlocked ? "Live" : CROSSWORD_UNLOCK_LABEL}
-                            note="The mini crossword is a single fill-in-the-blank board that opens the week before the wedding."
+                            note="Crossing Paths is a fill-in-the-blank crossword built from Ashlyn and Jeffrey's story that opens the week before the wedding."
                         />
                         <OverviewMetric
                             label="Selected Puzzle"
@@ -1545,7 +1545,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         <p className="text-xs uppercase tracking-[0.28em] text-white/60">Games Status</p>
                         <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <p className="max-w-3xl text-sm leading-relaxed text-white/80">
-                                Painedle is live now with the current daily rotation, the mini crossword unlocks {crosswordRemaining.isUnlocked ? "now" : `on ${CROSSWORD_UNLOCK_LABEL}`}, and trivia stays locked until {TRIVIA_UNLOCK_LABEL}.
+                                Painedle is live now with the current daily rotation, Crossing Paths unlocks {crosswordRemaining.isUnlocked ? "now" : `on ${CROSSWORD_UNLOCK_LABEL}`}, and trivia stays locked until {TRIVIA_UNLOCK_LABEL}.
                             </p>
                             <div className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/78">
                                 {crosswordRemaining.isUnlocked
@@ -1576,7 +1576,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                     <OverviewMetric
                         label="Crossword Scores"
                         value={crosswordScores.length}
-                        note="All mini crossword submissions so far."
+                        note="All Crossing Paths submissions so far."
                     />
                     <OverviewMetric
                         label="Today's Painedle"
@@ -1589,13 +1589,23 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                         note="Answers in rotation."
                         subnote={`5-letter words · ${duplicateWordCount} duplicate${duplicateWordCount === 1 ? "" : "s"}`}
                     />
+                    <OverviewMetric
+                        label="Word Length"
+                        value="5"
+                        note="Painedle currently runs with fixed five-letter answers."
+                    />
+                    <OverviewMetric
+                        label="Duplicates"
+                        value={duplicateWordCount}
+                        note="Duplicate answers currently present in the live word bank."
+                    />
                 </div>
 
                 <div className="grid gap-6 xl:grid-cols-4">
                     <ControlCard
                         eyebrow="Painedle Admin"
-                        title="Painedle"
-                        copy="Open the schedule or the full bank."
+                        title="Daily rotation controls"
+                        copy="Check today's answer, inspect the upcoming calendar, and verify the live bank without leaving stale Wordle-era control cards in the overview."
                     >
                         <PillButton label="Schedule" onClick={() => setModalView("schedule")} />
                         <PillButton label="Word Bank" onClick={() => setModalView("word-bank")} />
@@ -1603,13 +1613,13 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
 
                     <ControlCard
                         eyebrow="Crossword Admin"
-                        title="Crossword"
-                        copy="Edit boards, clues, and exports."
+                        title="Crossword word and clue bank"
+                        copy="Review upcoming crossword boards, edit the answer list and clue copy for each date, and save overrides without digging through static source files."
                     >
-                        <PillButton label="Edit" onClick={() => setModalView("crossword")} />
+                        <PillButton label="Edit crossword" onClick={() => setModalView("crossword")} />
                         <PillButton label="Leaderboards" onClick={() => setModalView("leaderboards")} />
                         <PillButton
-                            label="Export"
+                            label="Export words & clues"
                             onClick={() => {
                                 const entries = getAllCrosswordWordClues();
                                 const json = JSON.stringify(entries, null, 2);
@@ -1620,8 +1630,8 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
 
                     <ControlCard
                         eyebrow="Trivia Admin"
-                        title="Trivia"
-                        copy="Manage questions and scores."
+                        title="Question bank and launch"
+                        copy="Review every trivia prompt, correct answer, fun fact, and launch state from one place."
                     >
                         <PillButton label="Questions" onClick={() => setModalView("trivia-bank")} />
                         <PillButton label="Leaderboards" onClick={() => setModalView("leaderboards")} />
@@ -1648,7 +1658,7 @@ export default function GamesAdminPanel({ gameScores, gameScoresError }: GamesAd
                                     {modalView === "today-word" && "Today's Painedle"}
                                     {modalView === "schedule" && "Painedle schedule preview"}
                                     {modalView === "word-bank" && "Painedle word bank"}
-                                    {modalView === "crossword" && "Mini crossword editor"}
+                                    {modalView === "crossword" && "Crossing Paths editor"}
                                     {modalView === "trivia-bank" && "Trivia question bank"}
                                     {modalView === "leaderboards" && "Leaderboard views"}
                                     {modalView === "submissions" && "Recent submissions"}
